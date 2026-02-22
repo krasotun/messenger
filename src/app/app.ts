@@ -1,5 +1,5 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -8,5 +8,13 @@ import { RouterOutlet } from '@angular/router';
   styleUrl: './app.scss',
 })
 export class App {
-  protected readonly title = signal('messenger');
+  private readonly _router = inject(Router);
+
+  protected navigateToSignInPage(): void {
+    this._router.navigate(['sign-in']);
+  }
+
+  protected navigateToSignUpPage() {
+    this._router.navigate(['sign-up']);
+  }
 }
