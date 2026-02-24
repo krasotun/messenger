@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
+import { SignUpForm } from '../../features/users/components/sign-up-form/sign-up-form';
 
 @Component({
   selector: 'app-sign-up-page',
-  imports: [],
+  imports: [SignUpForm],
   templateUrl: './sign-up-page.html',
   styleUrl: './sign-up-page.scss',
 })

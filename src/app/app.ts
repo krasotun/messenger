@@ -10,6 +10,10 @@ import { Router, RouterOutlet } from '@angular/router';
 export class App {
   private readonly _router = inject(Router);
 
+  protected navigateToMainPage() {
+    this._router.navigate(['']);
+  }
+
   protected navigateToSignInPage(): void {
     this._router.navigate(['sign-in']);
   }

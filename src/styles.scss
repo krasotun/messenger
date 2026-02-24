@@ -1,1 +1,63 @@
 /* You can add global styles to this file, and also import other style files */
+
+@use '../public/static/styles/normalize';
+@use '../public/static/styles/fonts';
+@use '../public/static/styles/button';
+
+:root {
+  /* Base */
+  --color-white: #fff;
+  --color-accent: #3aa0ff;
+  --color-accent-hover: #2b8cf0;
+  --color-success: #22a862;
+  --color-success-hover: #1f9859;
+  --color-danger: #e14b4b;
+  --color-danger-hover: #cc4242;
+  --color-warning: #f1b647;
+  --color-warning-hover: #dca53f;
+
+  /* Borders */
+  --color-border: #d0d4d9;
+  --color-border-muted: #e2e6ea;
+  --color-border-focus: #6b7785;
+
+  /* Text */
+  --color-text-primary: #1f2a37;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #6b7280;
+  --color-text-subtle: #9aa4b2;
+  --color-text-link: #3a6ea8;
+  --color-text-inverse: #fff;
+  --color-text-dark: #0f172a;
+  --color-text-button-secondary: #2b2f33;
+
+  /* Surfaces */
+  --color-surface: #fff;
+  --color-surface-muted: #f6f8fb;
+  --color-surface-soft: #f3f5f8;
+  --color-surface-softer: #f8fafc;
+  --color-surface-hover: #f2f5f8;
+  --color-surface-pill: #eef2f7;
+  --color-surface-pill-hover: #e2e8f0;
+  --color-surface-message: #f1f5f9;
+  --color-surface-message-outgoing: #d9ecff;
+  --color-surface-selected: #e7f2ff;
+  --color-surface-selected-border: #cfe4ff;
+  --color-surface-avatar: #dbe3ef;
+  --color-surface-error-start: #f4f8ff;
+  --color-surface-error-end: #eef3fb;
+
+  /* Icons */
+  --color-icon: #7a8696;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+}
+
+app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
