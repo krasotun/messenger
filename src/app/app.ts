@@ -5,7 +5,6 @@ import { Router, RouterOutlet } from '@angular/router';
   selector: 'app-root',
   imports: [RouterOutlet],
   templateUrl: './app.html',
-  styleUrl: './app.scss',
 })
 export class App {
   private readonly _router = inject(Router);
