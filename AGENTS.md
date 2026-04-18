@@ -179,6 +179,17 @@ Near-term implementation scope:
 - `shared/ui`
 - `shared/api`
 
+Current task order for `MVP: Authorization`:
+
+1. `[Shared UI] Create reusable button component`
+2. `[Shared UI] Create reusable input component`
+3. `[Auth] User can sign up`
+4. `[Auth] User can sign in`
+
+Current active task:
+
+- `[Shared UI] Create reusable button component`
+
 Later scope:
 
 - `entities/chat`

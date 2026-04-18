@@ -2,6 +2,13 @@
 
 Короткий план на первое время под упрощенный Feature-Sliced Design.
 
+## Текущая очередь MVP: Authorization
+
+1. `[in progress] [Shared UI] Create reusable button component`
+2. `[todo] [Shared UI] Create reusable input component`
+3. `[todo] [Auth] User can sign up`
+4. `[todo] [Auth] User can sign in`
+
 ## Уже сделано
 
 - Перенесен `sign-up-form` в `features/auth/sign-up/ui/sign-up-form`.
