@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 
-import { Button } from '../../../../../shared/directives/button';
+import { Button } from '@shared/ui/button/button';
 
 @Component({
   selector: 'app-sign-up-form',

@@ -2,7 +2,7 @@
 
 @use '../public/static/styles/normalize';
 @use '../public/static/styles/fonts';
-@use '../public/static/styles/button';
+@use 'app/shared/ui/button/button';
 
 :root {
   /* Base */

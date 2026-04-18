@@ -3,10 +3,10 @@ import { Directive, input } from '@angular/core';
 type ButtonColorType = 'primary' | 'secondary' | 'success' | 'danger' | 'warning';
 
 @Directive({
-  selector: '[appButton]',
+  selector: 'button[appButton]',
   host: {
     '[class.disabled]': 'disabled()',
-    '[class]': '`colorType-${colorType()}`',
+    '[class]': '`button-${colorType()}`',
   },
 })
 export class Button {

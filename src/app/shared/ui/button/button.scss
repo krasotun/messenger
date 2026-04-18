@@ -1,0 +1,67 @@
+[appButton] {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-accent-hover);
+  }
+
+  &:disabled,
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  &.button-primary {
+    background: var(--color-accent);
+    color: var(--color-text-inverse);
+
+    &:hover {
+      background: var(--color-accent-hover);
+    }
+  }
+
+  &.button-secondary {
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-button-secondary);
+
+    &:hover {
+      background: var(--color-surface-hover);
+    }
+  }
+
+  &.button-success {
+    background: var(--color-success);
+    color: var(--color-text-inverse);
+
+    &:hover {
+      background: var(--color-success-hover);
+    }
+  }
+
+  &.button-danger {
+    background: var(--color-danger);
+    color: var(--color-text-inverse);
+
+    &:hover {
+      background: var(--color-danger-hover);
+    }
+  }
+
+  &.button-warning {
+    background: var(--color-warning);
+    color: var(--color-text-dark);
+
+    &:hover {
+      background: var(--color-warning-hover);
+    }
+  }
+}
