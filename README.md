@@ -17,12 +17,12 @@ Domain-first Angular + lightweight DDD boundaries
 Код группируется вокруг бизнес-доменов. Внутри домена используется легкое
 разделение на `domain`, `application`, `infrastructure`, `presentation`.
 
-FSD-слои `features`, `entities`, `widgets`, `pages` не используются как
-основная структура. Для растущего messenger важнее сначала ответить на вопрос
-"к какой бизнес-области относится код?", а не "какой это FSD-слой?".
-
 `shared` остается только для переиспользуемого технического и UI-кода без
 бизнес-логики.
+
+Текущее состояние: базовая domain-first структура уже заведена. Auth-related UI
+перенесен в `domains/identity-access/presentation`, старые top-level
+`features` и `pages` больше не используются.
 
 ## Текущий фокус
 
@@ -59,6 +59,25 @@ src/app
   core
   shared
   domains
+```
+
+Текущая структура проекта:
+
+```text
+src/app
+  core
+  shared
+    ui
+      button
+  domains
+    identity-access
+      domain
+      application
+      infrastructure
+      presentation
+        sign-in-page
+        sign-up-page
+        sign-up-form
 ```
 
 ### `core`
@@ -108,6 +127,27 @@ domains/identity-access
 domains/messaging
 domains/profile
 domains/notifications
+```
+
+## Нейминг
+
+Соглашения по именам:
+
+```text
+*.api.ts       // HTTP requests only
+*.dto.ts       // backend request/response contracts
+*.mapper.ts    // mapping between DTO and domain models
+*.service.ts   // state, session, infrastructure services
+*.use-case.ts  // optional complex application scenario
+*.types.ts     // shared technical types when needed
+```
+
+Не используем `store` naming для текущих state services. Предпочитаем имена по
+ответственности:
+
+```text
+auth-session.service.ts
+auth-token.storage.ts
 ```
 
 ## Структура домена
@@ -261,27 +301,6 @@ Component -> localStorage
 Component -> complex business rules
 ```
 
-## Нейминг
-
-Соглашения по именам:
-
-```text
-*.api.ts       // HTTP requests only
-*.dto.ts       // backend request/response contracts
-*.mapper.ts    // mapping between DTO and domain models
-*.service.ts   // state, session, infrastructure services
-*.use-case.ts  // optional complex application scenario
-*.types.ts     // shared technical types when needed
-```
-
-Не используем `store` naming для текущих state services. Предпочитаем имена по
-ответственности:
-
-```text
-auth-session.service.ts
-auth-token.storage.ts
-```
-
 ## UI
 
 Базовые UI-компоненты живут в `shared/ui` и являются dumb/reusable:
@@ -307,10 +326,25 @@ UI конкретного бизнес-сценария живет в `domains/{
 
 ## Роутинг
 
-Страницы подключаем через lazy loading:
+Для доменных страниц предпочитаем lazy loading через `loadComponent`.
+
+Текущие auth-маршруты:
+
+```text
+/        -> redirect to /sign-up
+/sign-in -> identity-access sign-in page
+/sign-up -> identity-access sign-up page
+```
+
+Целевой формат подключения страниц:
 
 ```ts
 export const routes: Routes = [
+  {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'sign-up',
+  },
   {
     path: 'sign-in',
     loadComponent: () =>
@@ -341,24 +375,27 @@ Guards добавляем после реализации авторизации
 
 Порядок задач:
 
-1. `[Shared UI] Create reusable button component`
-2. `[Shared UI] Create reusable input component`
+1. `[Shared UI] Create reusable button component` - done
+2. `[Shared UI] Create reusable input component` - active
 3. `[Identity Access] User can sign up`
 4. `[Identity Access] User can sign in`
 
 Текущая активная задача:
 
 ```text
-[Shared UI] Create reusable button component
+[Shared UI] Create reusable input component
 ```
 
-Button component должен находиться в:
+Button component находится в:
 
 ```text
 src/app/shared/ui/button
 ```
 
 ## Целевая структура
+
+Ниже целевая структура по мере развития authorization MVP. Часть каталогов
+может быть пустой и зафиксирована через `.gitkeep`, пока в слое нет кода.
 
 ```text
 src/app
