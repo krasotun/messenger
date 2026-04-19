@@ -11,568 +11,280 @@ Swagger API: https://ya-praktikum.tech/api/v2/swagger/#/
 Выбран подход:
 
 ```text
-Angular standalone + lazy routes + simplified Feature-Sliced Design + signal-based services
+Domain-first Angular + lightweight DDD boundaries
 ```
 
-Используем упрощенный Feature-Sliced Design без слоя `widgets` на старте.
+Код группируется вокруг бизнес-доменов. Внутри домена используется легкое
+разделение на `domain`, `application`, `infrastructure`, `presentation`.
 
-Основные слои:
+FSD-слои `features`, `entities`, `widgets`, `pages` не используются как
+основная структура. Для растущего messenger важнее сначала ответить на вопрос
+"к какой бизнес-области относится код?", а не "какой это FSD-слой?".
 
-```text
-app
-pages
-features
-entities
-shared
-```
-
-`widgets` добавим позже, только если страницы станут слишком крупными.
+`shared` остается только для переиспользуемого технического и UI-кода без
+бизнес-логики.
 
 ## Текущий фокус
 
-Сейчас в проекте есть только базовые сценарии авторизации:
+Сейчас продуктовый фокус - авторизация:
+
+- регистрация пользователя;
+- вход пользователя;
+- хранение текущей сессии;
+- восстановление сессии в будущем.
+
+Чаты, сообщения и другие messenger-сценарии будут добавлены позже. Не вводим их
+в архитектуру раньше времени.
+
+Текущий домен:
 
 ```text
-features/auth/sign-in
-features/auth/sign-up
+domains/identity-access
 ```
 
-Messenger-сценарии вроде отправки сообщений и создания чатов пока не планируем как текущую задачу. Они появятся позже.
+Он отвечает за:
 
-## Организация features
+- sign in;
+- sign up;
+- current user session;
+- tokens;
+- session restore;
+- auth guards;
+- authorization-related user state.
 
-Так как сценариев со временем станет много, `features` не делаем плоской папкой.
-
-Используем практичный формат:
+## Верхнеуровневая структура
 
 ```text
-features/{domain}/{scenario}
+src/app
+  core
+  shared
+  domains
 ```
 
-Примеры:
+### `core`
 
-```text
-features/auth/sign-in
-features/auth/sign-up
-features/auth/logout
+Глобальная инфраструктура Angular-приложения:
 
-features/profile/update-profile
-features/profile/update-avatar
-features/profile/update-password
+- bootstrap/config;
+- routes;
+- global providers;
+- interceptors;
+- app-level guards;
+- app initialization.
 
-features/chats/create-chat
-features/chats/delete-chat
-features/chats/add-user-to-chat
-
-features/messages/send-message
-features/messages/edit-message
-features/messages/delete-message
-```
-
-Важно: доменная папка внутри `features` нужна только для группировки сценариев. Сами сущности всё равно живут в `entities`.
-
-```text
-entities/user       // пользователь как сущность
-features/auth/sign-in // действие входа
-
-entities/message       // сообщение как сущность
-features/messages/send-message // действие отправки сообщения
-```
-
-## Рекомендуемая структура
-
-```text
-src/
-  app/
-    app.config.ts
-    app.routes.ts
-    app.ts
-    app.html
-
-    pages/
-      sign-in/
-        sign-in-page.ts
-        sign-in-page.html
-        sign-in-page.scss
-      sign-up/
-        sign-up-page.ts
-        sign-up-page.html
-        sign-up-page.scss
-      messenger/
-        messenger-page.ts
-        messenger-page.html
-        messenger-page.scss
-      profile/
-        profile-page.ts
-        profile-page.html
-        profile-page.scss
-
-    features/
-      auth/
-        api/
-          auth.api.ts
-        sign-in/
-          ui/
-            sign-in-form/
-          model/
-        sign-up/
-          ui/
-            sign-up-form/
-          model/
-        logout/
-          ui/
-          model/
-
-      profile/
-        update-profile/
-          ui/
-          model/
-          api/
-        update-avatar/
-          ui/
-          model/
-          api/
-
-      chats/
-        create-chat/
-          ui/
-          model/
-          api/
-        delete-chat/
-          ui/
-          model/
-          api/
-
-      messages/
-        send-message/
-          ui/
-          model/
-          api/
-        edit-message/
-          ui/
-          model/
-          api/
-
-    entities/
-      user/
-        model/
-          user.types.ts
-          user-session.service.ts
-        api/
-          user.api.ts
-        ui/
-          avatar/
-
-      chat/
-        model/
-          chat.types.ts
-          chat-state.service.ts
-        api/
-          chat.api.ts
-        ui/
-          chat-list/
-          chat-card/
-
-      message/
-        model/
-          message.types.ts
-          message-state.service.ts
-        api/
-          message.api.ts
-        ui/
-          message-list/
-          message-card/
-
-    shared/
-      api/
-        api.config.ts
-        api-error.ts
-      realtime/
-        websocket.service.ts
-      ui/
-        button/
-        input/
-        form-field/
-        loader/
-        modal/
-        avatar/
-      directives/
-      pipes/
-      utils/
-      validators/
-      types/
-```
-
-## Слои
-
-### `app`
-
-Инициализация приложения.
-
-Здесь лежат:
-
-- корневой компонент;
-- `app.config.ts`;
-- `app.routes.ts`;
-- глобальные providers;
-- подключение router/http/interceptors.
-
-### `pages`
-
-Страницы приложения.
-
-Страница собирает экран из `features`, `entities` и `shared`, но не содержит сложную бизнес-логику.
-
-Примеры:
-
-```text
-pages/sign-in
-pages/sign-up
-pages/messenger
-pages/profile
-```
-
-### `features`
-
-Пользовательские действия и сценарии.
-
-Feature отвечает на вопрос: **что пользователь делает?**
-
-Текущие features:
-
-```text
-features/auth/sign-in  // пользователь входит
-features/auth/sign-up  // пользователь регистрируется
-```
-
-Features на потом:
-
-```text
-features/auth/logout
-features/profile/update-profile
-features/chats/create-chat
-features/chats/delete-chat
-features/messages/send-message
-features/messages/edit-message
-```
-
-Важно: в FSD `features` — это не сущности и не общие компоненты, а конкретные пользовательские сценарии. Мы группируем их по доменам только для порядка.
-
-### `entities`
-
-Бизнес-сущности приложения.
-
-Entity отвечает на вопрос: **с чем работает приложение?**
-
-Основные сущности messenger:
-
-```text
-entities/user
-entities/chat
-entities/message
-```
-
-На текущем этапе первой нужна сущность:
-
-```text
-entities/user
-```
-
-`entities/chat` и `entities/message` можно добавить позже, когда начнется работа над экраном messenger.
+`core` не должен содержать бизнес-логику конкретного домена.
 
 ### `shared`
 
-Общий переиспользуемый код без бизнес-логики.
-
-Здесь лежат:
-
-- базовые UI-компоненты;
-- общая API-инфраструктура;
-- директивы;
-- pipes;
-- validators;
-- utils;
-- общие технические типы.
-
-Примеры:
+Переиспользуемый технический и UI-код без бизнес-логики:
 
 ```text
 shared/ui/button
 shared/ui/input
 shared/ui/form-field
+shared/ui/loader
 shared/api
-shared/directives
-shared/utils
+shared/lib
+shared/validators
 shared/types
 ```
 
-## Правила зависимостей
+`shared` не зависит от доменов.
 
-Направление зависимостей:
+### `domains`
 
-```text
-app -> pages -> features -> entities -> shared
-```
+Бизнес-домены приложения. Каждый домен инкапсулирует свою бизнес-модель,
+application logic, инфраструктуру и presentation.
 
-Правила:
-
-- `shared` не зависит ни от кого.
-- `entities` могут использовать только `shared`.
-- `features` могут использовать `entities` и `shared`.
-- `pages` могут использовать `features`, `entities` и `shared`.
-- `app` может использовать все слои для настройки приложения.
-- Нижний слой не должен импортировать верхний.
-- Компоненты не должны напрямую вызывать `HttpClient`.
-- API-запросы должны идти через API-сервисы.
-
-Нежелательно:
+На текущем этапе основной домен:
 
 ```text
-Component -> HttpClient
+domains/identity-access
 ```
 
-Лучше:
+Позже могут появиться:
 
 ```text
-Component -> Service/Facade -> Api Service -> HttpClient
+domains/messaging
+domains/profile
+domains/notifications
 ```
 
-## State management
+## Структура домена
 
-На старте используем Angular Signals:
-
-- `signal` для состояния;
-- `computed` для производных значений;
-- `effect` для реакций на изменения;
-- RxJS для HTTP, WebSocket и потоковых сценариев.
-
-Состояние текущего пользователя:
+Каждый домен может иметь такую структуру:
 
 ```text
-entities/user/model/user-session.service.ts
+domains/{domain-name}
+  domain
+  application
+  infrastructure
+  presentation
 ```
 
-Логику конкретного сценария можно держать внутри feature:
+### `domain`
+
+Чистая бизнес-модель домена:
+
+- domain types;
+- entities;
+- value objects;
+- domain rules;
+- domain errors.
+
+Код в `domain` не должен зависеть от Angular, `HttpClient`, `Router`,
+`localStorage`, `sessionStorage`, HTML или CSS.
+
+Пример для `identity-access`:
 
 ```text
-features/auth/sign-in/model/sign-in.facade.ts
-features/auth/sign-up/model/sign-up.facade.ts
+domains/identity-access/domain
+  user.ts
+  session.ts
+  auth-credentials.ts
+  sign-up-data.ts
+  auth-error.ts
 ```
 
-NgRx на старте не нужен.
+### `application`
 
-## Нейминг state
+Сценарии приложения и координация бизнес-процессов:
 
-В проекте не используем нейминг `store`.
-
-Причины:
-
-- `store` ассоциируется с Redux, NgRx или другими state-manager библиотеками;
-- сейчас состояние храним в обычных Angular `@Injectable` services;
-- для Angular-проекта понятнее имена с конкретной ответственностью.
-
-Соглашение по неймингу:
-
-```text
-*.api.ts      // HTTP-запросы
-*.service.ts  // состояние, сессия, инфраструктура
-*.facade.ts   // orchestration-логика сложного сценария
-*.types.ts    // типы
-```
-
-Примеры:
-
-```text
-entities/user/model/user-session.service.ts
-entities/chat/model/chat-state.service.ts
-entities/message/model/message-state.service.ts
-features/auth/sign-in/model/sign-in.facade.ts
-features/auth/api/auth.api.ts
-```
-
-Если позже подключим NgRx или другой state manager, соглашение можно пересмотреть.
-
-## Сервисы, state и facade
-
-Разделяем разные ответственности, а не складываем всё в один большой `UserService`.
-
-### API-сервис
-
-API-сервис отвечает только за HTTP-запросы.
+- application services;
+- session state services;
+- orchestration logic;
+- loading/error/success state для сценариев.
 
 Пример:
 
 ```text
-entities/user/api/user.api.ts
-features/auth/api/auth.api.ts
+domains/identity-access/application
+  auth.service.ts
+  auth-session.service.ts
 ```
 
-Что делает API-сервис:
+Для Angular на старте предпочитаем `auth.service.ts`, который координирует
+сценарии `signIn()`, `signUp()`, `logout()`, `restoreSession()`.
 
-- вызывает backend;
-- возвращает `Observable`;
-- не хранит состояние приложения;
-- не управляет router;
-- не содержит UI-логику.
+Отдельные `*.use-case.ts` можно вводить позже, если конкретный сценарий
+разрастется и станет самостоятельной сложной единицей.
 
-### Session/state-сервис
+Для состояния используем Angular Signals:
 
-Session/state-сервис хранит состояние текущего пользователя и авторизации.
+- `signal` для состояния;
+- `computed` для производных значений;
+- `effect` для реакций, когда они действительно нужны;
+- RxJS для HTTP, WebSocket и stream-сценариев.
 
-Предпочтительное имя:
+NgRx на старте не используем.
+
+### `infrastructure`
+
+Работа с внешним миром:
+
+- HTTP API;
+- backend DTO;
+- mappers;
+- token storage;
+- localStorage/sessionStorage adapters;
+- другие технические adapters.
+
+Пример:
 
 ```text
-entities/user/model/user-session.service.ts
+domains/identity-access/infrastructure
+  auth.api.ts
+  auth.dto.ts
+  auth.mapper.ts
+  auth-token.storage.ts
 ```
 
-Он отвечает за:
+API-сервисы делают HTTP-запросы и возвращают данные. Они не должны хранить UI
+state, управлять router или содержать presentation logic.
+
+### `presentation`
+
+Angular UI конкретного домена:
+
+- pages;
+- smart components;
+- forms;
+- view models;
+- presentation-specific helpers.
+
+Пример:
 
 ```text
-currentUser
-isAuthenticated
-isLoading
-authError
+domains/identity-access/presentation
+  sign-in-page
+  sign-up-page
+  sign-in-form
+  sign-up-form
 ```
 
-Пример ответственности:
+`presentation` может использовать `application`, но не должна напрямую работать
+с `HttpClient`.
+
+## Правила зависимостей
+
+Основное направление зависимостей:
 
 ```text
-setUser
-clearUser
-setLoading
-setError
+presentation -> application -> domain
+application -> infrastructure
+infrastructure -> domain
+shared <- can be used by all layers
 ```
 
-Это Angular-way: обычный `@Injectable` service через DI, внутри которого можно использовать Angular Signals.
+Правила:
 
-Не называем это `store`. Используем Angular-style имя:
+- `shared` не зависит от доменов.
+- `domain` не зависит от Angular, UI, Router, HttpClient или browser storage.
+- `presentation` не вызывает `HttpClient` напрямую.
+- HTTP-запросы идут через infrastructure API services.
+- Компоненты не должны содержать сложную бизнес-логику.
+- Бизнес-правила живут в `domain`.
+- Сценарии приложения живут в `application`.
+- Внешние интеграции живут в `infrastructure`.
+
+Предпочтительный поток:
 
 ```text
-user-session.service.ts
+Component -> ApplicationService -> Api/Storage -> HttpClient
 ```
 
-### Facade
-
-Facade добавляем не сразу, а когда сценарий становится сложным.
-
-Facade нужен, если компоненту приходится координировать несколько зависимостей:
+Избегать:
 
 ```text
-SignInForm
-  -> AuthApi
-  -> UserApi
-  -> UserSessionService
-  -> Router
+Component -> HttpClient
+Component -> localStorage
+Component -> complex business rules
 ```
 
-В таком случае лучше сделать:
+## Нейминг
+
+Соглашения по именам:
 
 ```text
-features/auth/sign-in/model/sign-in.facade.ts
+*.api.ts       // HTTP requests only
+*.dto.ts       // backend request/response contracts
+*.mapper.ts    // mapping between DTO and domain models
+*.service.ts   // state, session, infrastructure services
+*.use-case.ts  // optional complex application scenario
+*.types.ts     // shared technical types when needed
 ```
 
-И компонент будет работать только с facade:
+Не используем `store` naming для текущих state services. Предпочитаем имена по
+ответственности:
 
 ```text
-SignInForm -> SignInFacade.signIn()
-```
-
-Facade внутри может использовать:
-
-```text
-auth.api.ts
-user.api.ts
-user-session.service.ts
-router
-```
-
-Когда facade нужен:
-
-- компонент стал слишком умным;
-- один сценарий использует несколько API или сервисов;
-- есть loading/error/success state;
-- нужна orchestration-логика;
-- один сценарий вызывается из нескольких мест.
-
-Когда facade не нужен:
-
-- компонент вызывает один простой метод;
-- логики мало;
-- facade просто проксирует вызов без пользы.
-
-Практичное правило:
-
-```text
-Сначала: Component -> Api + UserSessionService
-Потом:  Component -> Facade -> Api + UserSessionService + Router
-```
-
-## API-слой
-
-Общая API-инфраструктура:
-
-```text
-shared/api/api.config.ts
-shared/api/api-error.ts
-```
-
-API текущего пользователя:
-
-```text
-entities/user/api/user.api.ts
-```
-
-API авторизации на текущем этапе:
-
-```text
-features/auth/api/auth.api.ts
-```
-
-Внутри `auth.api.ts` можно держать `signIn()` и `signUp()`. Разделять на `sign-in/api` и `sign-up/api` стоит только позже, если авторизация заметно разрастется.
-
-Компоненты не должны обращаться к `HttpClient` напрямую.
-
-## Роутинг
-
-Страницы лучше подключать через lazy loading:
-
-```ts
-export const routes: Routes = [
-  {
-    path: '',
-    redirectTo: 'messenger',
-    pathMatch: 'full',
-  },
-  {
-    path: 'sign-in',
-    loadComponent: () =>
-      import('./pages/sign-in/sign-in-page').then((m) => m.SignInPage),
-  },
-  {
-    path: 'sign-up',
-    loadComponent: () =>
-      import('./pages/sign-up/sign-up-page').then((m) => m.SignUpPage),
-  },
-  {
-    path: 'messenger',
-    loadComponent: () =>
-      import('./pages/messenger/messenger-page').then((m) => m.MessengerPage),
-  },
-];
-```
-
-Guard'ы можно добавить после реализации авторизации:
-
-```text
-/sign-in     guest only
-/sign-up     guest only
-/messenger   auth only
-/profile     auth only
+auth-session.service.ts
+auth-token.storage.ts
 ```
 
 ## UI
 
-Базовые UI-компоненты:
+Базовые UI-компоненты живут в `shared/ui` и являются dumb/reusable:
 
 ```text
 shared/ui/button
@@ -580,107 +292,141 @@ shared/ui/input
 shared/ui/form-field
 shared/ui/loader
 shared/ui/modal
-shared/ui/avatar
 ```
 
-UI пользовательских действий:
+Требования к shared UI:
+
+- не знает про бизнес-домены;
+- не вызывает API;
+- не работает с router;
+- не хранит бизнес-состояние;
+- получает данные через inputs;
+- сообщает наружу через outputs или стандартные DOM-события.
+
+UI конкретного бизнес-сценария живет в `domains/{domain}/presentation`.
+
+## Роутинг
+
+Страницы подключаем через lazy loading:
+
+```ts
+export const routes: Routes = [
+  {
+    path: 'sign-in',
+    loadComponent: () =>
+      import('./domains/identity-access/presentation/sign-in-page/sign-in-page')
+        .then((m) => m.SignInPage),
+  },
+  {
+    path: 'sign-up',
+    loadComponent: () =>
+      import('./domains/identity-access/presentation/sign-up-page/sign-up-page')
+        .then((m) => m.SignUpPage),
+  },
+];
+```
+
+Guards добавляем после реализации авторизации и проверки сессии:
 
 ```text
-features/auth/sign-in/ui/sign-in-form
-features/auth/sign-up/ui/sign-up-form
+/sign-in   guest only
+/sign-up   guest only
+/messenger auth only
+/profile   auth only
 ```
 
-UI бизнес-сущностей:
+## Текущий MVP
+
+Текущий MVP: Authorization.
+
+Порядок задач:
+
+1. `[Shared UI] Create reusable button component`
+2. `[Shared UI] Create reusable input component`
+3. `[Identity Access] User can sign up`
+4. `[Identity Access] User can sign in`
+
+Текущая активная задача:
 
 ```text
-entities/user/ui/avatar
-entities/chat/ui/chat-card
-entities/message/ui/message-card
+[Shared UI] Create reusable button component
 ```
 
-## Smart и dumb компоненты
-
-Компоненты делим по ответственности.
-
-Smart-компоненты знают про данные и сценарии:
-
-- получают данные из service, facade или API;
-- вызывают бизнес-действия;
-- знают про loading и ошибки;
-- могут работать с router;
-- обычно живут в `pages` или `features/{domain}/{scenario}/ui`.
-
-Примеры:
+Button component должен находиться в:
 
 ```text
-pages/sign-in
-features/auth/sign-in/ui/sign-in-form
-features/auth/sign-up/ui/sign-up-form
+src/app/shared/ui/button
 ```
 
-Dumb-компоненты только отображают UI:
-
-- получают данные через `input`;
-- сообщают наружу через `output`;
-- не знают про API, state-service и router;
-- легко переиспользуются;
-- обычно живут в `shared/ui` или `entities/*/ui`.
-
-Примеры:
+## Целевая структура
 
 ```text
-shared/ui/button
-shared/ui/input
-shared/ui/form-field
-entities/user/ui/avatar
-entities/chat/ui/chat-card
+src/app
+  core
+    app.config.ts
+    app.routes.ts
+    interceptors
+    guards
+
+  shared
+    ui
+      button
+      input
+      form-field
+      loader
+    api
+      api.config.ts
+      api-error.ts
+    lib
+
+  domains
+    identity-access
+      domain
+        user.ts
+        session.ts
+        auth-credentials.ts
+        sign-up-data.ts
+        auth-error.ts
+
+      application
+        auth.service.ts
+        auth-session.service.ts
+
+      infrastructure
+        auth.api.ts
+        auth.dto.ts
+        auth.mapper.ts
+        auth-token.storage.ts
+
+      presentation
+        sign-in-page
+        sign-up-page
+        sign-in-form
+        sign-up-form
 ```
 
-Главное правило:
+## Разработка
 
-```text
-Если компонент сам решает, что делать с бизнес-данными, он smart.
-Если компонент только показывает данные и эмитит события, он dumb.
+Установить зависимости:
+
+```bash
+npm install
 ```
 
-Для проекта:
+Запустить dev server:
 
-```text
-pages/*                         // чаще smart-сборщики экранов
-features/{domain}/{scenario}/ui // чаще smart-сценарии
-entities/*/ui                   // чаще dumb или semi-dumb
-shared/ui                       // только dumb
+```bash
+npm start
 ```
 
-## План внедрения
+Сборка:
 
-1. Перенести `features/users/components/sign-up-form` в `features/auth/sign-up/ui/sign-up-form`.
-2. Создать `features/auth/sign-in`.
-3. Создать `entities/user`.
-4. Создать `features/auth/api/auth.api.ts`.
-5. Создать `shared/api`.
-6. Подключить API авторизации.
-7. Добавить `user-session.service.ts` для текущего пользователя.
-8. Перевести страницы на lazy routes.
-9. Добавить guards после реализации входа и проверки сессии.
-10. Создать `entities/chat`, `entities/message` и messenger-features позже.
-
-## Краткое резюме
-
-Сейчас берем упрощенный FSD, но внедряем только то, что нужно для входа и регистрации:
-
-```text
-features/auth/sign-in
-features/auth/sign-up
-entities/user
-shared/ui
-shared/api
+```bash
+npm run build
 ```
 
-Сценарии группируем так:
+Тесты:
 
-```text
-features/{domain}/{scenario}
+```bash
+npm test
 ```
-
-Остальное появится позже по мере развития messenger.
