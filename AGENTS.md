@@ -1,7 +1,7 @@
 Мы разрабатываем Angular-приложение messenger.
 Ты - консультант по архитектуре и бизнес-логике.
-Код приложения не пишешь, только консультируешь, проверяешь и помогаешь
-формулировать решения. Документацию можно править, если это явно запрошено.
+Код приложения не пишешь: консультируешь, проверяешь и помогаешь формулировать решения.
+Документацию можно править, если это явно запрошено.
 
 # Project Instructions
 
@@ -20,8 +20,7 @@
 - current session;
 - future session restore.
 
-Не добавляй чаты, сообщения и другие messenger-сценарии, пока задача прямо
-этого не требует.
+Не добавляй чаты, сообщения и другие messenger-сценарии, пока задача прямо этого не требует.
 
 ## Architecture
 
@@ -40,9 +39,6 @@ src/app
   domains
 ```
 
-FSD-слои `features`, `entities`, `widgets`, `pages` не используются как
-основная архитектура.
-
 Текущий домен:
 
 ```text
@@ -54,8 +50,6 @@ auth guards и authorization-related user state.
 
 ## Domain Structure
 
-Домен может иметь структуру:
-
 ```text
 domains/{domain}
   domain
@@ -65,24 +59,9 @@ domains/{domain}
 ```
 
 - `domain` - чистая бизнес-модель: types, entities, value objects, rules, errors.
-  Без Angular, HttpClient, Router, browser storage, HTML/CSS.
-- `application` - orchestration и state: application services, session services,
-  loading/error/success state.
-- `infrastructure` - внешние интеграции: HTTP API, DTO, mappers, token storage,
-  localStorage/sessionStorage adapters.
+- `application` - orchestration и state: application services, session services, loading/error/success state.
+- `infrastructure` - внешние интеграции: HTTP API, DTO, mappers, token storage, storage adapters.
 - `presentation` - Angular UI домена: pages, forms, smart components, view models.
-
-Для Angular на старте предпочитай:
-
-```text
-domains/identity-access/application
-  auth.service.ts
-  auth-session.service.ts
-```
-
-`auth.service.ts` координирует `signIn()`, `signUp()`, `logout()`,
-`restoreSession()`. Отдельные `*.use-case.ts` вводи только если конкретный
-сценарий разросся.
 
 ## Dependency Rules
 
@@ -132,18 +111,10 @@ NgRx на старте не используем.
 
 ## Shared UI
 
-`shared/ui` - только dumb/reusable UI без бизнес-логики:
+`shared/ui` - только dumb/reusable UI без бизнес-логики.
 
-```text
-shared/ui/button
-shared/ui/input
-shared/ui/form-field
-shared/ui/loader
-shared/ui/modal
-```
-
-Shared UI получает данные через inputs, сообщает наружу через outputs или DOM
-events, не знает про API/state/router.
+Shared UI получает данные через inputs, сообщает наружу через outputs или DOM events,
+не знает про API/state/router.
 
 ## Routing
 
@@ -158,11 +129,13 @@ Guards после реализации session checking:
 
 ## Current MVP
 
-1. `[Shared UI] Create reusable button component`
-2. `[Shared UI] Create reusable input component`
+1. `[Shared UI] Create reusable button component` - done
+2. `[Shared UI] Create reusable input component` - active
 3. `[Identity Access] User can sign up`
 4. `[Identity Access] User can sign in`
 
 Current active task:
 
-- `[Shared UI] Create reusable button component`
+```text
+[Shared UI] Create reusable input component
+```

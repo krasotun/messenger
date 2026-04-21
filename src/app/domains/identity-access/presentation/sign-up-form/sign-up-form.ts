@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
+import { Input } from '@shared/ui/input/input';
+import { FormField } from '@shared/ui/form-field/form-field';
 
 @Component({
   selector: 'app-sign-up-form',
-  imports: [],
+  imports: [Input, FormField],
   templateUrl: './sign-up-form.html',
   styleUrl: './sign-up-form.scss',
 })

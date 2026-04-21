@@ -3,6 +3,7 @@
 @use '../public/static/styles/normalize';
 @use '../public/static/styles/fonts';
 @use 'app/shared/ui/button/button';
+@use 'app/shared/ui/input/input';
 
 :root {
   /* Base */
@@ -20,6 +21,7 @@
   --color-border: #d0d4d9;
   --color-border-muted: #e2e6ea;
   --color-border-focus: #6b7785;
+  --color-focus-ring: rgba(107, 119, 133, 0.2);
 
   /* Text */
   --color-text-primary: #1f2a37;
