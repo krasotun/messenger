@@ -1,0 +1,12 @@
+<div class="form-field">
+  <label
+    class="form-field__label"
+    [attr.for]="htmlFor()"
+  >
+    {{ label() }}
+  </label>
+  <ng-content></ng-content>
+  @if (error()) {
+    <span class="form-field__error"> {{ error() }}</span>
+  }
+</div>

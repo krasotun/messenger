@@ -1,71 +1,21 @@
-# [Architecture] Align project folders with domain-first structure
+# TODO
 
-## Goal
-
-Привести папки проекта к архитектуре:
+## Активная задача
 
 ```text
-Domain-first Angular + lightweight DDD boundaries
+[Shared UI] Create reusable form field and input directive
 ```
 
-## Context
+## Готово
 
-Отказываемся от FSD-слоев как основной структуры:
+- `[Architecture] Align project folders with domain-first structure`
+- `[Shared UI] Create reusable button component`
 
-```text
-features
-entities
-widgets
-pages
-```
+## Текущий MVP
 
-Целевая структура:
+Продуктовый фокус: authorization only.
 
-```text
-src/app
-  core
-  shared
-  domains
-    identity-access
-```
-
-## Scope
-
-Создать структуру:
-
-```text
-src/app/domains/identity-access
-  domain
-  application
-  infrastructure
-  presentation
-```
-
-Перенести auth-related UI в:
-
-```text
-domains/identity-access/presentation
-```
-
-Shared UI оставить в:
-
-```text
-shared/ui
-```
-
-## Rules
-
-- Не добавлять чаты и сообщения.
-- Не создавать `features`, `entities`, `widgets`.
-- `shared` не зависит от доменов.
-- `domain` не зависит от Angular, HttpClient, Router или storage.
-- Компоненты не вызывают HttpClient напрямую.
-
-## Acceptance Criteria
-
-- Есть `src/app/domains/identity-access`.
-- В домене есть `domain`, `application`, `infrastructure`, `presentation`.
-- Auth UI перенесен в `presentation`.
-- Shared UI остался в `shared/ui`.
-- Роуты и импорты обновлены.
-- Проект собирается без ошибок.
+1. `[Shared UI] Create reusable button component`
+2. `[Shared UI] Create reusable form field and input directive`
+3. `[Identity Access] User can sign up`
+4. `[Identity Access] User can sign in`
