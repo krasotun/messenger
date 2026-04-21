@@ -376,14 +376,14 @@ Guards добавляем после реализации авторизации
 Порядок задач:
 
 1. `[Shared UI] Create reusable button component` - done
-2. `[Shared UI] Create reusable input component` - active
+2. `[Shared UI] Create reusable form field and input directive` - active
 3. `[Identity Access] User can sign up`
 4. `[Identity Access] User can sign in`
 
 Текущая активная задача:
 
 ```text
-[Shared UI] Create reusable input component
+[Shared UI] Create reusable form field and input directive
 ```
 
 Button component находится в:
@@ -391,6 +391,20 @@ Button component находится в:
 ```text
 src/app/shared/ui/button
 ```
+
+Активная shared UI задача реализуется в учебном варианте:
+
+```html
+<app-form-field label="Email" [error]="emailError">
+  <input appInput type="email" formControlName="email" />
+</app-form-field>
+```
+
+Разделение ответственности:
+
+- `shared/ui/form-field` - компонент-обертка для label, hint, error, layout и accessibility.
+- `shared/ui/input` - директива `appInput` для визуального стиля и базового поведения native input.
+- `formControlName` остается на нативном `<input>`, поэтому на этом этапе не нужен `ControlValueAccessor`.
 
 ## Целевая структура
 

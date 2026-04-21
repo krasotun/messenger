@@ -3,7 +3,7 @@
 ## Активная задача
 
 ```text
-[Shared UI] Create reusable input component
+[Shared UI] Create reusable form field and input directive
 ```
 
 ## Готово
@@ -16,6 +16,6 @@
 Продуктовый фокус: authorization only.
 
 1. `[Shared UI] Create reusable button component`
-2. `[Shared UI] Create reusable input component`
+2. `[Shared UI] Create reusable form field and input directive`
 3. `[Identity Access] User can sign up`
 4. `[Identity Access] User can sign in`
