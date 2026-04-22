@@ -69,6 +69,8 @@ src/app
   shared
     ui
       button
+      form-field
+      input
   domains
     identity-access
       domain
@@ -376,35 +378,47 @@ Guards добавляем после реализации авторизации
 Порядок задач:
 
 1. `[Shared UI] Create reusable button component` - done
-2. `[Shared UI] Create reusable form field and input directive` - active
-3. `[Identity Access] User can sign up`
+2. `[Shared UI] Create reusable form field and input directive` - done
+3. `[Identity Access] User can sign up` - active
 4. `[Identity Access] User can sign in`
 
 Текущая активная задача:
 
 ```text
-[Shared UI] Create reusable form field and input directive
+[Identity Access] User can sign up
 ```
 
-Button component находится в:
+Готовые shared UI элементы:
 
 ```text
 src/app/shared/ui/button
+src/app/shared/ui/form-field
+src/app/shared/ui/input
 ```
 
-Активная shared UI задача реализуется в учебном варианте:
+`shared/ui/form-field` отвечает за label, error, layout и accessibility.
+`shared/ui/input` содержит директиву `appInput` для визуального стиля native
+input.
+
+Пример использования:
 
 ```html
-<app-form-field label="Email" [error]="emailError">
-  <input appInput type="email" formControlName="email" />
+<app-form-field label="Email" htmlFor="email" [error]="emailError">
+  <input appInput id="email" type="email" formControlName="email" />
 </app-form-field>
 ```
 
-Разделение ответственности:
+Для `sign up` нужно:
 
-- `shared/ui/form-field` - компонент-обертка для label, hint, error, layout и accessibility.
-- `shared/ui/input` - директива `appInput` для визуального стиля и базового поведения native input.
-- `formControlName` остается на нативном `<input>`, поэтому на этом этапе не нужен `ControlValueAccessor`.
+- уточнить backend contract: request, success response, error response;
+- описать domain-модель: email, password, validation rules, domain errors;
+- добавить application-сценарий с loading, success и error state;
+- добавить infrastructure: DTO, mapper, `sign-up.api.ts`;
+- собрать presentation: поля формы, validation messages, submit handling;
+- решить поведение после успешной регистрации в зависимости от backend response.
+
+Не включаем в эту задачу session restore, guards, chats/messages и другие
+messenger-сценарии.
 
 ## Целевая структура
 

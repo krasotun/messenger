@@ -1,0 +1,15 @@
+:host {
+  flex: 1;
+  display: flex;
+}
+
+.auth {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 24px 16px;
+  box-sizing: border-box;
+}
+
