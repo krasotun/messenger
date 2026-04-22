@@ -13,9 +13,8 @@
 - Добавить application-сценарий sign up: loading, success, error state.
 - Добавить infrastructure-слой: DTO, mapper, `sign-up.api.ts`.
 - Собрать presentation-слой: поля формы, validation messages, submit handling.
-- Добавить доменный `auth-page-shell` в `identity-access/presentation` для page-level auth layout: full-page wrapper, центрирование формы, responsive отступы.
 - Добавить доменный `auth-form-shell` в `identity-access/presentation` для общего каркаса auth-форм: title/subtitle, form container, slots для content/actions/footer.
-- Использовать `auth-page-shell` и `auth-form-shell` как layout-компоненты без бизнес-сценариев, API, state и routing-логики.
+- Использовать `auth-form-shell` как layout-компонент без бизнес-сценариев, API, state и routing-логики.
 - Оставить `sign-in-form` и `sign-up-form` отдельными компонентами, без универсальной config-driven auth form.
 - Оставить `sign-in-page` и `sign-up-page` отдельными страницами; не объединять их в универсальную auth page с mode/config.
 - Gap между полями и блок actions держать внутри конкретной формы; общие значения spacing задавать через CSS variables/tokens.
