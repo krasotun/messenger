@@ -6,6 +6,10 @@
 [Identity Access] User can sign up
 ```
 
+## Текущий шаг
+
+- Зафиксировать contract сценария `sign up`: domain model -> application scenario -> infrastructure contract -> presentation binding.
+
 ## Действия
 
 - Уточнить backend contract для sign up: request, success response, error response.
