@@ -1,6 +1,53 @@
-<app-form-field
-  [label]="'E-mail'"
-  [htmlFor]="'email'"
->
-  <input appInput type="email" id="email">
-</app-form-field>
+<form class="sign-up-form">
+  <div class="sign-up-form__fields">
+    <app-form-field
+      [label]="'First name'"
+      [htmlFor]="'firstName'"
+    >
+      <input appInput type="text" id="firstName">
+    </app-form-field>
+
+    <app-form-field
+      [label]="'Second Name'"
+      [htmlFor]="'secondName'"
+    >
+      <input appInput type="text" id="secondName">
+    </app-form-field>
+
+    <app-form-field
+      [label]="'Login'"
+      [htmlFor]="'login'"
+    >
+      <input appInput type="text" id="login">
+    </app-form-field>
+
+    <app-form-field
+      [label]="'E-mail'"
+      [htmlFor]="'email'"
+    >
+      <input appInput type="text" id="email">
+    </app-form-field>
+
+    <app-form-field
+      [label]="'Password'"
+      [htmlFor]="'password'"
+    >
+      <input appInput type="password" id="password">
+    </app-form-field>
+
+    <app-form-field
+      [label]="'Mobile phone'"
+      [htmlFor]="'phone'"
+    >
+      <input appInput type="text" id="phone">
+    </app-form-field>
+  </div>
+
+  <div class="sign-up-form__actions">
+    <button
+      type="submit"
+      appButton
+    >Register
+    </button>
+  </div>
+</form>

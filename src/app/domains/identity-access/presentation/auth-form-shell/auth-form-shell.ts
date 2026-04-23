@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-auth-form-shell',
@@ -6,4 +6,6 @@ import { Component } from '@angular/core';
   templateUrl: './auth-form-shell.html',
   styleUrl: './auth-form-shell.scss',
 })
-export class AuthFormShell {}
+export class AuthFormShell {
+  readonly formTitle = input.required<string>();
+}

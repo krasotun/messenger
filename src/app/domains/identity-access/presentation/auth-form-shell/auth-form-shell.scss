@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+}
+
+.auth-form-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__title {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.2;
+    font-weight: 600;
+    text-align: center;
+  }
+}
