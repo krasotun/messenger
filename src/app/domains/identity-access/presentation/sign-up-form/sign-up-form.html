@@ -1,45 +1,77 @@
-<form class="sign-up-form">
+<form class="sign-up-form" [formGroup]="signUpForm" (ngSubmit)="onSubmit()">
   <div class="sign-up-form__fields">
     <app-form-field
       [label]="'First name'"
       [htmlFor]="'firstName'"
+      [error]="getControlError('firstName')"
     >
-      <input appInput type="text" id="firstName">
+      <input formControlName="firstName"
+             appInput
+             [invalid]="hasControlError('firstName')"
+             type="text"
+             id="firstName">
     </app-form-field>
 
     <app-form-field
-      [label]="'Second Name'"
+      [label]="'Second name'"
       [htmlFor]="'secondName'"
+      [error]="getControlError('secondName')"
     >
-      <input appInput type="text" id="secondName">
+      <input formControlName="secondName"
+             appInput
+             [invalid]="hasControlError('secondName')"
+             type="text"
+             id="secondName">
     </app-form-field>
+
 
     <app-form-field
       [label]="'Login'"
       [htmlFor]="'login'"
+      [error]="getControlError('login')"
     >
-      <input appInput type="text" id="login">
+      <input formControlName="login"
+             appInput
+             [invalid]="hasControlError('login')"
+             type="text"
+             id="login">
     </app-form-field>
 
+
     <app-form-field
-      [label]="'E-mail'"
+      [label]="'Email'"
       [htmlFor]="'email'"
+      [error]="getControlError('email')"
     >
-      <input appInput type="text" id="email">
+      <input formControlName="email"
+             appInput
+             [invalid]="hasControlError('email')"
+             type="email"
+             id="email">
     </app-form-field>
 
     <app-form-field
       [label]="'Password'"
       [htmlFor]="'password'"
+      [error]="getControlError('password')"
     >
-      <input appInput type="password" id="password">
+      <input formControlName="password"
+             appInput
+             [invalid]="hasControlError('password')"
+             type="password"
+             id="password">
     </app-form-field>
 
     <app-form-field
       [label]="'Mobile phone'"
       [htmlFor]="'phone'"
+      [error]="getControlError('phone')"
     >
-      <input appInput type="text" id="phone">
+      <input formControlName="phone"
+             appInput
+             [invalid]="hasControlError('phone')"
+             type="text"
+             id="phone">
     </app-form-field>
   </div>
 
