@@ -53,11 +53,11 @@ All fields are required.
 - `401 Unauthorized`
   Swagger does not document the response body.
 
-- `500 Unexpected error`
+- `500 Unexpected Error`
   Swagger does not document the response body.
 
 ### Known Limits
 
-- Swagger documents only created user id in the success response.
+- Swagger documents only created user id in the Success response.
 - Swagger does not document field-level validation errors.
 - Swagger does not document response bodies for `401` and `500`.

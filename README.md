@@ -138,7 +138,9 @@ domains/notifications
 ```text
 *.api.ts       // HTTP requests only
 *.dto.ts       // backend request/response contracts
-*.mapper.ts    // mapping between DTO and domain models
+*.input.ts     // application scenario input contracts
+*.result.ts    // internal application scenario results
+*.mapper.ts    // mapping between input/result and DTO
 *.service.ts   // state, session, infrastructure services
 *.use-case.ts  // optional complex application scenario
 *.types.ts     // shared technical types when needed
@@ -151,6 +153,10 @@ domains/notifications
 auth-session.service.ts
 auth-token.storage.ts
 ```
+
+Предпочитаем naming по архитектурной роли, а не по синтаксису декларации.
+Например, файл с `interface` для backend-контрактов все равно называется
+`*.dto.ts`, если это DTO.
 
 ## Структура домена
 
@@ -185,7 +191,7 @@ domains/identity-access/domain
   session.ts
   auth-credentials.ts
   sign-up-data.ts
-  auth-error.ts
+  auth-Error.ts
 ```
 
 ### `application`
@@ -195,7 +201,7 @@ domains/identity-access/domain
 - application services;
 - session state services;
 - orchestration logic;
-- loading/error/success state для сценариев.
+- loading/Error/Success state для сценариев.
 
 Пример:
 
@@ -396,23 +402,23 @@ src/app/shared/ui/form-field
 src/app/shared/ui/input
 ```
 
-`shared/ui/form-field` отвечает за label, error, layout и accessibility.
+`shared/ui/form-field` отвечает за label, Error, layout и accessibility.
 `shared/ui/input` содержит директиву `appInput` для визуального стиля native
 input.
 
 Пример использования:
 
 ```html
-<app-form-field label="Email" htmlFor="email" [error]="emailError">
+<app-form-field label="Email" htmlFor="email" [Error]="emailError">
   <input appInput id="email" type="email" formControlName="email" />
 </app-form-field>
 ```
 
 Для `sign up` нужно:
 
-- уточнить backend contract: request, success response, error response;
+- уточнить backend contract: request, Success response, Error response;
 - описать domain-модель: email, password, validation rules, domain errors;
-- добавить application-сценарий с loading, success и error state;
+- добавить application-сценарий с loading, Success и Error state;
 - добавить infrastructure: DTO, mapper, `sign-up.api.ts`;
 - собрать presentation: поля формы, validation messages, submit handling;
 - решить поведение после успешной регистрации в зависимости от backend response.
@@ -441,7 +447,7 @@ src/app
       loader
     api
       api.config.ts
-      api-error.ts
+      api-Error.ts
     lib
 
   domains
@@ -451,7 +457,7 @@ src/app
         session.ts
         auth-credentials.ts
         sign-up-data.ts
-        auth-error.ts
+        auth-Error.ts
 
       application
         auth.service.ts

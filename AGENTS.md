@@ -59,7 +59,7 @@ domains/{domain}
 ```
 
 - `domain` - чистая бизнес-модель: types, entities, value objects, rules, errors.
-- `application` - orchestration и state: application services, session services, loading/error/success state.
+- `application` - orchestration и state: application services, session services, loading/Error/Success state.
 - `infrastructure` - внешние интеграции: HTTP API, DTO, mappers, token storage, storage adapters.
 - `presentation` - Angular UI домена: pages, forms, smart components, view models.
 
@@ -102,12 +102,15 @@ NgRx на старте не используем.
 
 - `*.api.ts` - HTTP requests only.
 - `*.dto.ts` - backend request/response contracts.
-- `*.mapper.ts` - DTO/domain mapping.
+- `*.input.ts` - application scenario input contracts.
+- `*.result.ts` - internal application scenario results.
+- `*.mapper.ts` - mapping between input/result and DTO.
 - `*.service.ts` - state, session, infrastructure, application services.
 - `*.use-case.ts` - optional complex scenario.
 - `*.types.ts` - shared technical types when needed.
 
 Не используй `store` naming для текущих state services.
+Предпочитай naming по архитектурной роли, а не по синтаксису декларации.
 
 ## Shared UI
 
@@ -130,12 +133,27 @@ Guards после реализации session checking:
 ## Current MVP
 
 1. `[Shared UI] Create reusable button component` - done
-2. `[Shared UI] Create reusable input component` - active
+2. `[Shared UI] Create reusable form field and input directive` - done
 3. `[Identity Access] User can sign up`
 4. `[Identity Access] User can sign in`
 
 Current active task:
 
 ```text
-[Shared UI] Create reusable input component
+[Identity Access] User can sign up
 ```
+
+Current step:
+
+- `SignUpInput` создан в `application/sign-up.input.ts`.
+- Реализован request mapper `SignUpInput -> SignUpRequestDto` в `infrastructure/sign-up-request.mapper.ts`.
+- Добавлен базовый `SignUpService` в `application/sign-up.service.ts` со state `idle/submitting/success/error`.
+- Следующий шаг: подключить `presentation` к `SignUpService`.
+
+Next actions:
+
+- Подключить `sign-up-form` к `SignUpService`.
+- Собрать `SignUpInput` из данных формы без отдельного form-to-input mapper.
+- Добавить submit handling, loading state и показ backend/generic error message.
+- После success показать success notification и перевести пользователя на страницу sign-in.
+- Не добавлять session restore, guards, chats/messages и другие messenger-сценарии в рамках этой задачи.

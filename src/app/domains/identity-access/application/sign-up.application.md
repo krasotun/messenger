@@ -5,16 +5,16 @@
 ## Flow
 - получить валидные данные
 - отправить запрос
-- перейти в success или error state
+- перейти в Success или Error state
 ## State
-- idle
-- submitting
-- success
-- error
+- Idle
+- Submitting
+- Success
+- Error
 ## Success Result
 - Получили createdUserId
 - Показать успешную нотификацию
 - Перешли на страницу sign-in
 ## Error Result
-- показать backend error message, если он есть
-- иначе показать generic sign-up error
+- показать backend Error message, если он есть
+- иначе показать generic sign-up Error
