@@ -27,7 +27,6 @@ input[appInput] {
   &:disabled {
     background: var(--color-surface-muted);
     color: var(--color-text-muted);
-    cursor: not-allowed;
   }
 }
 

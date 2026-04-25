@@ -149,13 +149,16 @@ Current step:
 - Реализован request mapper `SignUpInput -> SignUpRequestDto` в `infrastructure/sign-up-request.mapper.ts`.
 - Добавлен базовый `SignUpService` в `application/sign-up.service.ts` со state `idle/submitting/success/error`.
 - В `presentation/sign-up-form` собрана typed reactive form с validators и отображением field-level ошибок.
-- Следующий шаг: реализовать `onSubmit()` и подключить форму к `SignUpService`.
+- `onSubmit()` реализован и форма подключена к `SignUpService`.
+- Подключены invalid submit guard с `markAllAsTouched()`, submit loading state и submit-level error message.
+- После success выполняется redirect на `sign-in` из `presentation` через `effect`.
+- Success notification отложен до появления общего notification service.
+- Следующий шаг: написать unit-тесты для всей `sign-up` feature.
 
 Next actions:
 
-- Реализовать `onSubmit()` в `sign-up-form.ts`.
-- При invalid submit делать `markAllAsTouched()` и не отправлять запрос.
-- При valid submit собирать `SignUpInput` через `getRawValue()` и вызывать `SignUpService.signUp(...)`.
-- После этого подключить loading state и показ backend/generic submit error message из `SignUpService`.
-- После success показать success notification и перевести пользователя на страницу sign-in.
+- Написать unit-тесты для `sign-up` feature.
+- Проверить `SignUpService`: `idle/submitting/success/error`, reset state, backend/generic error mapping.
+- Проверить `sign-up-form`: invalid submit, `markAllAsTouched()`, вызов `SignUpService.signUp(...)`, disabled state во время submit, submit-level error rendering.
+- Success notification добавить позже вместе с общим notification service.
 - Не добавлять session restore, guards, chats/messages и другие messenger-сценарии в рамках этой задачи.

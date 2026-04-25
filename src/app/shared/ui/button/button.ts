@@ -5,6 +5,7 @@ type ButtonColorType = 'primary' | 'secondary' | 'success' | 'danger' | 'warning
 @Directive({
   selector: 'button[appButton]',
   host: {
+    '[disabled]': 'disabled()',
     '[class.disabled]': 'disabled()',
     '[class]': '`button-${colorType()}`',
   },

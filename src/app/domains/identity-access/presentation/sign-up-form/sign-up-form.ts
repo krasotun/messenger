@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -6,8 +6,9 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
 
-import { SignUpService } from '@domains/identity-access/application/sign-up.service';
+import { SignUpService, SignUpStatus } from '@domains/identity-access/application/sign-up.service';
 import {
   emailPattern,
   phonePattern,
@@ -43,16 +44,38 @@ export class SignUpForm {
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     phone: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.pattern(phonePattern)],
+      validators: [
+        Validators.required,
+        Validators.pattern(phonePattern),
+        Validators.minLength(10),
+        Validators.maxLength(15),
+      ],
     }),
   });
 
-  protected readonly controls = this.signUpForm.controls;
-
   private readonly _signUpService = inject(SignUpService);
+  private readonly _router = inject(Router);
+
+  protected readonly isSubmitting = this._signUpService.isSubmitting;
+  protected readonly errorMessage = this._signUpService.errorMessage;
+
+  constructor() {
+    effect(() => {
+      if (this._signUpService.status() === SignUpStatus.Success) {
+        this._signUpService.resetSignUpStatus();
+
+        this._router.navigate(['sign-in']);
+      }
+    });
+  }
 
   protected onSubmit() {
-    console.log('form submitted;');
+    if (this.signUpForm.invalid) {
+      this.signUpForm.markAllAsTouched();
+      return;
+    }
+    const signUpFormValue = this.signUpForm.getRawValue();
+    this._signUpService.signUp(signUpFormValue);
   }
 
   protected getControlError(controlName: keyof SignUpFormModel): string | undefined {
@@ -73,6 +96,15 @@ export class SignUpForm {
     if (errors['required']) {
       return 'Обязательное поле';
     }
+
+    if (errors['minlength']) {
+      return 'Меньше минимальной длины';
+    }
+
+    if (errors['maxlength']) {
+      return 'Больше максимальной длины';
+    }
+
     if (errors['pattern']) {
       return 'Неверный формат';
     }

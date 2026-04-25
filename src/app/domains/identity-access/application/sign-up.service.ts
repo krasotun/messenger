@@ -26,6 +26,11 @@ export class SignUpService {
 
   private readonly _authApi = inject(AuthApi);
 
+  resetSignUpStatus(): void {
+    this.status.set(SignUpStatus.Idle);
+    this.errorMessage.set(null);
+  }
+
   signUp(signUpInput: SignUpInput): void {
     const signUpRequest = signUpRequestMapper(signUpInput);
 
@@ -35,6 +40,7 @@ export class SignUpService {
     this._authApi.signUp(signUpRequest).subscribe({
       next: () => {
         this.status.set(SignUpStatus.Success);
+
         this.errorMessage.set(null);
       },
       error: (error) => {
