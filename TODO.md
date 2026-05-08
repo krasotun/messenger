@@ -18,12 +18,12 @@
 - Success notification отложен до появления общего notification service.
 - `SignUpService` покрыт unit-тестами: initial state, submitting/success/error, reset state, backend/generic error mapping.
 - `signUpRequestMapper` косвенно покрыт через `SignUpService`; прямой mapper spec добавить, если mapping разрастется.
-- Следующий шаг: покрыть `AuthApi.signUp(...)` unit-тестом.
+- `AuthApi.signUp(...)` покрыт unit-тестом: POST на `/auth/signup`, request DTO, response DTO.
+- Следующий шаг: покрыть `sign-up-form component` unit-тестами.
 
 ## Действия
 
 - Написать unit-тесты для `sign-up` feature.
-- Проверить `AuthApi.signUp(...)`: POST на `/auth/signup`, корректный request DTO, typed response.
 - При усложнении mapping добавить прямой `sign-up-request.mapper.spec.ts`: `SignUpInput -> SignUpRequestDto`, включая `firstName -> first_name` и `secondName -> second_name`.
 - Проверить `sign-up-form`: invalid submit, `markAllAsTouched()`, вызов `SignUpService.signUp(...)`, disabled state во время submit, submit-level error rendering.
 - При появлении общего notification service вернуть success notification после successful sign up.
@@ -33,8 +33,16 @@
 
 - `SignUpService` - done.
 - `signUpRequestMapper` - covered indirectly through `SignUpService`.
-- Далее `AuthApi.signUp`.
-- Затем `sign-up-form component`.
+- `AuthApi.signUp` - done.
+- Далее `sign-up-form component`:
+  - initial form state and validators;
+  - invalid submit: no `SignUpService.signUp(...)`, `markAllAsTouched()`;
+  - valid submit: call `SignUpService.signUp(...)` with `SignUpInput`;
+  - submitting state: disabled controls/submit;
+  - submit-level error rendering;
+  - success redirect effect: reset state and navigate to `/sign-in`.
+
+`sign-up-form` tests should mock `SignUpService` and `Router`; do not use real `AuthApi`.
 
 ## Готово
 
@@ -60,6 +68,7 @@
 - `[Identity Access] Add submit-level backend/generic sign-up error rendering`
 - `[Identity Access] Move post-sign-up redirect to presentation and navigate to sign-in on success`
 - `[Identity Access] Cover SignUpService with unit tests`
+- `[Identity Access] Cover AuthApi.signUp with unit test`
 
 ## Текущий MVP
 
