@@ -1,10 +1,15 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { SignUpService, SignUpStatus } from '../../application/sign-up.service';
 
 import { SignUpForm } from './sign-up-form';
 
-import { API_BASE_URL } from '@app/core/tokens';
-
-const baseUrlMock = 'baseUrlMock';
+const signUpServiceMock = {
+  isSubmitting: signal(false),
+  errorMessage: signal(null),
+  status: signal(SignUpStatus.Idle),
+};
 
 describe('SignUpForm', () => {
   let component: SignUpForm;
@@ -15,8 +20,8 @@ describe('SignUpForm', () => {
       imports: [SignUpForm],
       providers: [
         {
-          provide: API_BASE_URL,
-          useValue: baseUrlMock,
+          provide: SignUpService,
+          useValue: signUpServiceMock,
         },
       ],
     }).compileComponents();
