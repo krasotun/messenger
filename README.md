@@ -501,3 +501,45 @@ npm run build
 ```bash
 npm test
 ```
+
+Запустить один spec-файл:
+
+```bash
+npm test -- --include src/app/domains/identity-access/application/sign-up.service.spec.ts
+```
+
+Запустить один spec-файл через Angular CLI напрямую:
+
+```bash
+npx ng test --include src/app/domains/identity-access/application/sign-up.service.spec.ts
+```
+
+Запустить один spec-файл в watch mode:
+
+```bash
+npx ng test --include src/app/domains/identity-access/application/sign-up.service.spec.ts --watch
+```
+
+Запустить тесты по имени suite/test:
+
+```bash
+npx ng test --include src/app/domains/identity-access/application/sign-up.service.spec.ts --filter "SignUpService"
+```
+
+Запустить один spec-файл с coverage:
+
+```bash
+npm test -- --include src/app/domains/identity-access/application/sign-up.service.spec.ts --coverage --watch=false
+```
+
+Показать coverage summary в консоли:
+
+```bash
+npx ng test --include src/app/domains/identity-access/application/sign-up.service.spec.ts --coverage --coverage-reporters=text --watch=false
+```
+
+HTML-отчет coverage генерируется в:
+
+```text
+coverage/messenger/index.html
+```

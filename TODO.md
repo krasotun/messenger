@@ -16,20 +16,25 @@
 - Подключены invalid submit guard с `markAllAsTouched()`, submit loading state и submit-level error message.
 - После success выполняется redirect на `sign-in` из `presentation` через `effect`.
 - Success notification отложен до появления общего notification service.
-- Следующий шаг: покрыть feature unit-тестами.
+- `SignUpService` покрыт unit-тестами: initial state, submitting/success/error, reset state, backend/generic error mapping.
+- `signUpRequestMapper` косвенно покрыт через `SignUpService`; прямой mapper spec добавить, если mapping разрастется.
+- Следующий шаг: покрыть `AuthApi.signUp(...)` unit-тестом.
 
 ## Действия
 
 - Написать unit-тесты для `sign-up` feature.
-- Проверить `SignUpService`: `idle/submitting/success/error`, reset state, backend/generic error mapping.
+- Проверить `AuthApi.signUp(...)`: POST на `/auth/signup`, корректный request DTO, typed response.
+- При усложнении mapping добавить прямой `sign-up-request.mapper.spec.ts`: `SignUpInput -> SignUpRequestDto`, включая `firstName -> first_name` и `secondName -> second_name`.
 - Проверить `sign-up-form`: invalid submit, `markAllAsTouched()`, вызов `SignUpService.signUp(...)`, disabled state во время submit, submit-level error rendering.
 - При появлении общего notification service вернуть success notification после successful sign up.
 - Не добавлять session restore, guards, chats/messages и другие messenger-сценарии в рамках этой задачи.
 
 ## Unit Tests
 
-- Начать с `SignUpService`.
-- Затем перейти к `sign-up-form component`.
+- `SignUpService` - done.
+- `signUpRequestMapper` - covered indirectly through `SignUpService`.
+- Далее `AuthApi.signUp`.
+- Затем `sign-up-form component`.
 
 ## Готово
 
@@ -54,6 +59,7 @@
 - `[Identity Access] Add sign-up loading state and disable form controls during submit`
 - `[Identity Access] Add submit-level backend/generic sign-up error rendering`
 - `[Identity Access] Move post-sign-up redirect to presentation and navigate to sign-in on success`
+- `[Identity Access] Cover SignUpService with unit tests`
 
 ## Текущий MVP
 
