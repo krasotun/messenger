@@ -26,6 +26,11 @@
 - При появлении общего notification service вернуть success notification после successful sign up.
 - Не добавлять session restore, guards, chats/messages и другие messenger-сценарии в рамках этой задачи.
 
+## Unit Tests
+
+- Начать с `SignUpService`.
+- Затем перейти к `sign-up-form component`.
+
 ## Готово
 
 - `[Architecture] Align project folders with domain-first structure`

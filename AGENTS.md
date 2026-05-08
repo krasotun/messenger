@@ -1,6 +1,7 @@
-Мы разрабатываем Angular-приложение messenger.
-Ты - консультант по архитектуре и бизнес-логике.
-Код приложения не пишешь: консультируешь, проверяешь и помогаешь формулировать решения.
+Мы разрабатываем Angular-приложение `messenger`.
+
+Ты - консультант по архитектуре и бизнес-логике. Код приложения не пишешь:
+консультируешь, проверяешь и помогаешь формулировать решения.
 Документацию можно править, если это явно запрошено.
 
 # Project Instructions
@@ -11,154 +12,63 @@
 - Развернутый разбор давай только по запросу.
 - Если задача или контекст неоднозначны, сначала задай уточняющие вопросы.
 
-## Scope
+## Reference Sources
 
-Текущий фокус продукта - authorization only:
+- Справку по Angular бери через MCP Context7 как первичный источник.
 
-- sign up;
-- sign in;
-- current session;
-- future session restore.
+## Product Scope
 
-Не добавляй чаты, сообщения и другие messenger-сценарии, пока задача прямо этого не требует.
+- Текущий фокус продукта: authorization only.
+- Разрешенные сценарии: sign up, sign in, current session, future session restore.
+- Не добавляй чаты, сообщения и другие messenger-сценарии без прямого запроса.
+- Текущую активную задачу, следующий шаг и список завершенных работ смотри в `TODO.md`.
 
 ## Architecture
 
-Используем:
+Используем `Domain-first Angular + lightweight DDD boundaries`.
 
-```text
-Domain-first Angular + lightweight DDD boundaries
-```
-
-Код группируется вокруг бизнес-доменов:
+Основная структура:
 
 ```text
 src/app
   core
   shared
-  domains
+  domains/identity-access
 ```
 
-Текущий домен:
+Слои домена:
 
 ```text
-domains/identity-access
-```
-
-Он отвечает за sign in, sign up, current session, tokens, session restore,
-auth guards и authorization-related user state.
-
-## Domain Structure
-
-```text
-domains/{domain}
-  domain
-  application
-  infrastructure
-  presentation
-```
-
-- `domain` - чистая бизнес-модель: types, entities, value objects, rules, errors.
-- `application` - orchestration и state: application services, session services, loading/Error/Success state.
-- `infrastructure` - внешние интеграции: HTTP API, DTO, mappers, token storage, storage adapters.
-- `presentation` - Angular UI домена: pages, forms, smart components, view models.
-
-## Dependency Rules
-
-```text
-presentation -> application -> domain
-application -> infrastructure
-infrastructure -> domain
-shared <- can be used by all layers
+domain -> application -> infrastructure
+presentation -> application
 ```
 
 Правила:
 
+- `domain` - чистая бизнес-модель без Angular, UI, Router, HttpClient и browser storage.
+- `application` - сценарии, orchestration и state.
+- `infrastructure` - HTTP API, DTO, mappers, storage adapters.
+- `presentation` - Angular UI, forms, pages, view models.
 - `shared` не зависит от доменов.
-- `domain` не зависит от Angular, UI, Router, HttpClient или browser storage.
-- компоненты не вызывают `HttpClient` и `localStorage` напрямую.
-- API-запросы идут через `infrastructure/*.api.ts`.
-- бизнес-правила живут в `domain`.
-- сценарии приложения живут в `application`.
-
-Предпочтительный поток:
-
-```text
-Component -> ApplicationService -> Api/Storage -> HttpClient
-```
+- Компоненты не вызывают `HttpClient`, API и `localStorage` напрямую.
+- Предпочтительный поток: `Component -> ApplicationService -> Api/Storage -> HttpClient`.
 
 ## State
 
-Используем Angular Signals:
-
-- `signal` для состояния;
-- `computed` для derived state;
-- `effect` только когда нужен reaction;
-- RxJS для HTTP, WebSocket и stream-сценариев.
-
-NgRx на старте не используем.
+- Используй Angular Signals для локального application state.
+- RxJS используй для HTTP, WebSocket и stream-сценариев.
+- NgRx на старте не используем.
 
 ## Naming
 
 - `*.api.ts` - HTTP requests only.
-- `*.dto.ts` - backend request/response contracts.
-- `*.input.ts` - application scenario input contracts.
-- `*.result.ts` - internal application scenario results.
-- `*.mapper.ts` - mapping between input/result and DTO.
-- `*.service.ts` - state, session, infrastructure, application services.
-- `*.use-case.ts` - optional complex scenario.
-- `*.types.ts` - shared technical types when needed.
-
-Не используй `store` naming для текущих state services.
-Предпочитай naming по архитектурной роли, а не по синтаксису декларации.
-
-## Shared UI
-
-`shared/ui` - только dumb/reusable UI без бизнес-логики.
-
-Shared UI получает данные через inputs, сообщает наружу через outputs или DOM events,
-не знает про API/state/router.
+- `*.dto.ts` - backend contracts.
+- `*.input.ts` - application scenario input.
+- `*.mapper.ts` - mapping.
+- `*.service.ts` - state, session, infrastructure или application services.
+- Не используй `store` naming для текущих state services.
 
 ## Routing
 
-Используй lazy-loaded pages через `loadComponent`.
-
-Guards после реализации session checking:
-
-- `/sign-in` - guest only
-- `/sign-up` - guest only
-- `/messenger` - auth only
-- `/profile` - auth only
-
-## Current MVP
-
-1. `[Shared UI] Create reusable button component` - done
-2. `[Shared UI] Create reusable form field and input directive` - done
-3. `[Identity Access] User can sign up`
-4. `[Identity Access] User can sign in`
-
-Current active task:
-
-```text
-[Identity Access] User can sign up
-```
-
-Current step:
-
-- `SignUpInput` создан в `application/sign-up.input.ts`.
-- Реализован request mapper `SignUpInput -> SignUpRequestDto` в `infrastructure/sign-up-request.mapper.ts`.
-- Добавлен базовый `SignUpService` в `application/sign-up.service.ts` со state `idle/submitting/success/error`.
-- В `presentation/sign-up-form` собрана typed reactive form с validators и отображением field-level ошибок.
-- `onSubmit()` реализован и форма подключена к `SignUpService`.
-- Подключены invalid submit guard с `markAllAsTouched()`, submit loading state и submit-level error message.
-- После success выполняется redirect на `sign-in` из `presentation` через `effect`.
-- Success notification отложен до появления общего notification service.
-- Следующий шаг: написать unit-тесты для всей `sign-up` feature.
-
-Next actions:
-
-- Написать unit-тесты для `sign-up` feature.
-- Проверить `SignUpService`: `idle/submitting/success/error`, reset state, backend/generic error mapping.
-- Проверить `sign-up-form`: invalid submit, `markAllAsTouched()`, вызов `SignUpService.signUp(...)`, disabled state во время submit, submit-level error rendering.
-- Success notification добавить позже вместе с общим notification service.
-- Не добавлять session restore, guards, chats/messages и другие messenger-сценарии в рамках этой задачи.
+- Используй lazy-loaded pages через `loadComponent`.
+- Guards появятся после реализации session checking.
