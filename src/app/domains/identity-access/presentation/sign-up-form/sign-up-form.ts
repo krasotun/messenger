@@ -83,7 +83,7 @@ export class SignUpForm {
       return undefined;
     }
 
-    return this.getErrorMessage(this.signUpForm.controls[controlName].errors!);
+    return this._getErrorMessage(this.signUpForm.controls[controlName].errors!);
   }
 
   hasControlError(controlName: keyof SignUpFormModel): boolean {
@@ -92,7 +92,7 @@ export class SignUpForm {
     return !!errors && touched;
   }
 
-  private getErrorMessage(errors: ValidationErrors): string {
+  private _getErrorMessage(errors: ValidationErrors): string {
     if (errors['required']) {
       return 'Обязательное поле';
     }

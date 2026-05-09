@@ -6,6 +6,4 @@ import { Component } from '@angular/core';
   templateUrl: './auth-page-shell.html',
   styleUrl: './auth-page-shell.scss',
 })
-export class AuthPageShell {
-
-}
+export class AuthPageShell {}
