@@ -9,8 +9,7 @@ describe('AuthFormShell', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AuthFormShell]
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(AuthFormShell);
     component = fixture.componentInstance;
