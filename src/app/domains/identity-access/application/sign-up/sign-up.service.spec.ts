@@ -1,14 +1,14 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
-import { AuthApi } from '../infrastructure/auth.api';
-import { SignUpRequestDto } from '../infrastructure/sign-up.dto';
+import { AUTH_GATEWAY } from '../auth.gateway';
 
 import { SignUpInput } from './sign-up.input';
 import { SignUpService, SignUpStatus } from './sign-up.service';
 
-const authApiMock = {
+import { ApplicationError } from '@app/shared/errors';
+
+const authGatewayMock = {
   signUp: vi.fn(),
 };
 
@@ -21,26 +21,17 @@ const signUpInputMock: SignUpInput = {
   phone: '79999999999',
 };
 
-const signUpRequestMock: SignUpRequestDto = {
-  first_name: 'mockFirstName',
-  second_name: 'mockSecondName',
-  login: 'mockLogin',
-  email: 'mock@email.email',
-  password: 'mockPassword',
-  phone: '79999999999',
-};
-
 describe('SignUpService', () => {
   let service: SignUpService;
 
   beforeEach(() => {
-    authApiMock.signUp.mockReset();
+    authGatewayMock.signUp.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
         {
-          provide: AuthApi,
-          useValue: authApiMock,
+          provide: AUTH_GATEWAY,
+          useValue: authGatewayMock,
         },
       ],
     });
@@ -66,17 +57,17 @@ describe('SignUpService', () => {
   });
 
   describe('signUp', () => {
-    it('calls authApi with mappedRequest', () => {
-      authApiMock.signUp.mockReturnValue(of({ id: 1 }));
+    it('calls authGateway with form values', () => {
+      authGatewayMock.signUp.mockReturnValue(of({ userId: 1 }));
 
       service.signUp(signUpInputMock);
 
-      expect(authApiMock.signUp).toHaveBeenCalledWith(signUpRequestMock);
+      expect(authGatewayMock.signUp).toHaveBeenCalledWith(signUpInputMock);
     });
 
     it('should set submitting state and clear error message while request is pending', () => {
-      const signUpResult$ = new Subject<{ id: number }>();
-      authApiMock.signUp.mockReturnValue(signUpResult$);
+      const signUpResult$ = new Subject<{ userId: number }>();
+      authGatewayMock.signUp.mockReturnValue(signUpResult$);
 
       service.errorMessage.set('mockError');
 
@@ -88,8 +79,8 @@ describe('SignUpService', () => {
     });
 
     it('should set success state when request succeeds', () => {
-      const signUpResult$ = of({ id: 1 });
-      authApiMock.signUp.mockReturnValue(signUpResult$);
+      const signUpResult$ = of({ userId: 1 });
+      authGatewayMock.signUp.mockReturnValue(signUpResult$);
 
       service.signUp(signUpInputMock);
 
@@ -98,34 +89,16 @@ describe('SignUpService', () => {
       expect(service.isSubmitting()).toBe(false);
     });
 
-    it('should show error reason from backend', () => {
+    it('should show application error message', () => {
       const signUpResult$ = throwError(() => {
-        return new HttpErrorResponse({
-          status: 400,
-          error: {
-            reason: 'mockReason',
-          },
-        });
+        return new ApplicationError('mockReason');
       });
-      authApiMock.signUp.mockReturnValue(signUpResult$);
+      authGatewayMock.signUp.mockReturnValue(signUpResult$);
 
       service.signUp(signUpInputMock);
 
       expect(service.status()).toBe(SignUpStatus.Error);
       expect(service.errorMessage()).toBe('mockReason');
-      expect(service.isSubmitting()).toBe(false);
-    });
-
-    it('should show generic error', () => {
-      const signUpResult$ = throwError(() => {
-        return new Error('mockError');
-      });
-      authApiMock.signUp.mockReturnValue(signUpResult$);
-
-      service.signUp(signUpInputMock);
-
-      expect(service.status()).toBe(SignUpStatus.Error);
-      expect(service.errorMessage()).toBe('Failed to sign up. Please try again.');
       expect(service.isSubmitting()).toBe(false);
     });
   });

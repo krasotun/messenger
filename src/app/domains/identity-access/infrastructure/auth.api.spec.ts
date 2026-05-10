@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { AuthApi } from './auth.api';
-import { SignUpRequestDto } from './sign-up.dto';
+import { SignUpRequestDto } from './sign-up/sign-up.dto';
 
 import { API_BASE_URL } from '@app/core/tokens';
 

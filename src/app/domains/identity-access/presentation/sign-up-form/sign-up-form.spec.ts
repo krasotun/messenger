@@ -2,7 +2,7 @@ import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 
-import { SignUpService, SignUpStatus } from '../../application/sign-up.service';
+import { SignUpService, SignUpStatus } from '../../application/sign-up/sign-up.service';
 
 import { SignUpForm } from './sign-up-form';
 

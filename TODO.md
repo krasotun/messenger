@@ -3,38 +3,50 @@
 ## Активная задача
 
 ```text
-[Identity Access] User can sign up
+[Identity Access] User can sign in
 ```
 
 ## Текущий шаг
 
-- `SignUpInput` создан в `application/sign-up.input.ts`.
-- Реализован request mapper `SignUpInput -> SignUpRequestDto` в `infrastructure/sign-up-request.mapper.ts`.
-- Добавлен базовый `SignUpService` в `application/sign-up.service.ts` со state для `idle/submitting/success/error`.
-- В `presentation/sign-up-form` собрана typed reactive form с validators и отображением field-level ошибок.
-- `onSubmit()` реализован и форма подключена к `SignUpService`.
-- Подключены invalid submit guard с `markAllAsTouched()`, submit loading state и submit-level error message.
-- После success выполняется redirect на `sign-in` из `presentation` через `effect`.
-- Success notification отложен до появления общего notification service.
-- `SignUpService` покрыт unit-тестами: initial state, submitting/success/error, reset state, backend/generic error mapping.
-- `signUpRequestMapper` косвенно покрыт через `SignUpService`; прямой mapper spec добавить, если mapping разрастется.
-- `AuthApi.signUp(...)` покрыт unit-тестом: POST на `/auth/signup`, request DTO, response DTO.
-- `sign-up-form component` покрыт unit-тестами: invalid submit, `markAllAsTouched()`, вызов `SignUpService.signUp(...)`, disabled state во время submit, submit-level error rendering, success redirect/reset.
-- Existing shared UI/auth shell specs приведены к Angular required input/injection-context API.
-- Full test suite green: `11` spec files, `38` tests.
-- Следующий шаг: начать `[Identity Access] User can sign in` с введения `AuthGateway`/`HttpAuthGateway`.
+- Завершить gateway test coverage перед переходом к sign-in backend contract.
+- Следующий шаг: дописать `HttpAuthGateway` spec.
+- После gateway spec переходить к sign-in contract: `SignInInput`, DTO, mapper, API method, application service, presentation form/page.
 
 ## Действия
 
-- Написать unit-тесты для `sign-up` feature.
-- При усложнении mapping добавить прямой `sign-up-request.mapper.spec.ts`: `SignUpInput -> SignUpRequestDto`, включая `firstName -> first_name` и `secondName -> second_name`.
-- После зеленого test suite и при старте следующей фичи `[Identity Access] User can sign in` ввести application port/gateway для auth backend:
-  - `application/auth.gateway.ts`: `AuthGateway` interface + `AUTH_GATEWAY` injection token;
-  - `infrastructure/http-auth.gateway.ts`: Angular service adapter, implements `AuthGateway`;
-  - связать `AUTH_GATEWAY -> HttpAuthGateway` в `app.config.ts`;
-  - перенести `signUpRequestMapper(...)` и вызов `AuthApi.signUp(...)` из `SignUpService` в `HttpAuthGateway`;
-  - в `SignUpService` оставить application state flow: `idle/submitting/success/error`;
-  - HTTP-to-application error mapping выносить в gateway, когда появится дублирование на `sign in`.
+- Ввести application port/gateway для auth backend:
+  - done: `application/auth.gateway.ts`: `AuthGateway` interface + `AUTH_GATEWAY` injection token;
+  - done: метод gateway пока только `signUp(input: SignUpInput): Observable<SignUpResult>`;
+  - done: `SignUpResult` - application-level result, не backend DTO;
+  - done: `infrastructure/http-auth-gateway.ts`: Angular service adapter, implements `AuthGateway`;
+  - done: перенести `signUpRequestMapper(...)` и вызов `AuthApi.signUp(...)` из `SignUpService` в `HttpAuthGateway`;
+  - done: мапить `SignUpResponseDto` в `SignUpResult` внутри `HttpAuthGateway`;
+  - done: мапить backend/HTTP errors в shared `ApplicationError` внутри `HttpAuthGateway`;
+  - done: связать `AUTH_GATEWAY -> HttpAuthGateway` в `app.config.ts`;
+  - done: в `SignUpService` оставить только application state flow: `idle/submitting/success/error`.
+- Актуализировать unit-тесты под gateway boundary:
+  - done: `SignUpService` мокает `AUTH_GATEWAY`, а не `AuthApi`;
+  - next: добавить `HttpAuthGateway` spec: `SignUpInput -> AuthApi.signUp(SignUpRequestDto)`;
+  - next: покрыть `HttpAuthGateway` mapping `SignUpResponseDto -> SignUpResult`;
+  - next: покрыть `HttpAuthGateway` mapping backend/generic errors в `ApplicationError`;
+  - `AuthApi.signUp(...)` HTTP spec оставить без изменений.
+- После gateway-правки начать sign-in backend contract:
+  - уточнить endpoint, request DTO и response DTO в `infrastructure/auth-api.contract.md`;
+  - добавить `SignInInput` в `application`;
+  - добавить sign-in DTO и request mapper в `infrastructure`;
+  - расширить `AuthApi` HTTP method только HTTP-запросом.
+- Реализовать sign-in application flow:
+  - добавить `SignInService` со state `idle/submitting/success/error`;
+  - использовать `AUTH_GATEWAY`, без прямых DTO/API imports;
+  - HTTP-to-application error mapping вынести в gateway, если появится дублирование с sign-up.
+- Реализовать sign-in presentation flow:
+  - собрать typed reactive form для login/password;
+  - подключить validators, invalid submit guard, loading state, submit-level error;
+  - post-success поведение определить отдельно до добавления session restore/guards.
+- В конце задачи привести imports к единому alias style:
+  - проверить `@app`, `@domains`, `@shared` usage;
+  - убрать смешение relative imports и aliases там, где это ухудшает читаемость;
+  - не делать отдельную alias-правку до завершения gateway/sign-in flow.
 - При появлении общего notification service вернуть success notification после successful sign up.
 - Не добавлять session restore, guards, chats/messages и другие messenger-сценарии в рамках этой задачи.
 
@@ -58,6 +70,14 @@
   - `shared/ui/input/input.spec.ts`;
   - `shared/ui/form-field/form-field.spec.ts`;
   - `domains/identity-access/presentation/auth-form-shell/auth-form-shell.spec.ts`.
+
+Planned for gateway/sign-in:
+
+- `SignUpService` - done: mocks `AUTH_GATEWAY`.
+- `HttpAuthGateway` - next: add spec for sign-up delegation, result mapping and error mapping.
+- `AuthApi.signIn` - add HTTP-level spec after backend contract is fixed.
+- `SignInService` - add state flow specs.
+- `sign-in-form component` - add presentation specs, mirroring sign-up where applicable.
 
 ## Готово
 
@@ -87,6 +107,11 @@
 - `[Identity Access] Cover sign-up-form component with unit tests`
 - `[Testing] Fix shared UI/auth shell specs for Angular required inputs and signal inputs`
 - `[Identity Access] Disable sign-up reactive form through FormGroup state instead of disabled attributes`
+- `[Identity Access] User can sign up`
+- `[Identity Access] Add AuthGateway port and HttpAuthGateway adapter`
+- `[Identity Access] Move sign-up API/DTO mapping from SignUpService to HttpAuthGateway`
+- `[Identity Access] Normalize auth backend errors to shared ApplicationError`
+- `[Identity Access] Update SignUpService tests to mock AUTH_GATEWAY`
 
 ## Текущий MVP
 
@@ -94,6 +119,6 @@
 
 1. `[Shared UI] Create reusable button component`
 2. `[Shared UI] Create reusable form field and input directive`
-3. `[Identity Access] User can sign up`
-4. `[Identity Access] User can sign in`
-   - После починки текущих specs добавить application port/gateway для auth backend и HTTP adapter в `infrastructure`.
+3. `[Identity Access] User can sign up` - done
+4. `[Identity Access] User can sign in` - in progress
+   - Сначала добавить application port/gateway для auth backend и HTTP adapter в `infrastructure`.

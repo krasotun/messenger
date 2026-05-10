@@ -1,9 +1,9 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 
-import { SignUpInput } from '@domains/identity-access/application/sign-up.input';
-import { AuthApi } from '@domains/identity-access/infrastructure/auth.api';
-import { signUpRequestMapper } from '@domains/identity-access/infrastructure/sign-up-request.mapper';
+import { AUTH_GATEWAY } from '../auth.gateway';
+
+import { SignUpInput } from '@app/domains/identity-access/application/sign-up/sign-up.input';
+import { ApplicationError } from '@app/shared/errors';
 import { Nullable } from '@shared/types';
 
 export enum SignUpStatus {
@@ -24,28 +24,22 @@ export class SignUpService {
     return this.status() === SignUpStatus.Submitting;
   });
 
-  private readonly _authApi = inject(AuthApi);
+  private readonly _authGateway = inject(AUTH_GATEWAY);
 
   signUp(signUpInput: SignUpInput): void {
-    const signUpRequest = signUpRequestMapper(signUpInput);
-
     this.errorMessage.set(null);
     this.status.set(SignUpStatus.Submitting);
 
-    this._authApi.signUp(signUpRequest).subscribe({
+    this._authGateway.signUp(signUpInput).subscribe({
       next: () => {
         this.status.set(SignUpStatus.Success);
 
         this.errorMessage.set(null);
       },
-      error: (error) => {
+      error: ({ message }: ApplicationError) => {
         this.status.set(SignUpStatus.Error);
 
-        if (error instanceof HttpErrorResponse && error.error?.reason) {
-          this.errorMessage.set(error.error.reason);
-        } else {
-          this.errorMessage.set('Failed to sign up. Please try again.');
-        }
+        this.errorMessage.set(message);
       },
     });
   }

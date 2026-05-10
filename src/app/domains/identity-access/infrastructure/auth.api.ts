@@ -6,7 +6,7 @@ import { API_BASE_URL } from '@app/core/tokens/api-base-url.token';
 import {
   SignUpRequestDto,
   SignUpResponseDto,
-} from '@domains/identity-access/infrastructure/sign-up.dto';
+} from '@domains/identity-access/infrastructure/sign-up/sign-up.dto';
 
 @Injectable({
   providedIn: 'root',
