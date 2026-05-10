@@ -61,6 +61,14 @@ export class SignUpForm {
 
   constructor() {
     effect(() => {
+      if (this.isSubmitting()) {
+        this.signUpForm.disable({ emitEvent: false });
+      } else {
+        this.signUpForm.enable({ emitEvent: false });
+      }
+    });
+
+    effect(() => {
       if (this._signUpService.status() === SignUpStatus.Success) {
         this._signUpService.resetSignUpStatus();
 

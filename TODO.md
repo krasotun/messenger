@@ -20,13 +20,14 @@
 - `signUpRequestMapper` косвенно покрыт через `SignUpService`; прямой mapper spec добавить, если mapping разрастется.
 - `AuthApi.signUp(...)` покрыт unit-тестом: POST на `/auth/signup`, request DTO, response DTO.
 - `sign-up-form component` покрыт unit-тестами: invalid submit, `markAllAsTouched()`, вызов `SignUpService.signUp(...)`, disabled state во время submit, submit-level error rendering, success redirect/reset.
-- Следующий шаг на завтра: привести существующие shared UI/auth shell specs к Angular required input/injection-context API, чтобы общий test suite снова проходил.
+- Existing shared UI/auth shell specs приведены к Angular required input/injection-context API.
+- Full test suite green: `11` spec files, `38` tests.
+- Следующий шаг: начать `[Identity Access] User can sign in` с введения `AuthGateway`/`HttpAuthGateway`.
 
 ## Действия
 
 - Написать unit-тесты для `sign-up` feature.
 - При усложнении mapping добавить прямой `sign-up-request.mapper.spec.ts`: `SignUpInput -> SignUpRequestDto`, включая `firstName -> first_name` и `secondName -> second_name`.
-- Завтра начать с починки существующих падающих specs для `Button`, `Input`, `FormField`, `AuthFormShell`: не создавать signal-input directives через `new`, задавать required inputs через host/component setup.
 - После зеленого test suite и при старте следующей фичи `[Identity Access] User can sign in` ввести application port/gateway для auth backend:
   - `application/auth.gateway.ts`: `AuthGateway` interface + `AUTH_GATEWAY` injection token;
   - `infrastructure/http-auth.gateway.ts`: Angular service adapter, implements `AuthGateway`;
@@ -52,7 +53,7 @@
 
 `sign-up-form` tests should mock `SignUpService` and `Router`; do not use real `AuthApi`.
 
-- Завтра: fix existing generated/legacy UI specs:
+- Fixed existing generated/legacy UI specs:
   - `shared/ui/button/button.spec.ts`;
   - `shared/ui/input/input.spec.ts`;
   - `shared/ui/form-field/form-field.spec.ts`;
@@ -84,6 +85,8 @@
 - `[Identity Access] Cover SignUpService with unit tests`
 - `[Identity Access] Cover AuthApi.signUp with unit test`
 - `[Identity Access] Cover sign-up-form component with unit tests`
+- `[Testing] Fix shared UI/auth shell specs for Angular required inputs and signal inputs`
+- `[Identity Access] Disable sign-up reactive form through FormGroup state instead of disabled attributes`
 
 ## Текущий MVP
 

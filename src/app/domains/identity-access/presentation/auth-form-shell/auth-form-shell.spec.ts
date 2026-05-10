@@ -8,15 +8,25 @@ describe('AuthFormShell', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AuthFormShell]
+      imports: [AuthFormShell],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AuthFormShell);
+
+    fixture.componentRef.setInput('formTitle', 'Mock title');
+
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should render form title', () => {
+    const titleEl: HTMLHeadingElement =
+      fixture.nativeElement.querySelector('.auth-form-shell__title');
+
+    expect(titleEl.textContent).toContain('Mock title');
   });
 });
