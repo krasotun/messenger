@@ -8,7 +8,10 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { SignUpService, SignUpStatus } from '@app/domains/identity-access/application/sign-up/sign-up.service';
+import {
+  SignUpService,
+  SignUpStatus,
+} from '@app/domains/identity-access/application/sign-up/sign-up.service';
 import {
   emailPattern,
   phonePattern,

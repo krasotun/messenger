@@ -8,9 +8,9 @@
 
 ## Текущий шаг
 
-- Завершить gateway test coverage перед переходом к sign-in backend contract.
-- Следующий шаг: дописать `HttpAuthGateway` spec.
-- После gateway spec переходить к sign-in contract: `SignInInput`, DTO, mapper, API method, application service, presentation form/page.
+- Начать sign-in backend contract.
+- Следующий шаг: уточнить endpoint, request DTO и response DTO в `infrastructure/auth-api.contract.md`.
+- После contract переходить к `SignInInput`, DTO, mapper, API method, application service, presentation form/page.
 
 ## Действия
 
@@ -26,9 +26,9 @@
   - done: в `SignUpService` оставить только application state flow: `idle/submitting/success/error`.
 - Актуализировать unit-тесты под gateway boundary:
   - done: `SignUpService` мокает `AUTH_GATEWAY`, а не `AuthApi`;
-  - next: добавить `HttpAuthGateway` spec: `SignUpInput -> AuthApi.signUp(SignUpRequestDto)`;
-  - next: покрыть `HttpAuthGateway` mapping `SignUpResponseDto -> SignUpResult`;
-  - next: покрыть `HttpAuthGateway` mapping backend/generic errors в `ApplicationError`;
+  - done: добавить `HttpAuthGateway` spec: `SignUpInput -> AuthApi.signUp(SignUpRequestDto)`;
+  - done: покрыть `HttpAuthGateway` mapping `SignUpResponseDto -> SignUpResult`;
+  - done: покрыть `HttpAuthGateway` mapping backend/generic errors в `ApplicationError`;
   - `AuthApi.signUp(...)` HTTP spec оставить без изменений.
 - После gateway-правки начать sign-in backend contract:
   - уточнить endpoint, request DTO и response DTO в `infrastructure/auth-api.contract.md`;
@@ -74,7 +74,7 @@
 Planned for gateway/sign-in:
 
 - `SignUpService` - done: mocks `AUTH_GATEWAY`.
-- `HttpAuthGateway` - next: add spec for sign-up delegation, result mapping and error mapping.
+- `HttpAuthGateway` - done: covers sign-up delegation, result mapping and error mapping.
 - `AuthApi.signIn` - add HTTP-level spec after backend contract is fixed.
 - `SignInService` - add state flow specs.
 - `sign-in-form component` - add presentation specs, mirroring sign-up where applicable.
@@ -112,6 +112,7 @@ Planned for gateway/sign-in:
 - `[Identity Access] Move sign-up API/DTO mapping from SignUpService to HttpAuthGateway`
 - `[Identity Access] Normalize auth backend errors to shared ApplicationError`
 - `[Identity Access] Update SignUpService tests to mock AUTH_GATEWAY`
+- `[Identity Access] Cover HttpAuthGateway with unit tests`
 
 ## Текущий MVP
 
@@ -121,4 +122,4 @@ Planned for gateway/sign-in:
 2. `[Shared UI] Create reusable form field and input directive`
 3. `[Identity Access] User can sign up` - done
 4. `[Identity Access] User can sign in` - in progress
-   - Сначала добавить application port/gateway для auth backend и HTTP adapter в `infrastructure`.
+   - Следующий шаг: зафиксировать sign-in backend contract.
