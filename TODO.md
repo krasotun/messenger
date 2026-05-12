@@ -8,9 +8,8 @@
 
 ## Текущий шаг
 
-- Начать sign-in backend contract.
-- Следующий шаг: уточнить endpoint, request DTO и response DTO в `infrastructure/auth-api.contract.md`.
-- После contract переходить к `SignInInput`, DTO, mapper, API method, application service, presentation form/page.
+- Продолжить sign-in gateway implementation.
+- Следующий шаг: расширить `AuthGateway.signIn(...)` и `HttpAuthGateway` mapping/error handling.
 
 ## Действия
 
@@ -31,10 +30,17 @@
   - done: покрыть `HttpAuthGateway` mapping backend/generic errors в `ApplicationError`;
   - `AuthApi.signUp(...)` HTTP spec оставить без изменений.
 - После gateway-правки начать sign-in backend contract:
-  - уточнить endpoint, request DTO и response DTO в `infrastructure/auth-api.contract.md`;
-  - добавить `SignInInput` в `application`;
-  - добавить sign-in DTO и request mapper в `infrastructure`;
-  - расширить `AuthApi` HTTP method только HTTP-запросом.
+  - done: уточнить endpoint, request DTO и response/session behavior в `infrastructure/auth-api.contract.md`;
+  - done: добавить `SignInInput` в `application`;
+  - done: добавить sign-in DTO и request mapper в `infrastructure`;
+  - done: расширить `AuthApi` HTTP method только HTTP-запросом;
+  - done: покрыть `AuthApi.signIn(...)` HTTP-level spec, включая `withCredentials: true`.
+- Расширить gateway под sign-in:
+  - next: добавить `SignInResult` в `application`;
+  - расширить `AuthGateway` методом `signIn(input: SignInInput)`;
+  - реализовать `HttpAuthGateway.signIn(...)` через mapper и `AuthApi.signIn(...)`;
+  - мапить success в application-level result;
+  - мапить backend/generic errors в `ApplicationError`.
 - Реализовать sign-in application flow:
   - добавить `SignInService` со state `idle/submitting/success/error`;
   - использовать `AUTH_GATEWAY`, без прямых DTO/API imports;
@@ -75,7 +81,8 @@ Planned for gateway/sign-in:
 
 - `SignUpService` - done: mocks `AUTH_GATEWAY`.
 - `HttpAuthGateway` - done: covers sign-up delegation, result mapping and error mapping.
-- `AuthApi.signIn` - add HTTP-level spec after backend contract is fixed.
+- `AuthApi.signIn` - done: HTTP-level spec including `withCredentials: true`.
+- `HttpAuthGateway.signIn` - add delegation, success result and error mapping specs.
 - `SignInService` - add state flow specs.
 - `sign-in-form component` - add presentation specs, mirroring sign-up where applicable.
 
@@ -113,6 +120,11 @@ Planned for gateway/sign-in:
 - `[Identity Access] Normalize auth backend errors to shared ApplicationError`
 - `[Identity Access] Update SignUpService tests to mock AUTH_GATEWAY`
 - `[Identity Access] Cover HttpAuthGateway with unit tests`
+- `[Identity Access] Fix sign in backend contract in docs`
+- `[Identity Access] Add SignInInput contract in application`
+- `[Identity Access] Add sign in DTO and request mapper`
+- `[Identity Access] Add AuthApi.signIn HTTP method`
+- `[Identity Access] Cover AuthApi.signIn with unit test`
 
 ## Текущий MVP
 
@@ -122,4 +134,4 @@ Planned for gateway/sign-in:
 2. `[Shared UI] Create reusable form field and input directive`
 3. `[Identity Access] User can sign up` - done
 4. `[Identity Access] User can sign in` - in progress
-   - Следующий шаг: зафиксировать sign-in backend contract.
+   - Следующий шаг: расширить `AuthGateway.signIn(...)` и `HttpAuthGateway` mapping/error handling.
