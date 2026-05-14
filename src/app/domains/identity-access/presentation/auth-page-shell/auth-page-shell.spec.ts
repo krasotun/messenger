@@ -8,9 +8,8 @@ describe('AuthPageShell', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AuthPageShell]
-    })
-    .compileComponents();
+      imports: [AuthPageShell],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(AuthPageShell);
     component = fixture.componentInstance;

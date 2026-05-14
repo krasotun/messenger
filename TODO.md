@@ -8,11 +8,17 @@
 
 ## Текущий шаг
 
-- Продолжить sign-in gateway implementation.
-- Следующий шаг: расширить `AuthGateway.signIn(...)` и `HttpAuthGateway` mapping/error handling.
+- Перейти на TDD-порядок разработки для текущей и следующих задач.
+- Следующий шаг: сначала добавить failing specs для `HttpAuthGateway.signIn(...)`, затем расширить `AuthGateway.signIn(...)` и реализовать mapping/error handling.
 
 ## Действия
 
+- Методология разработки:
+  - active: TDD для всех новых изменений в business/application/presentation flow;
+  - сначала фиксировать ожидаемое поведение в unit/component spec;
+  - затем делать минимальную production-реализацию;
+  - после green state выполнять refactor без расширения scope;
+  - исключения: документация, конфигурация и явно зафиксированный технический долг.
 - Ввести application port/gateway для auth backend:
   - done: `application/auth.gateway.ts`: `AuthGateway` interface + `AUTH_GATEWAY` injection token;
   - done: метод gateway пока только `signUp(input: SignUpInput): Observable<SignUpResult>`;
@@ -36,23 +42,31 @@
   - done: расширить `AuthApi` HTTP method только HTTP-запросом;
   - done: покрыть `AuthApi.signIn(...)` HTTP-level spec, включая `withCredentials: true`.
 - Расширить gateway под sign-in:
-  - next: добавить `SignInResult` в `application`;
+  - next: сначала добавить failing specs для `HttpAuthGateway.signIn(...)`;
+  - через тест зафиксировать delegation: `SignInInput -> AuthApi.signIn(SignInRequestDto)`;
+  - через тест зафиксировать success mapping в application-level result;
+  - через тест зафиксировать backend/generic error mapping в `ApplicationError`;
+  - после этого добавить `SignInResult` в `application`;
   - расширить `AuthGateway` методом `signIn(input: SignInInput)`;
-  - реализовать `HttpAuthGateway.signIn(...)` через mapper и `AuthApi.signIn(...)`;
-  - мапить success в application-level result;
-  - мапить backend/generic errors в `ApplicationError`.
+  - реализовать `HttpAuthGateway.signIn(...)` через mapper и `AuthApi.signIn(...)`.
 - Реализовать sign-in application flow:
-  - добавить `SignInService` со state `idle/submitting/success/error`;
+  - сначала добавить failing specs для `SignInService` state flow;
+  - затем добавить `SignInService` со state `idle/submitting/success/error`;
   - использовать `AUTH_GATEWAY`, без прямых DTO/API imports;
   - HTTP-to-application error mapping вынести в gateway, если появится дублирование с sign-up.
 - Реализовать sign-in presentation flow:
-  - собрать typed reactive form для login/password;
+  - сначала добавить failing component specs для формы;
+  - затем собрать typed reactive form для login/password;
   - подключить validators, invalid submit guard, loading state, submit-level error;
   - post-success поведение определить отдельно до добавления session restore/guards.
 - В конце задачи привести imports к единому alias style:
   - проверить `@app`, `@domains`, `@shared` usage;
   - убрать смешение relative imports и aliases там, где это ухудшает читаемость;
   - не делать отдельную alias-правку до завершения gateway/sign-in flow.
+- В конце sign-in задачи добавить ESLint-проверку архитектурных import boundaries:
+  - запретить импорт высокоуровневых слоев из низкоуровневых;
+  - зафиксировать правила `domain -> application -> infrastructure` и `presentation -> application`;
+  - проверить запрет зависимостей `shared` от доменов.
 - При появлении общего notification service вернуть success notification после successful sign up.
 - Не добавлять session restore, guards, chats/messages и другие messenger-сценарии в рамках этой задачи.
 
@@ -82,9 +96,9 @@ Planned for gateway/sign-in:
 - `SignUpService` - done: mocks `AUTH_GATEWAY`.
 - `HttpAuthGateway` - done: covers sign-up delegation, result mapping and error mapping.
 - `AuthApi.signIn` - done: HTTP-level spec including `withCredentials: true`.
-- `HttpAuthGateway.signIn` - add delegation, success result and error mapping specs.
-- `SignInService` - add state flow specs.
-- `sign-in-form component` - add presentation specs, mirroring sign-up where applicable.
+- `HttpAuthGateway.signIn` - next TDD step: add failing delegation, success result and error mapping specs before implementation.
+- `SignInService` - add failing state flow specs before implementation.
+- `sign-in-form component` - add failing presentation specs before implementation, mirroring sign-up where applicable.
 
 ## Готово
 
@@ -134,4 +148,4 @@ Planned for gateway/sign-in:
 2. `[Shared UI] Create reusable form field and input directive`
 3. `[Identity Access] User can sign up` - done
 4. `[Identity Access] User can sign in` - in progress
-   - Следующий шаг: расширить `AuthGateway.signIn(...)` и `HttpAuthGateway` mapping/error handling.
+   - Следующий шаг: TDD-first для `HttpAuthGateway.signIn(...)`: failing specs, затем implementation.
