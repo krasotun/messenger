@@ -2,14 +2,15 @@ import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 
-import { SignUpService, SignUpStatus } from '../../application/sign-up/sign-up.service';
+import { AuthFlowStatus } from '../../application/auth-flow-status';
+import { SignUpService } from '../../application/sign-up/sign-up.service';
 
 import { SignUpForm } from './sign-up-form';
 
 let signUpServiceMock: {
   isSubmitting: WritableSignal<boolean>;
   errorMessage: WritableSignal<string | null>;
-  status: WritableSignal<SignUpStatus>;
+  status: WritableSignal<AuthFlowStatus>;
   signUp: ReturnType<typeof vi.fn>;
   resetSignUpStatus: ReturnType<typeof vi.fn>;
 };
@@ -26,7 +27,7 @@ describe('SignUpForm', () => {
     signUpServiceMock = {
       isSubmitting: signal(false),
       errorMessage: signal(null),
-      status: signal(SignUpStatus.Idle),
+      status: signal(AuthFlowStatus.Idle),
       signUp: vi.fn(),
       resetSignUpStatus: vi.fn(),
     };
@@ -143,7 +144,7 @@ describe('SignUpForm', () => {
 
   describe('success state', () => {
     it('should navigate to sign-in after success submit', () => {
-      signUpServiceMock.status.set(SignUpStatus.Success);
+      signUpServiceMock.status.set(AuthFlowStatus.Success);
 
       fixture.detectChanges();
 
@@ -152,7 +153,7 @@ describe('SignUpForm', () => {
     });
 
     it('should reset submitting status', () => {
-      signUpServiceMock.status.set(SignUpStatus.Success);
+      signUpServiceMock.status.set(AuthFlowStatus.Success);
 
       fixture.detectChanges();
 

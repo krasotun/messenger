@@ -9,7 +9,7 @@
 ## Текущий шаг
 
 - Перейти на TDD-порядок разработки для текущей и следующих задач.
-- Следующий шаг: сначала добавить failing specs для `HttpAuthGateway.signIn(...)`, затем расширить `AuthGateway.signIn(...)` и реализовать mapping/error handling.
+- Следующий шаг: продолжить с первого `SignInService` TDD spec: initial status is `AuthFlowStatus.Idle`.
 
 ## Действия
 
@@ -42,15 +42,18 @@
   - done: расширить `AuthApi` HTTP method только HTTP-запросом;
   - done: покрыть `AuthApi.signIn(...)` HTTP-level spec, включая `withCredentials: true`.
 - Расширить gateway под sign-in:
-  - next: сначала добавить failing specs для `HttpAuthGateway.signIn(...)`;
-  - через тест зафиксировать delegation: `SignInInput -> AuthApi.signIn(SignInRequestDto)`;
-  - через тест зафиксировать success mapping в application-level result;
-  - через тест зафиксировать backend/generic error mapping в `ApplicationError`;
-  - после этого добавить `SignInResult` в `application`;
-  - расширить `AuthGateway` методом `signIn(input: SignInInput)`;
-  - реализовать `HttpAuthGateway.signIn(...)` через mapper и `AuthApi.signIn(...)`.
+  - done: через тест зафиксировать delegation: `SignInInput -> AuthApi.signIn(SignInRequestDto)`;
+  - done: через тест зафиксировать success mapping в application-level result;
+  - done: через тест зафиксировать backend/generic error mapping в `ApplicationError`;
+  - done: добавить `SignInResult` в `application`;
+  - done: расширить `AuthGateway` методом `signIn(input: SignInInput)`;
+  - done: реализовать `HttpAuthGateway.signIn(...)` через mapper и `AuthApi.signIn(...)`.
 - Реализовать sign-in application flow:
-  - сначала добавить failing specs для `SignInService` state flow;
+  - done: создать минимальный `SignInService` scaffold без реального flow, чтобы IDE/TestBed видели публичный API;
+  - done: вынести общий auth flow status в `application/auth-flow-status.ts`;
+  - done: перевести sign-up service/spec/presentation spec на `AuthFlowStatus`;
+  - next: добавить failing spec для initial `SignInService` status: `AuthFlowStatus.Idle`;
+  - затем добавить остальные specs для `SignInService` state flow;
   - затем добавить `SignInService` со state `idle/submitting/success/error`;
   - использовать `AUTH_GATEWAY`, без прямых DTO/API imports;
   - HTTP-to-application error mapping вынести в gateway, если появится дублирование с sign-up.
@@ -96,8 +99,8 @@ Planned for gateway/sign-in:
 - `SignUpService` - done: mocks `AUTH_GATEWAY`.
 - `HttpAuthGateway` - done: covers sign-up delegation, result mapping and error mapping.
 - `AuthApi.signIn` - done: HTTP-level spec including `withCredentials: true`.
-- `HttpAuthGateway.signIn` - next TDD step: add failing delegation, success result and error mapping specs before implementation.
-- `SignInService` - add failing state flow specs before implementation.
+- `HttpAuthGateway.signIn` - done: covers delegation, success result and backend/generic error mapping.
+- `SignInService` - next: add failing initial idle status spec, then continue state flow specs.
 - `sign-in-form component` - add failing presentation specs before implementation, mirroring sign-up where applicable.
 
 ## Готово

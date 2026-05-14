@@ -8,10 +8,9 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import {
-  SignUpService,
-  SignUpStatus,
-} from '@app/domains/identity-access/application/sign-up/sign-up.service';
+import { AuthFlowStatus } from '../../application/auth-flow-status';
+
+import { SignUpService } from '@app/domains/identity-access/application/sign-up/sign-up.service';
 import {
   emailPattern,
   phonePattern,
@@ -72,7 +71,7 @@ export class SignUpForm {
     });
 
     effect(() => {
-      if (this._signUpService.status() === SignUpStatus.Success) {
+      if (this._signUpService.status() === AuthFlowStatus.Success) {
         this._signUpService.resetSignUpStatus();
 
         this._router.navigate(['sign-in']);

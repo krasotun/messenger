@@ -4,7 +4,7 @@
 Валидные данные регистрации из Sign Up domain model
 ## Flow
 - получить валидные данные
-- отправить запрос
+- отправить sign-up запрос через `AUTH_GATEWAY`
 - перейти в Success или Error state
 ## State
 - Idle

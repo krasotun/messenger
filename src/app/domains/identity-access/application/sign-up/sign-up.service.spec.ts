@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
+import { AuthFlowStatus } from '../auth-flow-status';
 import { AUTH_GATEWAY } from '../auth.gateway';
 
 import { SignUpInput } from './sign-up.input';
-import { SignUpService, SignUpStatus } from './sign-up.service';
+import { SignUpService } from './sign-up.service';
 
 import { ApplicationError } from '@app/shared/errors';
 
@@ -44,7 +45,7 @@ describe('SignUpService', () => {
 
   describe('initial state', () => {
     it('status should be idle', () => {
-      expect(service.status()).toBe(SignUpStatus.Idle);
+      expect(service.status()).toBe(AuthFlowStatus.Idle);
     });
 
     it('errorMessage should be null', () => {
@@ -75,7 +76,7 @@ describe('SignUpService', () => {
 
       expect(service.errorMessage()).toBe(null);
       expect(service.isSubmitting()).toBe(true);
-      expect(service.status()).toBe(SignUpStatus.Submitting);
+      expect(service.status()).toBe(AuthFlowStatus.Submitting);
     });
 
     it('should set success state when request succeeds', () => {
@@ -84,7 +85,7 @@ describe('SignUpService', () => {
 
       service.signUp(signUpInputMock);
 
-      expect(service.status()).toBe(SignUpStatus.Success);
+      expect(service.status()).toBe(AuthFlowStatus.Success);
       expect(service.errorMessage()).toBeNull();
       expect(service.isSubmitting()).toBe(false);
     });
@@ -97,7 +98,7 @@ describe('SignUpService', () => {
 
       service.signUp(signUpInputMock);
 
-      expect(service.status()).toBe(SignUpStatus.Error);
+      expect(service.status()).toBe(AuthFlowStatus.Error);
       expect(service.errorMessage()).toBe('mockReason');
       expect(service.isSubmitting()).toBe(false);
     });
@@ -105,9 +106,9 @@ describe('SignUpService', () => {
 
   describe('resetSignUpStatus', () => {
     it('should reset status', () => {
-      service.status.set(SignUpStatus.Submitting);
+      service.status.set(AuthFlowStatus.Submitting);
       service.resetSignUpStatus();
-      expect(service.status()).toBe(SignUpStatus.Idle);
+      expect(service.status()).toBe(AuthFlowStatus.Idle);
     });
 
     it('should reset error message', () => {
