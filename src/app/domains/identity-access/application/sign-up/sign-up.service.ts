@@ -31,7 +31,7 @@ export class SignUpService {
     });
   }
 
-  resetSignUpStatus(): void {
+  reset(): void {
     this._flow.reset();
   }
 }

@@ -34,7 +34,7 @@ describe('createAuthFlowState', () => {
     });
 
     it('status should switch to Submitting', () => {
-      state.status.set(AuthFlowStatus.Success);
+      state.markSuccess();
 
       state.startSubmitting();
 

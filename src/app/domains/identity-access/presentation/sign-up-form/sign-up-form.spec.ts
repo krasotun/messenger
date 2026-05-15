@@ -12,7 +12,7 @@ let signUpServiceMock: {
   errorMessage: WritableSignal<string | null>;
   status: WritableSignal<AuthFlowStatus>;
   signUp: ReturnType<typeof vi.fn>;
-  resetSignUpStatus: ReturnType<typeof vi.fn>;
+  reset: ReturnType<typeof vi.fn>;
 };
 
 let routerMock: {
@@ -29,7 +29,7 @@ describe('SignUpForm', () => {
       errorMessage: signal(null),
       status: signal(AuthFlowStatus.Idle),
       signUp: vi.fn(),
-      resetSignUpStatus: vi.fn(),
+      reset: vi.fn(),
     };
 
     routerMock = {
@@ -157,7 +157,7 @@ describe('SignUpForm', () => {
 
       fixture.detectChanges();
 
-      expect(signUpServiceMock.resetSignUpStatus).toHaveBeenCalledOnce();
+      expect(signUpServiceMock.reset).toHaveBeenCalledOnce();
     });
   });
 });

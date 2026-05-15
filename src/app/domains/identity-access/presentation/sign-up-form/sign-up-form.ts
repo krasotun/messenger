@@ -72,7 +72,7 @@ export class SignUpForm {
 
     effect(() => {
       if (this._signUpService.status() === AuthFlowStatus.Success) {
-        this._signUpService.resetSignUpStatus();
+        this._signUpService.reset();
 
         this._router.navigate(['sign-in']);
       }

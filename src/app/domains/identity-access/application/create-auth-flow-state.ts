@@ -7,6 +7,7 @@ import { Nullable } from '@app/shared/types';
 export const createAuthFlowState = () => {
   const status = signal<AuthFlowStatus>(AuthFlowStatus.Idle);
   const errorMessage = signal<Nullable<string>>(null);
+
   const isSubmitting = computed(() => {
     return status() === AuthFlowStatus.Submitting;
   });
@@ -33,8 +34,8 @@ export const createAuthFlowState = () => {
   };
 
   return {
-    status,
-    errorMessage,
+    status: status.asReadonly(),
+    errorMessage: errorMessage.asReadonly(),
     isSubmitting,
     startSubmitting,
     markSuccess,

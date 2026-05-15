@@ -33,7 +33,7 @@ export class SignInService {
     });
   }
 
-  resetSignInStatus(): void {
+  reset(): void {
     this._flow.reset();
   }
 }

@@ -64,15 +64,20 @@ describe('SignIn', () => {
     });
 
     it('should set submitting state and clear error message while request is pending', () => {
-      const signInResult$ = new Subject<{ authenticated: true }>();
-      authGatewayMock.signIn.mockReturnValue(signInResult$);
-
-      service.errorMessage.set('mockError');
+      authGatewayMock.signIn.mockReturnValueOnce(
+        throwError(() => new ApplicationError('mockError')),
+      );
 
       service.signIn(signInInputMock);
 
-      expect(service.errorMessage()).toBe(null);
-      expect(service.isSubmitting()).toBe(true);
+      expect(service.errorMessage()).toBe('mockError');
+
+      const signInResult$ = new Subject<{ authenticated: true }>();
+      authGatewayMock.signIn.mockReturnValueOnce(signInResult$);
+
+      service.signIn(signInInputMock);
+
+      expect(service.errorMessage()).toBeNull();
       expect(service.status()).toBe(AuthFlowStatus.Submitting);
     });
 
@@ -84,7 +89,6 @@ describe('SignIn', () => {
 
       expect(service.status()).toBe(AuthFlowStatus.Success);
       expect(service.errorMessage()).toBeNull();
-      expect(service.isSubmitting()).toBe(false);
     });
 
     it('should show application error message', () => {
@@ -97,22 +101,23 @@ describe('SignIn', () => {
 
       expect(service.status()).toBe(AuthFlowStatus.Error);
       expect(service.errorMessage()).toBe('mockReason');
-      expect(service.isSubmitting()).toBe(false);
     });
   });
 
-  describe('resetSignInStatus', () => {
-    it('should reset status', () => {
-      service.status.set(AuthFlowStatus.Submitting);
+  describe('reset', () => {
+    it('should reset status and error message', () => {
+      authGatewayMock.signIn.mockReturnValueOnce(
+        throwError(() => new ApplicationError('mockError')),
+      );
 
-      service.resetSignInStatus();
+      service.signIn(signInInputMock);
+
+      expect(service.status()).toBe(AuthFlowStatus.Error);
+      expect(service.errorMessage()).toBe('mockError');
+
+      service.reset();
+
       expect(service.status()).toBe(AuthFlowStatus.Idle);
-    });
-
-    it('should reset error message', () => {
-      service.errorMessage.set('mockError');
-
-      service.resetSignInStatus();
       expect(service.errorMessage()).toBeNull();
     });
   });
