@@ -2,7 +2,6 @@ import { computed, signal } from '@angular/core';
 
 import { AuthFlowStatus } from './auth-flow-status';
 
-import { ApplicationError } from '@app/shared/errors';
 import { Nullable } from '@app/shared/types';
 
 export const createAuthFlowState = () => {
@@ -22,10 +21,9 @@ export const createAuthFlowState = () => {
     status.set(AuthFlowStatus.Success);
   };
 
-  const markError = (error: ApplicationError) => {
+  const markError = (message: string) => {
     status.set(AuthFlowStatus.Error);
 
-    const { message } = error;
     errorMessage.set(message);
   };
 

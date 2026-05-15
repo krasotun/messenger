@@ -9,7 +9,7 @@
 ## Текущий шаг
 
 - Перейти на TDD-порядок разработки для текущей и следующих задач.
-- Следующий шаг: перенести `SignInService` на общий auth flow state helper без изменения публичного API.
+- Следующий шаг: сократить `SignInService`/`SignUpService` specs до orchestration-контракта, убрав дублирование подробных state-machine проверок helper'а.
 
 ## Действия
 
@@ -63,8 +63,10 @@
   - done: зафиксировать ожидаемый контракт helper тестами;
   - done: добавить `create-auth-flow-state.ts` как application-layer helper;
   - done: helper не знает sign-up/sign-in business meaning, gateway, DTO, API, Router или UI;
-  - next: перенести `SignInService` на helper без изменения публичного API;
-  - затем перенести `SignUpService` на helper без изменения публичного API;
+  - done: перенести `SignInService` на helper без изменения публичного API;
+  - done: перенести `SignUpService` на helper без изменения публичного API;
+  - done: сделать `markError(...)` независимым от `ApplicationError`: helper принимает error message string, services извлекают message;
+  - next: сократить service specs до orchestration-контракта: gateway delegation, pending submit, success integration, error integration, reset через публичные методы;
   - затем оценить, нужно ли закрыть writable signals наружу read-only контрактом.
 - Реализовать sign-in presentation flow:
   - сначала добавить failing component specs для формы;
@@ -111,7 +113,8 @@ Planned for gateway/sign-in:
 - `HttpAuthGateway.signIn` - done: covers delegation, success result and backend/generic error mapping.
 - `SignInService` - done: covers initial state, delegation, pending, success, application error and reset.
 - Auth flow state helper - done: covers initial state, submitting, success, error and reset.
-- Auth flow state helper integration - next: refactor `SignInService`, then `SignUpService`.
+- Auth flow state helper integration - done: `SignInService` and `SignUpService` use helper without public API changes.
+- Service specs refactor - next: keep service tests focused on orchestration and stop duplicating helper state-machine coverage.
 - `sign-in-form component` - add failing presentation specs before implementation, mirroring sign-up where applicable.
 
 ## Готово
@@ -162,4 +165,4 @@ Planned for gateway/sign-in:
 2. `[Shared UI] Create reusable form field and input directive`
 3. `[Identity Access] User can sign up` - done
 4. `[Identity Access] User can sign in` - in progress
-   - Следующий шаг: перенести `SignInService` на общий auth flow state helper без изменения публичного API.
+   - Следующий шаг: сократить `SignInService`/`SignUpService` specs до orchestration-контракта перед решением про read-only signals.

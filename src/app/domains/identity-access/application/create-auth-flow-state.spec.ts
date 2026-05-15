@@ -1,9 +1,7 @@
 import { AuthFlowStatus } from './auth-flow-status';
 import { createAuthFlowState } from './create-auth-flow-state';
 
-import { ApplicationError } from '@app/shared/errors';
-
-const mockError = new ApplicationError('mockError');
+const mockError = 'mockError';
 
 describe('createAuthFlowState', () => {
   let state: ReturnType<typeof createAuthFlowState>;

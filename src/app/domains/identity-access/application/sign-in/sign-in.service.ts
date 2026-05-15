@@ -27,8 +27,8 @@ export class SignInService {
         this._flow.markSuccess();
       },
 
-      error: (error: ApplicationError) => {
-        this._flow.markError(error);
+      error: ({ message }: ApplicationError) => {
+        this._flow.markError(message);
       },
     });
   }
