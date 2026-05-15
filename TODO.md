@@ -162,4 +162,4 @@ Planned for gateway/sign-in:
 2. `[Shared UI] Create reusable form field and input directive`
 3. `[Identity Access] User can sign up` - done
 4. `[Identity Access] User can sign in` - in progress
-   - Следующий шаг: TDD-first для `HttpAuthGateway.signIn(...)`: failing specs, затем implementation.
+   - Следующий шаг: перенести `SignInService` на общий auth flow state helper без изменения публичного API.
