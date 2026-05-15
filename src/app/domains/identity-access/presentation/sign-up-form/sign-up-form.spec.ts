@@ -1,6 +1,5 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
 
 import { AuthFlowStatus } from '../../application/auth-flow-status';
 import { SignUpService } from '../../application/sign-up/sign-up.service';
@@ -13,10 +12,6 @@ let signUpServiceMock: {
   status: WritableSignal<AuthFlowStatus>;
   signUp: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
-};
-
-let routerMock: {
-  navigate: ReturnType<typeof vi.fn>;
 };
 
 describe('SignUpForm', () => {
@@ -32,20 +27,12 @@ describe('SignUpForm', () => {
       reset: vi.fn(),
     };
 
-    routerMock = {
-      navigate: vi.fn(),
-    };
-
     await TestBed.configureTestingModule({
       imports: [SignUpForm],
       providers: [
         {
           provide: SignUpService,
           useValue: signUpServiceMock,
-        },
-        {
-          provide: Router,
-          useValue: routerMock,
         },
       ],
     }).compileComponents();
@@ -143,13 +130,15 @@ describe('SignUpForm', () => {
   });
 
   describe('success state', () => {
-    it('should navigate to sign-in after success submit', () => {
+    it('should emit signUpSucceeded', () => {
+      const signUpSucceededSpy = vi.fn();
+      component.signUpSucceeded.subscribe(signUpSucceededSpy);
+
       signUpServiceMock.status.set(AuthFlowStatus.Success);
 
       fixture.detectChanges();
 
-      expect(routerMock.navigate).toHaveBeenCalledOnce();
-      expect(routerMock.navigate).toHaveBeenCalledWith(['sign-in']);
+      expect(signUpSucceededSpy).toHaveBeenCalledOnce();
     });
 
     it('should reset submitting status', () => {

@@ -70,10 +70,11 @@
   - done: закрыть writable signals наружу read-only контрактом через `asReadonly()`;
   - done: оставить `.set(...)` только внутри `createAuthFlowState`.
 - Реализовать sign-in presentation flow:
-  - сначала добавить failing component specs для формы;
+  - next: добавить failing component specs для формы;
   - затем собрать typed reactive form для login/password;
   - подключить validators, invalid submit guard, loading state, submit-level error;
-  - post-success поведение определить отдельно до добавления session restore/guards.
+  - post-success поведение определить отдельно до добавления session restore/guards;
+  - ориентир по boundary: form component эмитит success output, page component отвечает за routing.
 - В конце задачи привести imports к единому alias style:
   - проверить `@app`, `@domains`, `@shared` usage;
   - убрать смешение relative imports и aliases там, где это ухудшает читаемость;
@@ -96,9 +97,13 @@
   - valid submit: call `SignUpService.signUp(...)` with `SignUpInput`;
   - submitting state: disabled controls/submit;
   - submit-level error rendering;
-  - success redirect effect: reset state and navigate to `/sign-in`.
+  - success effect: reset state and emit `signUpSucceeded`.
+- `sign-up-page component` - done:
+  - listens to `signUpSucceeded`;
+  - navigates to `/sign-in` using Angular `Router`;
+  - tests use `provideRouter(...)` with a real Router instance.
 
-`sign-up-form` tests should mock `SignUpService` and `Router`; do not use real `AuthApi`.
+`sign-up-form` tests should mock `SignUpService`; do not use `Router` or real `AuthApi`.
 
 - Fixed existing generated/legacy UI specs:
   - `shared/ui/button/button.spec.ts`;
@@ -117,6 +122,7 @@ Planned for gateway/sign-in:
 - Auth flow state helper integration - done: `SignInService` and `SignUpService` use helper without public API changes.
 - Service specs refactor - done: service tests focus on orchestration and do not mutate writable signals directly.
 - Read-only auth flow state - done: services expose read-only signals; mutation stays inside `createAuthFlowState`.
+- Sign-up routing boundary - done: `SignUpForm` emits `signUpSucceeded`; `SignUpPage` owns navigation to sign-in.
 - `sign-in-form component` - next: add failing presentation specs before implementation, mirroring sign-up where applicable.
 
 ## Готово
@@ -158,6 +164,7 @@ Planned for gateway/sign-in:
 - `[Identity Access] Add sign in DTO and request mapper`
 - `[Identity Access] Add AuthApi.signIn HTTP method`
 - `[Identity Access] Cover AuthApi.signIn with unit test`
+- `[Identity Access] Move post-sign-up navigation from form to page output flow`
 
 ## Текущий MVP
 
