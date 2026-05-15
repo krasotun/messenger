@@ -9,7 +9,7 @@
 ## Текущий шаг
 
 - Перейти на TDD-порядок разработки для текущей и следующих задач.
-- Следующий шаг: продолжить с первого `SignInService` TDD spec: initial status is `AuthFlowStatus.Idle`.
+- Следующий шаг: изучить и спроектировать общий auth flow state helper после green `SignInService`.
 
 ## Действия
 
@@ -52,11 +52,16 @@
   - done: создать минимальный `SignInService` scaffold без реального flow, чтобы IDE/TestBed видели публичный API;
   - done: вынести общий auth flow status в `application/auth-flow-status.ts`;
   - done: перевести sign-up service/spec/presentation spec на `AuthFlowStatus`;
-  - next: добавить failing spec для initial `SignInService` status: `AuthFlowStatus.Idle`;
-  - затем добавить остальные specs для `SignInService` state flow;
-  - затем добавить `SignInService` со state `idle/submitting/success/error`;
-  - использовать `AUTH_GATEWAY`, без прямых DTO/API imports;
-  - HTTP-to-application error mapping вынести в gateway, если появится дублирование с sign-up.
+  - done: добавить specs для initial `SignInService` state: `AuthFlowStatus.Idle`, `errorMessage = null`, `isSubmitting = false`;
+  - done: добавить specs для `SignInService` state flow: delegation, pending, success, application error, reset;
+  - done: реализовать `SignInService` со state `idle/submitting/success/error`;
+  - done: использовать `AUTH_GATEWAY`, без прямых DTO/API imports.
+- Next: после green `SignInService` изучить и выполнить refactor общего auth flow state:
+  - цель обучения: понять state helper как lightweight state controller / explicit finite state model;
+  - сравнить `SignUpService` и `SignInService` по фактическому дублированию;
+  - если совпадает только техническое управление `status/error`, вынести общий application-layer helper;
+  - helper не должен знать sign-up/sign-in business meaning, gateway, DTO, API, Router или UI;
+  - сначала зафиксировать ожидаемый контракт helper тестами, затем переносить сервисы на него.
 - Реализовать sign-in presentation flow:
   - сначала добавить failing component specs для формы;
   - затем собрать typed reactive form для login/password;
@@ -100,7 +105,8 @@ Planned for gateway/sign-in:
 - `HttpAuthGateway` - done: covers sign-up delegation, result mapping and error mapping.
 - `AuthApi.signIn` - done: HTTP-level spec including `withCredentials: true`.
 - `HttpAuthGateway.signIn` - done: covers delegation, success result and backend/generic error mapping.
-- `SignInService` - next: add failing initial idle status spec, then continue state flow specs.
+- `SignInService` - done: covers initial state, delegation, pending, success, application error and reset.
+- Auth flow state helper - next: define contract specs before refactor.
 - `sign-in-form component` - add failing presentation specs before implementation, mirroring sign-up where applicable.
 
 ## Готово
