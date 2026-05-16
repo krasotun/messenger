@@ -123,3 +123,75 @@ session storage.
 - Swagger does not document the current session restore endpoint.
 - Swagger does not document field-level validation errors.
 - Swagger does not document response bodies for `401` and `500`.
+
+## Current Session
+
+### Endpoint
+
+- Method: `GET`
+- Path: `/auth/user`
+- Credentials: request must include cookies through `withCredentials: true`
+
+### Request Body
+
+No request body.
+
+### Success Response
+
+- Status: `200 OK`
+- Meaning: active backend session exists
+
+```json
+{
+  "id": 0,
+  "first_name": "string",
+  "second_name": "string",
+  "display_name": "string",
+  "login": "string",
+  "email": "string",
+  "phone": "string",
+  "avatar": "string"
+}
+```
+
+### Error Responses
+
+- `401 Unauthorized`
+  Active session is absent or invalid.
+
+- `500 Unexpected Error`
+  Swagger does not document the response body.
+
+### Known Limits
+
+- Swagger does not document whether `display_name` and `avatar` can be `null`.
+- Swagger does not document response bodies for `401` and `500`.
+
+## Logout
+
+### Endpoint
+
+- Method: `POST`
+- Path: `/auth/logout`
+- Credentials: request must include cookies through `withCredentials: true`
+
+### Request Body
+
+No request body.
+
+### Success Response
+
+- Status: `200 OK`
+- Meaning: backend session has ended
+
+Swagger does not document the response body. Frontend does not use the response body.
+
+### Error Responses
+
+- `500 Unexpected Error`
+  Swagger does not document the response body.
+
+### Known Limits
+
+- Swagger does not document the `200 OK` response body.
+- Swagger does not document whether logout can return `401` when the session is already absent.
