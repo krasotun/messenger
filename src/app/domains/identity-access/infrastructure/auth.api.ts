@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { CurrentUserDto } from './current-session/current-user.dto';
 import { SignInRequestDto } from './sign-in/sign-in.dto';
 
 import { API_BASE_URL } from '@app/core/tokens/api-base-url.token';
@@ -23,6 +24,18 @@ export class AuthApi {
 
   signIn(request: SignInRequestDto): Observable<void> {
     return this._httpClient.post<void>(`${this._baseUrl}/auth/signin`, request, {
+      withCredentials: true,
+    });
+  }
+
+  currentSession(): Observable<CurrentUserDto> {
+    return this._httpClient.get<CurrentUserDto>(`${this._baseUrl}/auth/user`, {
+      withCredentials: true,
+    });
+  }
+
+  logout(): Observable<void> {
+    return this._httpClient.post<void>(`${this._baseUrl}/auth/logout`, null, {
       withCredentials: true,
     });
   }

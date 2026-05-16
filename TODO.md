@@ -8,8 +8,9 @@
 
 ## Текущий шаг
 
-- Уточнить backend contract для current session и logout endpoints.
-- Сначала зафиксировать expected behavior в application/infrastructure specs.
+- Написать `HttpAuthGateway` specs для current session и logout.
+- Зафиксировать mapping `CurrentUserDto -> CurrentUser`.
+- Зафиксировать, что `401 Unauthorized` current session возвращает anonymous result.
 
 ## Scope
 
@@ -33,6 +34,14 @@
 - Если session cookie отсутствует или backend возвращает unauthorized, state становится anonymous.
 - После logout state становится anonymous.
 - Новые application/infrastructure flows покрыты specs до реализации.
+
+## Завершено
+
+- Уточнен backend contract для `GET /auth/user` и `POST /auth/logout`.
+- Добавлены application contracts/types для current session.
+- Добавлены infrastructure DTO для current user.
+- Добавлены `AuthApi` specs для current session и logout.
+- Реализованы `AuthApi.currentSession()` и `AuthApi.logout()`.
 
 ## Текущий MVP
 

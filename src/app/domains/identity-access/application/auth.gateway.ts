@@ -9,6 +9,7 @@ import { SignUpResult } from './sign-up/sign-up.result';
 export interface AuthGateway {
   signUp(input: SignUpInput): Observable<SignUpResult>;
   signIn(input: SignInInput): Observable<SignInResult>;
+
 }
 
 export const AUTH_GATEWAY = new InjectionToken<AuthGateway>('AUTH_GATEWAY');
