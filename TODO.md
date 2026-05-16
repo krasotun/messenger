@@ -3,13 +3,13 @@
 ## Активная задача
 
 ```text
-[Identity Access] User can sign in
+[Identity Access] Current session
 ```
 
 ## Текущий шаг
 
-- Перейти на TDD-порядок разработки для текущей и следующих задач.
-- Следующий шаг: начать sign-in presentation flow с failing component specs для формы.
+- Сформулировать expected behavior для current session без guards и session restore.
+- Следующий шаг: уточнить backend contract/current session endpoint и зафиксировать application-level contract тестами.
 
 ## Действия
 
@@ -70,21 +70,25 @@
   - done: закрыть writable signals наружу read-only контрактом через `asReadonly()`;
   - done: оставить `.set(...)` только внутри `createAuthFlowState`.
 - Реализовать sign-in presentation flow:
-  - next: добавить failing component specs для формы;
-  - затем собрать typed reactive form для login/password;
-  - подключить validators, invalid submit guard, loading state, submit-level error;
-  - post-success поведение определить отдельно до добавления session restore/guards;
-  - ориентир по boundary: form component эмитит success output, page component отвечает за routing.
-- В конце задачи привести imports к единому alias style:
+  - done: добавить component specs для формы;
+  - done: собрать typed reactive form для login/password;
+  - done: подключить validators, invalid submit guard, loading state, submit-level error;
+  - done: success state сбрасывает sign-in flow state через `SignInService.reset()`;
+  - deferred: post-success navigation/notification определить после current session flow;
+  - note: `signInSucceeded` output не добавлен, потому что page-level success behavior пока не определен.
+- Отдельная техническая задача: привести imports к единому alias style:
   - проверить `@app`, `@domains`, `@shared` usage;
   - убрать смешение relative imports и aliases там, где это ухудшает читаемость;
-  - не делать отдельную alias-правку до завершения gateway/sign-in flow.
-- В конце sign-in задачи добавить ESLint-проверку архитектурных import boundaries:
+  - не делать отдельную alias-правку внутри business-flow задач.
+- Отдельная техническая задача: добавить ESLint-проверку архитектурных import boundaries:
   - запретить импорт высокоуровневых слоев из низкоуровневых;
   - зафиксировать правила `domain -> application -> infrastructure` и `presentation -> application`;
   - проверить запрет зависимостей `shared` от доменов.
+- Отдельное product/application решение: определить post-sign-in success behavior.
+  - pending: redirect, notification или session refresh не добавлять до current session решения;
+  - pending: если появится page-level behavior, добавить `signInSucceeded` output в `SignInForm`.
 - При появлении общего notification service вернуть success notification после successful sign up.
-- Не добавлять session restore, guards, chats/messages и другие messenger-сценарии в рамках этой задачи.
+- Не добавлять guards, chats/messages и другие messenger-сценарии в рамках authorization-only MVP.
 
 ## Unit Tests
 
@@ -123,7 +127,15 @@ Planned for gateway/sign-in:
 - Service specs refactor - done: service tests focus on orchestration and do not mutate writable signals directly.
 - Read-only auth flow state - done: services expose read-only signals; mutation stays inside `createAuthFlowState`.
 - Sign-up routing boundary - done: `SignUpForm` emits `signUpSucceeded`; `SignUpPage` owns navigation to sign-in.
-- `sign-in-form component` - next: add failing presentation specs before implementation, mirroring sign-up where applicable.
+- `sign-in-form component` - done:
+  - invalid submit: no `SignInService.signIn(...)`, `markAllAsTouched()`;
+  - valid submit: call `SignInService.signIn(...)` with `SignInInput`;
+  - submitting state: disabled controls/submit;
+  - submit-level error rendering;
+  - success effect: reset state.
+- `sign-in-page component` - done:
+  - renders sign-in form inside auth page/form shells;
+  - tests use a stub form and do not depend on `SignInService` or `AUTH_GATEWAY`.
 
 ## Готово
 
@@ -165,6 +177,7 @@ Planned for gateway/sign-in:
 - `[Identity Access] Add AuthApi.signIn HTTP method`
 - `[Identity Access] Cover AuthApi.signIn with unit test`
 - `[Identity Access] Move post-sign-up navigation from form to page output flow`
+- `[Identity Access] User can sign in`
 
 ## Текущий MVP
 
@@ -173,5 +186,5 @@ Planned for gateway/sign-in:
 1. `[Shared UI] Create reusable button component`
 2. `[Shared UI] Create reusable form field and input directive`
 3. `[Identity Access] User can sign up` - done
-4. `[Identity Access] User can sign in` - in progress
-   - Следующий шаг: начать sign-in presentation flow с failing component specs для формы.
+4. `[Identity Access] User can sign in` - done
+5. `[Identity Access] Current session` - next
