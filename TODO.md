@@ -8,9 +8,10 @@
 
 ## Текущий шаг
 
-- Написать `HttpAuthGateway` specs для current session и logout.
-- Зафиксировать mapping `CurrentUserDto -> CurrentUser`.
+- Добавить `HttpAuthGateway.currentSession()` spec: successful response возвращает authenticated result с `CurrentUser`.
 - Зафиксировать, что `401 Unauthorized` current session возвращает anonymous result.
+- Зафиксировать, что generic current session error не превращается в anonymous result.
+- После current session перейти к `HttpAuthGateway.logout()` specs.
 
 ## Scope
 
@@ -43,6 +44,8 @@
 - Добавлены `AuthApi` specs для current session и logout.
 - Реализованы `AuthApi.currentSession()` и `AuthApi.logout()`.
 - Вынесен повторяющийся auth error mapping из `HttpAuthGateway` в локальный infrastructure mapper.
+- Добавлен mapper `CurrentUserDto -> CurrentUser`.
+- Добавлен mapper spec, включая сохранение nullable `displayName` и `avatar`.
 
 ## Текущий MVP
 

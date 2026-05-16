@@ -1,10 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
+import { CurrentSessionStatus } from '../application/current-session/current-session-status';
+import { CurrentUser } from '../application/current-session/current-user';
 import { SignInInput } from '../application/sign-in/sign-in.input';
 import { SignUpInput } from '../application/sign-up/sign-up.input';
 
 import { AuthApi } from './auth.api';
+import { CurrentUserDto } from './current-session/current-user.dto';
 import { HttpAuthGateway } from './http-auth-gateway';
 import { SignInRequestDto } from './sign-in/sign-in.dto';
 import { SignUpRequestDto } from './sign-up/sign-up.dto';
@@ -14,6 +17,7 @@ import { ApplicationError } from '@app/shared/errors';
 const authApiMock = {
   signUp: vi.fn(),
   signIn: vi.fn(),
+  currentSession: vi.fn(),
 };
 
 const signUpInputMock: SignUpInput = {
@@ -44,12 +48,35 @@ const signInRequestMock: SignInRequestDto = {
   password: 'mockPassword',
 };
 
+const currentUserDtoMock: CurrentUserDto = {
+  id: 1,
+  first_name: 'first',
+  second_name: 'second',
+  display_name: null,
+  avatar: null,
+  email: 'email',
+  login: 'login',
+  phone: 'phone',
+};
+
+const currentUserMock: CurrentUser = {
+  id: 1,
+  firstName: 'first',
+  secondName: 'second',
+  displayName: null,
+  avatar: null,
+  email: 'email',
+  login: 'login',
+  phone: 'phone',
+};
+
 describe('HttpAuthGateway', () => {
   let service: HttpAuthGateway;
 
   beforeEach(() => {
     authApiMock.signUp.mockReset();
     authApiMock.signIn.mockReset();
+    authApiMock.currentSession.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -131,6 +158,19 @@ describe('HttpAuthGateway', () => {
           expect(applicationError).toBeInstanceOf(ApplicationError);
           expect(applicationError.message).toBe('Failed to sign in. Please try again.');
         },
+      });
+    });
+  });
+
+  describe('currentSession', () => {
+    it('should transform successful response to success result', () => {
+      authApiMock.currentSession.mockImplementation(() => of(currentUserDtoMock));
+
+      service.currentSession().subscribe((response) => {
+        expect(response).toEqual({
+          status: CurrentSessionStatus.Authenticated,
+          user: currentUserMock,
+        });
       });
     });
   });
