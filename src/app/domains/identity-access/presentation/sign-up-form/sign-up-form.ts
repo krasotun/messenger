@@ -1,4 +1,4 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, effect, inject, output } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -6,9 +6,10 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
 
-import { SignUpService, SignUpStatus } from '@domains/identity-access/application/sign-up.service';
+import { AuthFlowStatus } from '../../application/auth-flow-status';
+
+import { SignUpService } from '@app/domains/identity-access/application/sign-up/sign-up.service';
 import {
   emailPattern,
   phonePattern,
@@ -53,8 +54,9 @@ export class SignUpForm {
     }),
   });
 
+  readonly signUpSucceeded = output<void>();
+
   private readonly _signUpService = inject(SignUpService);
-  private readonly _router = inject(Router);
 
   protected readonly isSubmitting = this._signUpService.isSubmitting;
   protected readonly errorMessage = this._signUpService.errorMessage;
@@ -69,10 +71,10 @@ export class SignUpForm {
     });
 
     effect(() => {
-      if (this._signUpService.status() === SignUpStatus.Success) {
-        this._signUpService.resetSignUpStatus();
+      if (this._signUpService.status() === AuthFlowStatus.Success) {
+        this._signUpService.reset();
 
-        this._router.navigate(['sign-in']);
+        this.signUpSucceeded.emit();
       }
     });
   }

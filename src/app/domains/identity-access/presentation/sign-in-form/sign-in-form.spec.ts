@@ -2,42 +2,42 @@ import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AuthFlowStatus } from '../../application/auth-flow-status';
-import { SignUpService } from '../../application/sign-up/sign-up.service';
+import { SignInService } from '../../application/sign-in/sign-in.service';
 
-import { SignUpForm } from './sign-up-form';
+import { SignInForm } from './sign-in-form';
 
-let signUpServiceMock: {
+let signInServiceMock: {
   isSubmitting: WritableSignal<boolean>;
   errorMessage: WritableSignal<string | null>;
   status: WritableSignal<AuthFlowStatus>;
-  signUp: ReturnType<typeof vi.fn>;
+  signIn: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
 };
 
-describe('SignUpForm', () => {
-  let component: SignUpForm;
-  let fixture: ComponentFixture<SignUpForm>;
+describe('SignInForm', () => {
+  let component: SignInForm;
+  let fixture: ComponentFixture<SignInForm>;
 
   beforeEach(async () => {
-    signUpServiceMock = {
+    signInServiceMock = {
       isSubmitting: signal(false),
       errorMessage: signal(null),
       status: signal(AuthFlowStatus.Idle),
-      signUp: vi.fn(),
+      signIn: vi.fn(),
       reset: vi.fn(),
     };
-
     await TestBed.configureTestingModule({
-      imports: [SignUpForm],
+      imports: [SignInForm],
+
       providers: [
         {
-          provide: SignUpService,
-          useValue: signUpServiceMock,
+          provide: SignInService,
+          useValue: signInServiceMock,
         },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(SignUpForm);
+    fixture = TestBed.createComponent(SignInForm);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
@@ -47,13 +47,13 @@ describe('SignUpForm', () => {
   });
 
   describe('invalid submit', () => {
-    it('should not call signUp when form is invalid', () => {
+    it('should not call signIn when form is invalid', () => {
       fixture.detectChanges();
 
       const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
       formElement.dispatchEvent(new Event('submit'));
 
-      expect(signUpServiceMock.signUp).not.toHaveBeenCalled();
+      expect(signInServiceMock.signIn).not.toHaveBeenCalled();
     });
 
     it('all controls should be touched', () => {
@@ -62,53 +62,49 @@ describe('SignUpForm', () => {
       const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
       formElement.dispatchEvent(new Event('submit'));
 
-      const formControls = Object.values(component.signUpForm.controls);
+      const formControls = Object.values(component.signInForm.controls);
 
       for (const { touched } of formControls) {
         expect(touched).toBe(true);
       }
     });
-  });
 
-  it('should render submit error', () => {
-    signUpServiceMock.errorMessage.set('Mock error');
+    it('should render submit error', () => {
+      signInServiceMock.errorMessage.set('Mock error');
 
-    fixture.detectChanges();
+      fixture.detectChanges();
 
-    const errorElement: HTMLElement | null =
-      fixture.nativeElement.querySelector('.sign-up-form__error');
+      const errorElement: HTMLElement | null =
+        fixture.nativeElement.querySelector('.sign-in-form__error');
 
-    expect(errorElement).not.toBeNull();
-    expect(errorElement?.textContent).toContain('Ошибка регистрации');
-    expect(errorElement?.textContent).toContain('Mock error');
+      expect(errorElement).not.toBeNull();
+      expect(errorElement?.textContent).toContain('Ошибка авторизации');
+      expect(errorElement?.textContent).toContain('Mock error');
+    });
   });
 
   describe('valid submit', () => {
-    it('should call signUp with form value when submitted form is valid', () => {
+    it('should call signIn with form value when submitted form is valid', () => {
       fixture.detectChanges();
 
       const mockFormValue = {
-        firstName: 'Mock',
-        secondName: 'Mock',
         login: 'Mock',
-        email: 'mock@mock.ru',
         password: 'qfndjkjnk&(YY',
-        phone: '+79991234567',
       };
 
-      component.signUpForm.setValue(mockFormValue);
+      component.signInForm.setValue(mockFormValue);
 
       const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
       formElement.dispatchEvent(new Event('submit'));
 
-      expect(signUpServiceMock.signUp).toHaveBeenCalledOnce();
-      expect(signUpServiceMock.signUp).toHaveBeenCalledWith(mockFormValue);
+      expect(signInServiceMock.signIn).toHaveBeenCalledOnce();
+      expect(signInServiceMock.signIn).toHaveBeenCalledWith(mockFormValue);
     });
   });
 
   describe('submitting state', () => {
     it('should disable submit button', () => {
-      signUpServiceMock.isSubmitting.set(true);
+      signInServiceMock.isSubmitting.set(true);
       fixture.detectChanges();
 
       const submitButton: HTMLButtonElement =
@@ -118,7 +114,7 @@ describe('SignUpForm', () => {
     });
 
     it('should disable all controls', () => {
-      signUpServiceMock.isSubmitting.set(true);
+      signInServiceMock.isSubmitting.set(true);
       fixture.detectChanges();
 
       const inputEls: HTMLInputElement[] = fixture.nativeElement.querySelectorAll('input');
@@ -130,23 +126,12 @@ describe('SignUpForm', () => {
   });
 
   describe('success state', () => {
-    it('should emit signUpSucceeded', () => {
-      const signUpSucceededSpy = vi.fn();
-      component.signUpSucceeded.subscribe(signUpSucceededSpy);
-
-      signUpServiceMock.status.set(AuthFlowStatus.Success);
-
-      fixture.detectChanges();
-
-      expect(signUpSucceededSpy).toHaveBeenCalledOnce();
-    });
-
     it('should reset submitting status', () => {
-      signUpServiceMock.status.set(AuthFlowStatus.Success);
+      signInServiceMock.status.set(AuthFlowStatus.Success);
 
       fixture.detectChanges();
 
-      expect(signUpServiceMock.reset).toHaveBeenCalledOnce();
+      expect(signInServiceMock.reset).toHaveBeenCalledOnce();
     });
   });
 });

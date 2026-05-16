@@ -1,10 +1,25 @@
+import { Component, output } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { provideRouter, Router } from '@angular/router';
+
+import { SignUpForm } from '../sign-up-form/sign-up-form';
 
 import { SignUpPage } from './sign-up-page';
 
-import { API_BASE_URL } from '@app/core/tokens';
+@Component({
+  selector: 'app-sign-up-form',
+  template: '',
+})
+class SignUpFormStub {
+  readonly signUpSucceeded = output<void>();
+}
 
-const baseUrlMock = 'baseUrlMock';
+@Component({
+  selector: 'app-sign-in-page',
+  template: '',
+})
+class SignInPageStub {}
 
 describe('SignUp', () => {
   let component: SignUpPage;
@@ -12,14 +27,18 @@ describe('SignUp', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SignUpPage],
-      providers: [
-        {
-          provide: API_BASE_URL,
-          useValue: baseUrlMock,
+      imports: [SignUpPage, SignUpFormStub],
+      providers: [provideRouter([{ path: 'sign-in', component: SignInPageStub }])],
+    })
+      .overrideComponent(SignUpPage, {
+        remove: {
+          imports: [SignUpForm],
         },
-      ],
-    }).compileComponents();
+        add: {
+          imports: [SignUpFormStub],
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(SignUpPage);
     component = fixture.componentInstance;
@@ -28,5 +47,18 @@ describe('SignUp', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('goToSignIn', () => {
+    it('should navigate to sign-in page', () => {
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigate');
+
+      const signUpForm = fixture.debugElement.query(By.directive(SignUpFormStub))
+        .componentInstance as SignUpFormStub;
+      signUpForm.signUpSucceeded.emit();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['sign-in']);
+    });
   });
 });

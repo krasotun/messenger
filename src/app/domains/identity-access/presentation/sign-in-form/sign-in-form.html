@@ -1,0 +1,33 @@
+<form class="sign-in-form" [formGroup]="signInForm" (ngSubmit)="onSubmit()">
+  <div class="sign-in-form__fields">
+    <app-form-field [label]="'Login'" [htmlFor]="'login'" [error]="getControlError('login')">
+      <input
+        formControlName="login"
+        appInput
+        [invalid]="hasControlError('login')"
+        type="text"
+        id="login"
+      />
+    </app-form-field>
+    <app-form-field
+      [label]="'Password'"
+      [htmlFor]="'password'"
+      [error]="getControlError('password')"
+    >
+      <input
+        formControlName="password"
+        appInput
+        [invalid]="hasControlError('password')"
+        type="password"
+        id="password"
+      />
+    </app-form-field>
+  </div>
+
+  @if (errorMessage()) {
+  <span class="sign-in-form__error">Ошибка авторизации: {{ errorMessage() }}</span>
+  }
+  <div class="sign-in-form__actions">
+    <button appButton [disabled]="isSubmitting()" type="submit">Log in</button>
+  </div>
+</form>
