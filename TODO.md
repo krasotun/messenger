@@ -42,6 +42,7 @@
 - Добавлены infrastructure DTO для current user.
 - Добавлены `AuthApi` specs для current session и logout.
 - Реализованы `AuthApi.currentSession()` и `AuthApi.logout()`.
+- Вынесен повторяющийся auth error mapping из `HttpAuthGateway` в локальный infrastructure mapper.
 
 ## Текущий MVP
 

@@ -1,18 +1,17 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
 import { AuthGateway } from '../application/auth.gateway';
+import { CurrentSessionResult } from '../application/current-session/current-session-result';
 import { SignInInput } from '../application/sign-in/sign-in.input';
 import { SignInResult } from '../application/sign-in/sign-in.result';
 import { SignUpInput } from '../application/sign-up/sign-up.input';
 import { SignUpResult } from '../application/sign-up/sign-up.result';
 
+import { mapAuthError } from './auth-error.mapper';
 import { AuthApi } from './auth.api';
 import { signInRequestMapper } from './sign-in/sign-in-request.mapper';
 import { signUpRequestMapper } from './sign-up/sign-up-request.mapper';
-
-import { ApplicationError } from '@app/shared/errors';
 
 @Injectable()
 export class HttpAuthGateway implements AuthGateway {
@@ -28,12 +27,7 @@ export class HttpAuthGateway implements AuthGateway {
         };
       }),
       catchError((error) => {
-        if (error instanceof HttpErrorResponse && error.error?.reason) {
-          return throwError(() => new ApplicationError(error.error.reason, error));
-        }
-        return throwError(
-          () => new ApplicationError('Failed to sign up. Please try again.', error),
-        );
+        return throwError(() => mapAuthError(error, 'Failed to sign up. Please try again.'));
       }),
     );
   }
@@ -47,13 +41,15 @@ export class HttpAuthGateway implements AuthGateway {
         };
       }),
       catchError((error) => {
-        if (error instanceof HttpErrorResponse && error.error?.reason) {
-          return throwError(() => new ApplicationError(error.error.reason, error));
-        }
-        return throwError(
-          () => new ApplicationError('Failed to sign in. Please try again.', error),
-        );
+        return throwError(() => mapAuthError(error, 'Failed to sign in. Please try again.'));
       }),
     );
+  }
+
+  currentSession(): Observable<CurrentSessionResult> {
+    throw new Error('Method not implemented.');
+  }
+  logout(): Observable<void> {
+    throw new Error('Method not implemented.');
   }
 }

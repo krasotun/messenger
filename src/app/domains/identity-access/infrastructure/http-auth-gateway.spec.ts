@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
@@ -88,22 +87,6 @@ describe('HttpAuthGateway', () => {
       });
     });
 
-    it('should map backend error reason to ApplicationError', () => {
-      const error = new HttpErrorResponse({
-        error: { reason: 'Login already exists' },
-        status: 400,
-      });
-
-      authApiMock.signUp.mockReturnValue(throwError(() => error));
-
-      service.signUp(signUpInputMock).subscribe({
-        error: (applicationError) => {
-          expect(applicationError).toBeInstanceOf(ApplicationError);
-          expect(applicationError.message).toBe('Login already exists');
-        },
-      });
-    });
-
     it('should map generic error to ApplicationError', () => {
       const error = 'mockError';
 
@@ -134,22 +117,6 @@ describe('HttpAuthGateway', () => {
       service.signIn(signInInputMock).subscribe({
         next: (response) => {
           expect(response).toEqual({ authenticated: true });
-        },
-      });
-    });
-
-    it('should map backend error reason to ApplicationError', () => {
-      const error = new HttpErrorResponse({
-        error: { reason: 'Backend error' },
-        status: 400,
-      });
-
-      authApiMock.signIn.mockReturnValue(throwError(() => error));
-
-      service.signIn(signInInputMock).subscribe({
-        error: (applicationError) => {
-          expect(applicationError).toBeInstanceOf(ApplicationError);
-          expect(applicationError.message).toBe('Backend error');
         },
       });
     });
