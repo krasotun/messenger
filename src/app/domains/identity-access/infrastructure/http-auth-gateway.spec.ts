@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
@@ -18,6 +19,7 @@ const authApiMock = {
   signUp: vi.fn(),
   signIn: vi.fn(),
   currentSession: vi.fn(),
+  logout: vi.fn(),
 };
 
 const signUpInputMock: SignUpInput = {
@@ -77,6 +79,7 @@ describe('HttpAuthGateway', () => {
     authApiMock.signUp.mockReset();
     authApiMock.signIn.mockReset();
     authApiMock.currentSession.mockReset();
+    authApiMock.logout.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -163,7 +166,15 @@ describe('HttpAuthGateway', () => {
   });
 
   describe('currentSession', () => {
-    it('should transform successful response to success result', () => {
+    it('should call api', () => {
+      authApiMock.currentSession.mockReturnValue(of(currentUserDtoMock));
+
+      service.currentSession().subscribe();
+
+      expect(authApiMock.currentSession).toHaveBeenCalledOnce();
+    });
+
+    it('should transform successful response to Authenticated', () => {
       authApiMock.currentSession.mockImplementation(() => of(currentUserDtoMock));
 
       service.currentSession().subscribe((response) => {
@@ -171,6 +182,56 @@ describe('HttpAuthGateway', () => {
           status: CurrentSessionStatus.Authenticated,
           user: currentUserMock,
         });
+      });
+    });
+
+    it('should transform 401 error to Anonymous', () => {
+      const noSessionError = new HttpErrorResponse({
+        status: 401,
+      });
+
+      authApiMock.currentSession.mockImplementation(() => throwError(() => noSessionError));
+
+      service.currentSession().subscribe((response) => {
+        expect(response).toEqual({
+          status: CurrentSessionStatus.Anonymous,
+        });
+      });
+    });
+
+    it('should map generic error to ApplicationError', () => {
+      const error = 'mockError';
+
+      authApiMock.currentSession.mockReturnValue(throwError(() => error));
+
+      service.currentSession().subscribe({
+        error: (applicationError) => {
+          expect(applicationError).toBeInstanceOf(ApplicationError);
+          expect(applicationError.message).toBe('Failed to load session. Please try again.');
+        },
+      });
+    });
+  });
+
+  describe('logout', () => {
+    it('should call api', () => {
+      authApiMock.logout.mockReturnValue(of(undefined));
+
+      service.logout().subscribe();
+
+      expect(authApiMock.logout).toHaveBeenCalledOnce();
+    });
+
+    it('should map generic error to ApplicationError', () => {
+      const error = 'mockError';
+
+      authApiMock.logout.mockReturnValue(throwError(() => error));
+
+      service.logout().subscribe({
+        error: (applicationError) => {
+          expect(applicationError).toBeInstanceOf(ApplicationError);
+          expect(applicationError.message).toBe('Failed to logout. Please try again.');
+        },
       });
     });
   });

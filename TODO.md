@@ -8,10 +8,11 @@
 
 ## Текущий шаг
 
-- Добавить `HttpAuthGateway.currentSession()` spec: successful response возвращает authenticated result с `CurrentUser`.
-- Зафиксировать, что `401 Unauthorized` current session возвращает anonymous result.
-- Зафиксировать, что generic current session error не превращается в anonymous result.
-- После current session перейти к `HttpAuthGateway.logout()` specs.
+- Спроектировать application state contract для current session: `unknown/loading`, `authenticated`, `anonymous`, error handling.
+- Добавить specs для application service, который восстанавливает current session через `AUTH_GATEWAY.currentSession()`.
+- Зафиксировать, что successful current session переводит state в `authenticated` и сохраняет `CurrentUser`.
+- Зафиксировать, что anonymous current session переводит state в `anonymous` и очищает current user.
+- Зафиксировать, что logout вызывает `AUTH_GATEWAY.logout()` и после success переводит state в `anonymous`.
 
 ## Scope
 
@@ -46,9 +47,31 @@
 - Вынесен повторяющийся auth error mapping из `HttpAuthGateway` в локальный infrastructure mapper.
 - Добавлен mapper `CurrentUserDto -> CurrentUser`.
 - Добавлен mapper spec, включая сохранение nullable `displayName` и `avatar`.
+- Добавлены `HttpAuthGateway.currentSession()` specs: successful response, `401 Unauthorized` как anonymous, generic error как `ApplicationError`.
+- Реализован `HttpAuthGateway.currentSession()`.
+- Добавлены `HttpAuthGateway.logout()` specs: delegation to API и generic error mapping.
+- Реализован `HttpAuthGateway.logout()`.
 
 ## Текущий MVP
 
 Продуктовый фокус: authorization only.
 
 1. `[Auth] User can restore current session`
+
+## Учебные инфраструктурные задачи
+
+- Последовательность после текущего product scope: authorization only -> unit/component specs -> Playwright flow -> deployment.
+- Цель deployment-этапа: задеплоить Angular frontend на VDS через Docker + nginx, с CI/CD через GitHub Actions.
+- Перед началом deployment-этапа иметь стабильный `npm test` / unit specs.
+- Перед началом deployment-этапа иметь Playwright e2e для sign up / sign in / session restore.
+- Перед началом deployment-этапа иметь production build без ошибок.
+- Перед началом deployment-этапа иметь понятную config story для API URL, даже если backend пока mock/fake.
+- Перед началом deployment-этапа иметь GitHub repository, откуда будет запускаться pipeline.
+- Изучить Docker для frontend-only сценария: собрать Angular production build и раздавать `dist` через nginx container.
+- Изучить Docker для frontend dev-сценария: Angular dev server внутри container, volumes и hot reload.
+- Добавить Playwright e2e-проверки для authorization flow после стабилизации current session и logout.
+- После завершения auth-flow разобрать deployment на VDS: Docker/nginx, domain или IP, HTTPS и ограничения remote backend по CORS/session cookie.
+- Первый deployment делать с GitHub через ручной `git pull` на VDS, затем `docker build` и restart container.
+- CI/CD через GitHub Actions рассмотреть после первого успешного ручного deployment.
+- Vagrant не использовать на текущем этапе: нет потребности в локальных VM для frontend-only проекта.
+- Ansible рассмотреть после первого ручного VDS deployment, если потребуется повторяемая настройка сервера.

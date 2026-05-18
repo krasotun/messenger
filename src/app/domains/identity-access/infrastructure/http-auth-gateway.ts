@@ -1,5 +1,6 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { catchError, map, Observable, of, throwError } from 'rxjs';
 
 import { AuthGateway } from '../application/auth.gateway';
 import { CurrentSessionResult } from '../application/current-session/current-session-result';
@@ -52,15 +53,33 @@ export class HttpAuthGateway implements AuthGateway {
   currentSession(): Observable<CurrentSessionResult> {
     return this._authApi.currentSession().pipe(
       map((response) => {
-        return {
+        const result: CurrentSessionResult = {
           status: CurrentSessionStatus.Authenticated,
           user: currentUserMapper(response),
         };
+
+        return result;
+      }),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          const result: CurrentSessionResult = {
+            status: CurrentSessionStatus.Anonymous,
+          };
+          return of(result);
+        }
+
+        return throwError(() => mapAuthError(error, 'Failed to load session. Please try again.'));
       }),
     );
   }
 
   logout(): Observable<void> {
-    throw new Error('Method not implemented.');
+    return this._authApi
+      .logout()
+      .pipe(
+        catchError((error) =>
+          throwError(() => mapAuthError(error, 'Failed to logout. Please try again.')),
+        ),
+      );
   }
 }
