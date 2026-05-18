@@ -8,7 +8,8 @@
 
 ## Текущий шаг
 
-- Спроектировать application state contract для current session: `unknown/loading`, `authenticated`, `anonymous`, error handling.
+- Зафиксировать `CurrentSessionService` specs: initial `status = unknown`, `currentUser = null`.
+- Реализовать state прямо внутри `CurrentSessionService` через private writable signals и public readonly signals.
 - Добавить specs для application service, который восстанавливает current session через `AUTH_GATEWAY.currentSession()`.
 - Зафиксировать, что successful current session переводит state в `authenticated` и сохраняет `CurrentUser`.
 - Зафиксировать, что anonymous current session переводит state в `anonymous` и очищает current user.

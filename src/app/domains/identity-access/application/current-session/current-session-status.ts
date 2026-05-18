@@ -3,5 +3,4 @@ export enum CurrentSessionStatus {
   Loading = 'loading',
   Authenticated = 'authenticated',
   Anonymous = 'anonymous',
-  Error = 'error',
 }
