@@ -19,11 +19,39 @@ export class CurrentSessionService {
   private readonly _currentUser = signal<Nullable<CurrentUser>>(null);
   readonly currentUser = this._currentUser.asReadonly();
 
-  restoreCurrentSession() {
-    throw new Error('Nor implemented');
+  restoreCurrentSession(): void {
+    this._status.set(CurrentSessionStatus.Loading);
+
+    this._authGateway.currentSession().subscribe({
+      next: (result) => {
+        if (result.status === CurrentSessionStatus.Authenticated) {
+          this._currentUser.set(result.user);
+          this._status.set(result.status);
+        }
+
+        if (result.status === CurrentSessionStatus.Anonymous) {
+          this._markAnonymous();
+        }
+      },
+      error: () => {
+        this._markAnonymous();
+      },
+    });
   }
 
-  logout() {
-    throw new Error('Nor implemented');
+  logout(): void {
+    this._authGateway.logout().subscribe({
+      next: () => {
+        this._markAnonymous();
+      },
+      error: () => {
+        this._markAnonymous();
+      },
+    });
+  }
+
+  private _markAnonymous(): void {
+    this._currentUser.set(null);
+    this._status.set(CurrentSessionStatus.Anonymous);
   }
 }

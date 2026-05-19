@@ -8,12 +8,11 @@
 
 ## Текущий шаг
 
-- Зафиксировать `CurrentSessionService` specs: initial `status = unknown`, `currentUser = null`.
-- Реализовать state прямо внутри `CurrentSessionService` через private writable signals и public readonly signals.
-- Добавить specs для application service, который восстанавливает current session через `AUTH_GATEWAY.currentSession()`.
-- Зафиксировать, что successful current session переводит state в `authenticated` и сохраняет `CurrentUser`.
-- Зафиксировать, что anonymous current session переводит state в `anonymous` и очищает current user.
-- Зафиксировать, что logout вызывает `AUTH_GATEWAY.logout()` и после success переводит state в `anonymous`.
+- Зафиксировать specs для обновления current session state после successful sign-in.
+- Решить сценарий: после successful sign-in сразу вызвать `restoreCurrentSession()` или обновлять `CurrentSessionService` отдельным результатом sign-in.
+- Реализовать минимальную связку sign-in flow с current session state.
+- Зафиксировать specs для запуска `restoreCurrentSession()` при входе в приложение.
+- Реализовать минимальную точку запуска session restore на старте приложения.
 
 ## Scope
 
@@ -52,6 +51,12 @@
 - Реализован `HttpAuthGateway.currentSession()`.
 - Добавлены `HttpAuthGateway.logout()` specs: delegation to API и generic error mapping.
 - Реализован `HttpAuthGateway.logout()`.
+- Зафиксированы `CurrentSessionService` specs: initial `status = unknown`, `currentUser = null`.
+- Реализован current session state внутри `CurrentSessionService` через private writable signals и public readonly signals.
+- Добавлены `CurrentSessionService.restoreCurrentSession()` specs: вызов `AUTH_GATEWAY.currentSession()`, `loading`, successful authenticated result, anonymous result, generic error.
+- Реализован `CurrentSessionService.restoreCurrentSession()`: authenticated сохраняет `CurrentUser`, anonymous/error очищает user и переводит state в `anonymous`.
+- Добавлены `CurrentSessionService.logout()` specs: вызов `AUTH_GATEWAY.logout()`, success/error очищают current session state.
+- Реализован `CurrentSessionService.logout()`: success/error переводят state в `anonymous` и очищают `currentUser`.
 
 ## Текущий MVP
 
