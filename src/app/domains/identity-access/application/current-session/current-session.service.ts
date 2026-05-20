@@ -1,7 +1,9 @@
 import { inject, Injectable, signal } from '@angular/core';
+import { catchError, Observable, tap, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
 
+import { CurrentSessionResult } from './current-session-result';
 import { CurrentSessionStatus } from './current-session-status';
 import { CurrentUser } from './current-user';
 
@@ -19,11 +21,11 @@ export class CurrentSessionService {
   private readonly _currentUser = signal<Nullable<CurrentUser>>(null);
   readonly currentUser = this._currentUser.asReadonly();
 
-  restoreCurrentSession(): void {
+  restoreCurrentSession(): Observable<CurrentSessionResult> {
     this._status.set(CurrentSessionStatus.Loading);
 
-    this._authGateway.currentSession().subscribe({
-      next: (result) => {
+    return this._authGateway.currentSession().pipe(
+      tap((result) => {
         if (result.status === CurrentSessionStatus.Authenticated) {
           this._currentUser.set(result.user);
           this._status.set(result.status);
@@ -32,22 +34,25 @@ export class CurrentSessionService {
         if (result.status === CurrentSessionStatus.Anonymous) {
           this._markAnonymous();
         }
-      },
-      error: () => {
+      }),
+      catchError((error) => {
         this._markAnonymous();
-      },
-    });
+        return throwError(() => error);
+      }),
+    );
   }
 
-  logout(): void {
-    this._authGateway.logout().subscribe({
-      next: () => {
+  logout(): Observable<void> {
+    return this._authGateway.logout().pipe(
+      tap(() => {
         this._markAnonymous();
-      },
-      error: () => {
+      }),
+
+      catchError((error) => {
         this._markAnonymous();
-      },
-    });
+        return throwError(() => error);
+      }),
+    );
   }
 
   private _markAnonymous(): void {

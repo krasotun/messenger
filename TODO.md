@@ -8,9 +8,12 @@
 
 ## Текущий шаг
 
-- Зафиксировать specs для обновления current session state после successful sign-in.
-- Решить сценарий: после successful sign-in сразу вызвать `restoreCurrentSession()` или обновлять `CurrentSessionService` отдельным результатом sign-in.
-- Реализовать минимальную связку sign-in flow с current session state.
+- Зафиксировать specs для композиционного контракта `CurrentSessionService.restoreCurrentSession(): Observable<CurrentSessionResult>`.
+- Зафиксировать specs для композиционного контракта `CurrentSessionService.logout(): Observable<void>`.
+- Убрать внутренние `subscribe` из `CurrentSessionService`: методы должны возвращать Observable и обновлять signals внутри flow.
+- Зафиксировать specs для sign-in orchestration: после successful sign-in вызвать `restoreCurrentSession()`.
+- Зафиксировать bug scenario: если sign-in request успешен, но `restoreCurrentSession()` возвращает error или `anonymous`, sign-in flow не должен переходить в `success`.
+- Реализовать связку sign-in flow с current session state через `switchMap`; `markSuccess()` только после restored `authenticated` session.
 - Зафиксировать specs для запуска `restoreCurrentSession()` при входе в приложение.
 - Реализовать минимальную точку запуска session restore на старте приложения.
 

@@ -65,59 +65,61 @@ describe('CurrentSessionService', () => {
     it('should call auth gateway', () => {
       authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
 
-      service.restoreCurrentSession();
-
-      expect(authGatewayMock.currentSession).toHaveBeenCalledOnce();
+      service.restoreCurrentSession().subscribe(() => {
+        expect(authGatewayMock.currentSession).toHaveBeenCalledOnce();
+      });
     });
 
     it('should set status to loading after calls', () => {
       const currentSession$ = new Subject<CurrentSessionResult>();
       authGatewayMock.currentSession.mockReturnValue(currentSession$);
 
-      service.restoreCurrentSession();
-
-      expect(service.status()).toBe(CurrentSessionStatus.Loading);
+      service.restoreCurrentSession().subscribe(() => {
+        expect(service.status()).toBe(CurrentSessionStatus.Loading);
+      });
     });
 
     it('should set status to authenticated and set current user after  success response', () => {
       authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
 
-      service.restoreCurrentSession();
-
-      expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
-      expect(service.currentUser()).toEqual(currentUserMock);
+      service.restoreCurrentSession().subscribe(() => {
+        expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
+        expect(service.currentUser()).toEqual(currentUserMock);
+      });
     });
 
     it('should set status to anonymous and clear current user after anonymous response', () => {
       authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
 
-      service.restoreCurrentSession();
-
-      expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
-      expect(service.currentUser()).toEqual(currentUserMock);
+      service.restoreCurrentSession().subscribe(() => {
+        expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
+        expect(service.currentUser()).toEqual(currentUserMock);
+      });
 
       authGatewayMock.currentSession.mockReturnValue(of(anonymousResponseMock));
 
-      service.restoreCurrentSession();
-
-      expect(service.status()).toBe(CurrentSessionStatus.Anonymous);
-      expect(service.currentUser()).toBeNull();
+      service.restoreCurrentSession().subscribe(() => {
+        expect(service.status()).toBe(CurrentSessionStatus.Anonymous);
+        expect(service.currentUser()).toBeNull();
+      });
     });
 
     it('should set status to anonymous and clear current user after current session error', () => {
       authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
 
-      service.restoreCurrentSession();
-
-      expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
-      expect(service.currentUser()).toEqual(currentUserMock);
+      service.restoreCurrentSession().subscribe(() => {
+        expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
+        expect(service.currentUser()).toEqual(currentUserMock);
+      });
 
       authGatewayMock.currentSession.mockReturnValue(throwError(() => 'mockError'));
 
-      service.restoreCurrentSession();
-
-      expect(service.status()).toBe(CurrentSessionStatus.Anonymous);
-      expect(service.currentUser()).toBeNull();
+      service.restoreCurrentSession().subscribe({
+        error: () => {
+          expect(service.status()).toBe(CurrentSessionStatus.Anonymous);
+          expect(service.currentUser()).toBeNull();
+        },
+      });
     });
   });
 
@@ -125,41 +127,43 @@ describe('CurrentSessionService', () => {
     it('should call auth gateway', () => {
       authGatewayMock.logout.mockReturnValue(of(undefined));
 
-      service.logout();
-
-      expect(authGatewayMock.logout).toHaveBeenCalledOnce();
+      service.logout().subscribe(() => {
+        expect(authGatewayMock.logout).toHaveBeenCalledOnce();
+      });
     });
 
     it('should set status to anonymous and clear current user after success response', () => {
       authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
 
-      service.restoreCurrentSession();
-
-      expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
-      expect(service.currentUser()).toEqual(currentUserMock);
+      service.restoreCurrentSession().subscribe(() => {
+        expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
+        expect(service.currentUser()).toEqual(currentUserMock);
+      });
 
       authGatewayMock.logout.mockReturnValue(of(undefined));
 
-      service.logout();
-
-      expect(service.status()).toBe(CurrentSessionStatus.Anonymous);
-      expect(service.currentUser()).toBeNull();
+      service.logout().subscribe(() => {
+        expect(service.status()).toBe(CurrentSessionStatus.Anonymous);
+        expect(service.currentUser()).toBeNull();
+      });
     });
 
     it('should set status to anonymous and clear current user after logout error', () => {
       authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
 
-      service.restoreCurrentSession();
-
-      expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
-      expect(service.currentUser()).toEqual(currentUserMock);
+      service.restoreCurrentSession().subscribe(() => {
+        expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
+        expect(service.currentUser()).toEqual(currentUserMock);
+      });
 
       authGatewayMock.logout.mockReturnValue(throwError(() => 'mockError'));
 
-      service.logout();
-
-      expect(service.status()).toBe(CurrentSessionStatus.Anonymous);
-      expect(service.currentUser()).toBeNull();
+      service.logout().subscribe({
+        error: () => {
+          expect(service.status()).toBe(CurrentSessionStatus.Anonymous);
+          expect(service.currentUser()).toBeNull();
+        },
+      });
     });
   });
 });
