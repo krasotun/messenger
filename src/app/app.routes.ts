@@ -1,20 +1,29 @@
 import { Routes } from '@angular/router';
 
-import { SignInPage } from '@domains/identity-access/presentation/sign-in-page/sign-in-page';
-import { SignUpPage } from '@domains/identity-access/presentation/sign-up-page/sign-up-page';
+import { authenticatedOnlyGuard } from './core/routing/authenticated-only.guard';
+import { guestOnlyGuard } from './core/routing/guest-only.guard';
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'sign-up',
+    canActivate: [authenticatedOnlyGuard],
+    loadComponent: () => import('./pages/home-page/home-page').then((m) => m.HomePage),
   },
   {
     path: 'sign-in',
-    component: SignInPage,
+    canActivate: [guestOnlyGuard],
+    loadComponent: () =>
+      import('@domains/identity-access/presentation/sign-in-page/sign-in-page').then(
+        (m) => m.SignInPage,
+      ),
   },
   {
     path: 'sign-up',
-    component: SignUpPage,
+    canActivate: [guestOnlyGuard],
+    loadComponent: () =>
+      import('@domains/identity-access/presentation/sign-up-page/sign-up-page').then(
+        (m) => m.SignUpPage,
+      ),
   },
 ];

@@ -3,21 +3,21 @@
 ## Активная задача
 
 ```text
-[Auth] User is redirected based on current session
+Нет активной задачи
 ```
 
 ## Текущий шаг
 
-- Определить routing contract: какие страницы доступны anonymous/authenticated пользователю.
-- Решить, куда редиректить authenticated пользователя с `/sign-in` и `/sign-up`, пока main page/settings UI еще нет.
-- После решения зафиксировать guard/route specs до реализации.
+- `[Auth] User can sign out` пока отложена.
+- Перед стартом следующей задачи уточнить UI placement для logout в рамках authorization-only scope.
 
 ## Scope
 
 - Использовать уже восстановленный `CurrentSessionService` state для routing decisions.
 - Добавить guest-only routing policy для auth pages.
 - Не пускать authenticated пользователя на `/sign-in` и `/sign-up`.
-- Подготовить routing boundary без добавления chats/messages.
+- Добавить authenticated-only routing policy для `/`.
+- Подготовить временную home placeholder page без добавления chats/messages.
 
 ## Out of Scope
 
@@ -29,14 +29,18 @@
 ## Acceptance Criteria
 
 - Anonymous пользователь может открыть `/sign-in` и `/sign-up`.
-- Authenticated пользователь не остается на `/sign-in` и `/sign-up`.
-- Redirect target для authenticated пользователя явно выбран и зафиксирован в specs.
+- Authenticated пользователь с `/sign-in` редиректится на `/`.
+- Authenticated пользователь с `/sign-up` редиректится на `/`.
+- Anonymous пользователь с `/` редиректится на `/sign-in`.
+- Authenticated пользователь может открыть `/`.
+- `/` содержит только временный placeholder в рамках authorization-only scope.
 - Routing logic не вызывает HTTP/API/localStorage напрямую.
 - Новые routing flows покрыты specs до реализации.
 
 ## Завершено
 
 - Закрыта issue `[Auth] User can restore current session`.
+- Закрыта issue `[Auth] User is redirected based on current session`.
 - Уточнен backend contract для `GET /auth/user` и `POST /auth/logout`.
 - Добавлены application contracts/types для current session.
 - Добавлены infrastructure DTO для current user.
@@ -64,6 +68,11 @@
 - Добавлен app initializer для запуска `CurrentSessionService.restoreCurrentSession()` при старте приложения.
 - Зафиксирован spec для startup initializer: при Angular app initialization вызывается `restoreCurrentSession()`.
 - Подключен startup session restore через `appConfig.providers`.
+- Добавлен `guestOnlyGuard`: authenticated пользователь с `/sign-in` и `/sign-up` редиректится на `/`, anonymous пользователь допускается.
+- Добавлен `authenticatedOnlyGuard`: authenticated пользователь допускается на `/`, остальные статусы редиректятся на `/sign-in`.
+- Добавлена временная `/` home placeholder page в рамках authorization-only scope.
+- Обновлен routing: `/` защищен `authenticatedOnlyGuard`, `/sign-in` и `/sign-up` защищены `guestOnlyGuard`.
+- Page routes переведены на lazy loading через `loadComponent`.
 
 ## Текущий MVP
 
