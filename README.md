@@ -138,3 +138,22 @@ npx ng test --include path/to/file.spec.ts --watch=false
 ```bash
 npm run lint
 ```
+
+## E2E
+
+E2E-тесты запускаются через Playwright.
+
+Обычный прогон:
+
+```bash
+npm run e2e
+```
+
+Интерактивный режим для обучения и разбора падений:
+
+```bash
+npx playwright test --ui
+```
+
+В UI-режиме удобнее смотреть шаги теста, состояние страницы, trace и место, где
+ломается redirect или сетевой mock.
