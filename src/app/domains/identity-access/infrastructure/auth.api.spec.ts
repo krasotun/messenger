@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { AuthApi } from './auth.api';
+import { CurrentUserDto } from './current-session/current-user.dto';
 import { SignInRequestDto } from './sign-in/sign-in.dto';
 import { SignUpRequestDto } from './sign-up/sign-up.dto';
 
@@ -20,6 +21,17 @@ const signUpRequestMock: SignUpRequestDto = {
 const signInRequestMock: SignInRequestDto = {
   login: 'mockLogin',
   password: 'mockPassword',
+};
+
+const currentSessionResponseMock: CurrentUserDto = {
+  id: 1,
+  first_name: 'firstName',
+  second_name: 'secondName',
+  display_name: 'displayName',
+  phone: 'phone',
+  login: 'login',
+  avatar: 'avatar',
+  email: 'email',
 };
 
 const mockBaseUrl = 'https://api.example.test';
@@ -77,6 +89,37 @@ describe('AuthApi', () => {
 
       expect(request.request.method).toBe('POST');
       expect(request.request.body).toEqual(signInRequestMock);
+      expect(request.request.withCredentials).toBe(true);
+
+      request.flush(null);
+    });
+  });
+
+  describe('currentSession', () => {
+    it('should send GET request to correct URL', () => {
+      service.currentSession().subscribe((response) => {
+        expect(response).toEqual(currentSessionResponseMock);
+      });
+
+      const request = httpTestingController.expectOne(`${mockBaseUrl}/auth/user`);
+
+      expect(request.request.method).toBe('GET');
+      expect(request.request.withCredentials).toBe(true);
+
+      request.flush(currentSessionResponseMock);
+    });
+  });
+
+  describe('logout', () => {
+    it('should send POST request to correct URL', () => {
+      service.logout().subscribe((response) => {
+        expect(response).toBeNull();
+      });
+
+      const request = httpTestingController.expectOne(`${mockBaseUrl}/auth/logout`);
+
+      expect(request.request.method).toBe('POST');
+      expect(request.request.body).toBeNull();
       expect(request.request.withCredentials).toBe(true);
 
       request.flush(null);

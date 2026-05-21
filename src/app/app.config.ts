@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { apiBaseUrl } from '../environments/environment';
 
 import { routes } from './app.routes';
+import { provideCurrentSessionRestore } from './core/app-initializers/restore-current-session.initializer';
 import { AUTH_GATEWAY } from './domains/identity-access/application/auth.gateway';
 import { HttpAuthGateway } from './domains/identity-access/infrastructure/http-auth-gateway';
 
@@ -23,5 +24,6 @@ export const appConfig: ApplicationConfig = {
       provide: AUTH_GATEWAY,
       useClass: HttpAuthGateway,
     },
+    provideCurrentSessionRestore(),
   ],
 };
