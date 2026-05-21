@@ -9,16 +9,14 @@
 ## Текущий шаг
 
 - `[Infra] Add Playwright e2e setup` закрыта.
-- Следующий рекомендуемый продуктовый шаг: `[Auth] User can sign out`.
-- Logout UI делать узко: минимальный logout action на временной `/` home placeholder page,
-  без profile/settings/chats/messages.
+- `[Auth] User can sign out` закрыта.
+- Authorization-only MVP закрыт на уровне unit/component specs.
+- Следующий рекомендуемый шаг: добавить Playwright e2e для authorization flow отдельной задачей.
 
 ## Scope
 
-- Уточнить UI placement для logout в рамках authorization-only scope.
-- Зафиксировать component/routing specs для logout UI до реализации.
-- Использовать уже подготовленный `CurrentSessionService.logout()`.
-- После logout перенаправлять пользователя на `/sign-in`.
+- Нет активного product scope.
+- Следующий scope формулировать отдельной задачей перед началом e2e/deployment работ.
 
 ## Out of Scope
 
@@ -30,21 +28,20 @@
 
 ## Acceptance Criteria
 
-- Authenticated пользователь на `/` видит logout action.
-- Click по logout вызывает `CurrentSessionService.logout()`.
-- После successful logout пользователь перенаправляется на `/sign-in`.
-- При logout error session state все равно очищается на application layer,
-  пользователь также перенаправляется на `/sign-in`.
-- Logout UI не добавляет profile/settings/chats/messages.
+- Нет активной задачи.
 
 ## Завершено
 
 - Закрыта issue `[Auth] User can restore current session`.
 - Закрыта issue `[Auth] User is redirected based on current session`.
+- Закрыта issue `[Auth] User can sign out`.
 - Уточнен backend contract для `GET /auth/user` и `POST /auth/logout`.
+- Уточнен backend contract для `POST /auth/signin`: успешный ответ приходит как `text/plain OK`.
 - Добавлены application contracts/types для current session.
 - Добавлены infrastructure DTO для current user.
+- Добавлен `AuthApi.signIn()` spec для `responseType: text`.
 - Добавлены `AuthApi` specs для current session и logout.
+- Реализован `AuthApi.signIn()` с чтением successful response как text, чтобы Angular не парсил `OK` как JSON.
 - Реализованы `AuthApi.currentSession()` и `AuthApi.logout()`.
 - Вынесен повторяющийся auth error mapping из `HttpAuthGateway` в локальный infrastructure mapper.
 - Добавлен mapper `CurrentUserDto -> CurrentUser`.
@@ -65,12 +62,16 @@
 - Добавлены specs для sign-in orchestration: после successful sign-in вызывается `restoreCurrentSession()`.
 - Зафиксированы bug scenarios sign-in flow: если sign-in request успешен, но `restoreCurrentSession()` возвращает `anonymous` или error, flow не переходит в `success`.
 - Реализована связка sign-in flow с current session state через `switchMap`; `markSuccess()` вызывается только после restored `authenticated` session.
+- Добавлен presentation flow для successful sign-in: `SignInForm` эмитит success event, `SignInPage` перенаправляет пользователя на `/`.
+- Добавлены component specs для sign-in success event и redirect на `/`.
 - Добавлен app initializer для запуска `CurrentSessionService.restoreCurrentSession()` при старте приложения.
 - Зафиксирован spec для startup initializer: при Angular app initialization вызывается `restoreCurrentSession()`.
 - Подключен startup session restore через `appConfig.providers`.
 - Добавлен `guestOnlyGuard`: authenticated пользователь с `/sign-in` и `/sign-up` редиректится на `/`, anonymous пользователь допускается.
 - Добавлен `authenticatedOnlyGuard`: authenticated пользователь допускается на `/`, остальные статусы редиректятся на `/sign-in`.
 - Добавлена временная `/` home placeholder page в рамках authorization-only scope.
+- На временную `/` home placeholder page добавлен минимальный logout action без profile/settings/chats/messages.
+- Добавлены component specs для logout UI: action виден, click вызывает `CurrentSessionService.logout()`, success/error перенаправляют на `/sign-in`.
 - Обновлен routing: `/` защищен `authenticatedOnlyGuard`, `/sign-in` и `/sign-up` защищены `guestOnlyGuard`.
 - Page routes переведены на lazy loading через `loadComponent`.
 - Закрыта issue `[Infra] Add Playwright e2e setup`.
@@ -88,14 +89,17 @@
 
 Milestone: `MVP: Authorization only`.
 
-1. `[Auth] User can restore current session`
-2. `[Auth] User is redirected based on current session`
-3. `[Auth] User can sign out`
+Статус: закрыт на уровне unit/component specs.
+
+1. `[Auth] User can restore current session` - закрыта.
+2. `[Auth] User is redirected based on current session` - закрыта.
+3. `[Auth] User can sign out` - закрыта.
 
 ## Будущие задачи
 
-- `[Auth] User can sign out`: добавить минимальный logout action на временную `/` home placeholder page. Backend/application logout flow уже подготовлен: `POST /auth/logout` и очистка current session state.
-- После стабилизации logout добавить следующие Playwright e2e для authorization flow отдельной задачей.
+- Добавить Playwright e2e для authorization flow отдельной задачей:
+  sign up / sign in / session restore / logout.
+- После e2e стабилизации перейти к deployment readiness.
 
 ## Учебные инфраструктурные задачи
 
@@ -103,7 +107,7 @@ Milestone: `Infra: E2E and deployment readiness`.
 
 - Последовательность после текущего product scope: authorization only -> unit/component specs -> Playwright flow -> deployment.
 - Issue `[Infra] Add Playwright e2e setup` закрыта: базовый e2e-контур готов.
-- Следующие e2e для sign up/sign in/session restore/logout заводить отдельной задачей после закрытия authorization-only MVP.
+- Следующие e2e для sign up/sign in/session restore/logout заводить отдельной задачей.
 - Цель deployment-этапа: задеплоить Angular frontend на VDS через Docker + nginx, с CI/CD через GitHub Actions.
 - Перед началом deployment-этапа иметь стабильный `npm test` / unit specs.
 - Перед началом deployment-этапа иметь Playwright e2e для sign up / sign in / session restore.
@@ -112,7 +116,7 @@ Milestone: `Infra: E2E and deployment readiness`.
 - Перед началом deployment-этапа иметь GitHub repository, откуда будет запускаться pipeline.
 - Изучить Docker для frontend-only сценария: собрать Angular production build и раздавать `dist` через nginx container.
 - Изучить Docker для frontend dev-сценария: Angular dev server внутри container, volumes и hot reload.
-- Добавить Playwright e2e-проверки для authorization flow после стабилизации current session и logout.
+- Добавить Playwright e2e-проверки для authorization flow.
 - После завершения auth-flow разобрать deployment на VDS: Docker/nginx, domain или IP, HTTPS и ограничения remote backend по CORS/session cookie.
 - Первый deployment делать с GitHub через ручной `git pull` на VDS, затем `docker build` и restart container.
 - CI/CD через GitHub Actions рассмотреть после первого успешного ручного deployment.
