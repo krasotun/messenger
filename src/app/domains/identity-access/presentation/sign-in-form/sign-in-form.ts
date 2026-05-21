@@ -1,4 +1,4 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, effect, inject, output } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -31,6 +31,8 @@ export class SignInForm {
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
+  readonly signInSucceeded = output<void>();
+
   private readonly _signInService = inject(SignInService);
 
   protected readonly isSubmitting = this._signInService.isSubmitting;
@@ -48,6 +50,8 @@ export class SignInForm {
     effect(() => {
       if (this._signInService.status() === AuthFlowStatus.Success) {
         this._signInService.reset();
+
+        this.signInSucceeded.emit();
       }
     });
   }

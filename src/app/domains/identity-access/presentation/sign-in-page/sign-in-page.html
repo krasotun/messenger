@@ -1,5 +1,5 @@
 <app-auth-page-shell>
   <app-auth-form-shell [formTitle]="'Authorization'">
-    <app-sign-in-form></app-sign-in-form>
+    <app-sign-in-form (signInSucceeded)="goToHome()"></app-sign-in-form>
   </app-auth-form-shell>
 </app-auth-page-shell>

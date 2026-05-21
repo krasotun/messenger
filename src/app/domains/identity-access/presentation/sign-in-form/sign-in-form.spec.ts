@@ -126,6 +126,17 @@ describe('SignInForm', () => {
   });
 
   describe('success state', () => {
+    it('should emit signInSucceeded', () => {
+      const signInSucceededSpy = vi.fn();
+      component.signInSucceeded.subscribe(signInSucceededSpy);
+
+      signInServiceMock.status.set(AuthFlowStatus.Success);
+
+      fixture.detectChanges();
+
+      expect(signInSucceededSpy).toHaveBeenCalledOnce();
+    });
+
     it('should reset submitting status', () => {
       signInServiceMock.status.set(AuthFlowStatus.Success);
 

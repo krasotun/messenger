@@ -22,9 +22,10 @@ export class AuthApi {
     return this._httpClient.post<SignUpResponseDto>(`${this._baseUrl}/auth/signup`, request);
   }
 
-  signIn(request: SignInRequestDto): Observable<void> {
-    return this._httpClient.post<void>(`${this._baseUrl}/auth/signin`, request, {
+  signIn(request: SignInRequestDto): Observable<string> {
+    return this._httpClient.post(`${this._baseUrl}/auth/signin`, request, {
       withCredentials: true,
+      responseType: 'text',
     });
   }
 

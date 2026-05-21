@@ -82,7 +82,7 @@ describe('AuthApi', () => {
   describe('signIn', () => {
     it('should send POST request to correct url with correct data', () => {
       service.signIn(signInRequestMock).subscribe((response) => {
-        expect(response).toBeNull();
+        expect(response).toBe('OK');
       });
 
       const request = httpTestingController.expectOne(`${mockBaseUrl}/auth/signin`);
@@ -90,8 +90,9 @@ describe('AuthApi', () => {
       expect(request.request.method).toBe('POST');
       expect(request.request.body).toEqual(signInRequestMock);
       expect(request.request.withCredentials).toBe(true);
+      expect(request.request.responseType).toBe('text');
 
-      request.flush(null);
+      request.flush('OK');
     });
   });
 
