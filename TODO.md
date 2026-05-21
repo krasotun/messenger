@@ -3,45 +3,39 @@
 ## Активная задача
 
 ```text
-[Infra] Add Playwright e2e setup
+Нет активной задачи
 ```
 
 ## Текущий шаг
 
-- Стабилизировать первый Playwright smoke e2e:
-  `anonymous opens / -> redirected to /sign-in`.
-- Для anonymous state использовать Playwright route mocking:
-  `GET /auth/user -> 401 Unauthorized`.
-- Для обучения и диагностики запускать интерактивный режим:
-  `npx playwright test --ui`.
+- `[Infra] Add Playwright e2e setup` закрыта.
+- Следующий рекомендуемый продуктовый шаг: `[Auth] User can sign out`.
+- Logout UI делать узко: минимальный logout action на временной `/` home placeholder page,
+  без profile/settings/chats/messages.
 
 ## Scope
 
-- Подключить Playwright к Angular-приложению.
-- Добавить npm script для e2e.
-- Настроить запуск Angular dev server для e2e.
-- Добавить первый smoke e2e:
-  `anonymous opens / -> redirected to /sign-in`.
-- Использовать Playwright route mocking для `GET /auth/user -> 401 Unauthorized`.
+- Уточнить UI placement для logout в рамках authorization-only scope.
+- Зафиксировать component/routing specs для logout UI до реализации.
+- Использовать уже подготовленный `CurrentSessionService.logout()`.
+- После logout перенаправлять пользователя на `/sign-in`.
 
 ## Out of Scope
 
-- Полноценные sign up/sign in/session restore e2e.
-- Backend mocking strategy за пределами одного route mock для smoke-теста.
-- CI/CD.
-- Deployment.
-- Profile page, chats/messages, полноценная main page/settings UI.
-- Logout UI.
+- Profile page.
+- Chats/messages.
+- Полноценная main page/settings UI.
+- Новые auth API/application flows.
+- CI/CD и deployment.
 
 ## Acceptance Criteria
 
-- `npm run e2e` запускает Playwright tests.
-- Playwright поднимает Angular dev server или переиспользует уже запущенный server.
-- Первый smoke e2e открывает `/`.
-- В smoke e2e запрос `GET /auth/user` перехватывается и получает `401 Unauthorized`.
-- Anonymous пользователь с `/` редиректится на `/sign-in`.
-- Для локального разбора доступен `npx playwright test --ui`.
-- E2E не требует реального backend.
+- Authenticated пользователь на `/` видит logout action.
+- Click по logout вызывает `CurrentSessionService.logout()`.
+- После successful logout пользователь перенаправляется на `/sign-in`.
+- При logout error session state все равно очищается на application layer,
+  пользователь также перенаправляется на `/sign-in`.
+- Logout UI не добавляет profile/settings/chats/messages.
 
 ## Завершено
 
@@ -79,6 +73,14 @@
 - Добавлена временная `/` home placeholder page в рамках authorization-only scope.
 - Обновлен routing: `/` защищен `authenticatedOnlyGuard`, `/sign-in` и `/sign-up` защищены `guestOnlyGuard`.
 - Page routes переведены на lazy loading через `loadComponent`.
+- Закрыта issue `[Infra] Add Playwright e2e setup`.
+- Подключен Playwright.
+- Добавлен npm script `e2e`.
+- Настроен Angular dev server для Playwright e2e.
+- Добавлен первый smoke e2e `anonymous opens / -> redirected to /sign-in`.
+- В первом smoke e2e используется Playwright route mocking:
+  `GET /auth/user -> 401 Unauthorized`.
+- Зафиксирован диагностический запуск `npx playwright test --ui` в README.
 
 ## Текущий MVP
 
@@ -92,16 +94,16 @@ Milestone: `MVP: Authorization only`.
 
 ## Будущие задачи
 
-- `[Auth] User can sign out`: пользовательский logout будет доступен на главной странице в настройках, когда появится main page/settings UI. Backend/application logout flow уже подготовлен: `POST /auth/logout` и очистка current session state.
+- `[Auth] User can sign out`: добавить минимальный logout action на временную `/` home placeholder page. Backend/application logout flow уже подготовлен: `POST /auth/logout` и очистка current session state.
+- После стабилизации logout добавить следующие Playwright e2e для authorization flow отдельной задачей.
 
 ## Учебные инфраструктурные задачи
 
 Milestone: `Infra: E2E and deployment readiness`.
 
 - Последовательность после текущего product scope: authorization only -> unit/component specs -> Playwright flow -> deployment.
-- Завести отдельную issue `[Infra] Add Playwright e2e setup`.
-- Scope issue `[Infra] Add Playwright e2e setup`: подключить Playwright, добавить npm script для e2e, настроить запуск Angular dev server для тестов, добавить первый smoke e2e `anonymous opens / -> redirected to /sign-in`.
-- Out of scope issue `[Infra] Add Playwright e2e setup`: полноценные sign up/sign in/session restore e2e, backend mocking strategy, CI/CD, deployment.
+- Issue `[Infra] Add Playwright e2e setup` закрыта: базовый e2e-контур готов.
+- Следующие e2e для sign up/sign in/session restore/logout заводить отдельной задачей после закрытия authorization-only MVP.
 - Цель deployment-этапа: задеплоить Angular frontend на VDS через Docker + nginx, с CI/CD через GitHub Actions.
 - Перед началом deployment-этапа иметь стабильный `npm test` / unit specs.
 - Перед началом deployment-этапа иметь Playwright e2e для sign up / sign in / session restore.
