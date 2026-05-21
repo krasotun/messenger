@@ -8,14 +8,8 @@
 
 ## Текущий шаг
 
-- Зафиксировать specs для композиционного контракта `CurrentSessionService.restoreCurrentSession(): Observable<CurrentSessionResult>`.
-- Зафиксировать specs для композиционного контракта `CurrentSessionService.logout(): Observable<void>`.
-- Убрать внутренние `subscribe` из `CurrentSessionService`: методы должны возвращать Observable и обновлять signals внутри flow.
-- Зафиксировать specs для sign-in orchestration: после successful sign-in вызвать `restoreCurrentSession()`.
-- Зафиксировать bug scenario: если sign-in request успешен, но `restoreCurrentSession()` возвращает error или `anonymous`, sign-in flow не должен переходить в `success`.
-- Реализовать связку sign-in flow с current session state через `switchMap`; `markSuccess()` только после restored `authenticated` session.
-- Зафиксировать specs для запуска `restoreCurrentSession()` при входе в приложение.
-- Реализовать минимальную точку запуска session restore на старте приложения.
+- Закрыть `[Auth] User can restore current session`.
+- Следующий продуктовый шаг: `[Auth] User is redirected based on current session`.
 
 ## Scope
 
@@ -23,7 +17,6 @@
 - Не хранить auth tokens в `localStorage` или `sessionStorage`.
 - Добавить current session application state: loading/unknown, authenticated, anonymous.
 - После successful sign-in обновлять или перепроверять current session state.
-- Добавить logout flow: backend logout call и очистка application session state.
 
 ## Out of Scope
 
@@ -37,7 +30,6 @@
 - После sign-in приложение знает, что пользователь authenticated.
 - После reload приложение восстанавливает authenticated state через current session endpoint.
 - Если session cookie отсутствует или backend возвращает unauthorized, state становится anonymous.
-- После logout state становится anonymous.
 - Новые application/infrastructure flows покрыты specs до реализации.
 
 ## Завершено
@@ -60,12 +52,27 @@
 - Реализован `CurrentSessionService.restoreCurrentSession()`: authenticated сохраняет `CurrentUser`, anonymous/error очищает user и переводит state в `anonymous`.
 - Добавлены `CurrentSessionService.logout()` specs: вызов `AUTH_GATEWAY.logout()`, success/error очищают current session state.
 - Реализован `CurrentSessionService.logout()`: success/error переводят state в `anonymous` и очищают `currentUser`.
+- Зафиксирован композиционный контракт `CurrentSessionService.restoreCurrentSession(): Observable<CurrentSessionResult>`.
+- Зафиксирован композиционный контракт `CurrentSessionService.logout(): Observable<void>`.
+- Убраны внутренние `subscribe` из `CurrentSessionService`: методы возвращают Observable и обновляют signals внутри flow.
+- Добавлены specs для sign-in orchestration: после successful sign-in вызывается `restoreCurrentSession()`.
+- Зафиксированы bug scenarios sign-in flow: если sign-in request успешен, но `restoreCurrentSession()` возвращает `anonymous` или error, flow не переходит в `success`.
+- Реализована связка sign-in flow с current session state через `switchMap`; `markSuccess()` вызывается только после restored `authenticated` session.
+- Добавлен app initializer для запуска `CurrentSessionService.restoreCurrentSession()` при старте приложения.
+- Зафиксирован spec для startup initializer: при Angular app initialization вызывается `restoreCurrentSession()`.
+- Подключен startup session restore через `appConfig.providers`.
 
 ## Текущий MVP
 
 Продуктовый фокус: authorization only.
 
 1. `[Auth] User can restore current session`
+2. `[Auth] User is redirected based on current session`
+3. `[Auth] User can sign out`
+
+## Будущие задачи
+
+- `[Auth] User can sign out`: пользовательский logout будет доступен на главной странице в настройках, когда появится main page/settings UI. Backend/application logout flow уже подготовлен: `POST /auth/logout` и очистка current session state.
 
 ## Учебные инфраструктурные задачи
 
