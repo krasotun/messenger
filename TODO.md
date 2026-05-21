@@ -3,37 +3,40 @@
 ## Активная задача
 
 ```text
-[Auth] User can restore current session
+[Auth] User is redirected based on current session
 ```
 
 ## Текущий шаг
 
-- Закрыть `[Auth] User can restore current session`.
-- Следующий продуктовый шаг: `[Auth] User is redirected based on current session`.
+- Определить routing contract: какие страницы доступны anonymous/authenticated пользователю.
+- Решить, куда редиректить authenticated пользователя с `/sign-in` и `/sign-up`, пока main page/settings UI еще нет.
+- После решения зафиксировать guard/route specs до реализации.
 
 ## Scope
 
-- Восстанавливать auth state при входе в приложение через backend session cookie.
-- Не хранить auth tokens в `localStorage` или `sessionStorage`.
-- Добавить current session application state: loading/unknown, authenticated, anonymous.
-- После successful sign-in обновлять или перепроверять current session state.
+- Использовать уже восстановленный `CurrentSessionService` state для routing decisions.
+- Добавить guest-only routing policy для auth pages.
+- Не пускать authenticated пользователя на `/sign-in` и `/sign-up`.
+- Подготовить routing boundary без добавления chats/messages.
 
 ## Out of Scope
 
 - Profile page.
 - Chats/messages.
-- Route guards и protected redirects.
-- Post-sign-in navigation на приватную страницу.
+- Полноценная main page/settings UI.
+- Logout UI.
 
 ## Acceptance Criteria
 
-- После sign-in приложение знает, что пользователь authenticated.
-- После reload приложение восстанавливает authenticated state через current session endpoint.
-- Если session cookie отсутствует или backend возвращает unauthorized, state становится anonymous.
-- Новые application/infrastructure flows покрыты specs до реализации.
+- Anonymous пользователь может открыть `/sign-in` и `/sign-up`.
+- Authenticated пользователь не остается на `/sign-in` и `/sign-up`.
+- Redirect target для authenticated пользователя явно выбран и зафиксирован в specs.
+- Routing logic не вызывает HTTP/API/localStorage напрямую.
+- Новые routing flows покрыты specs до реализации.
 
 ## Завершено
 
+- Закрыта issue `[Auth] User can restore current session`.
 - Уточнен backend contract для `GET /auth/user` и `POST /auth/logout`.
 - Добавлены application contracts/types для current session.
 - Добавлены infrastructure DTO для current user.
