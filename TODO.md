@@ -3,7 +3,7 @@
 ## Активная задача
 
 ```text
-Нет активной задачи
+[Auth E2E] Add Playwright coverage for sign up, sign in, session restore and logout
 ```
 
 ## Текущий шаг
@@ -11,12 +11,15 @@
 - `[Infra] Add Playwright e2e setup` закрыта.
 - `[Auth] User can sign out` закрыта.
 - Authorization-only MVP закрыт на уровне unit/component specs.
-- Следующий рекомендуемый шаг: добавить Playwright e2e для authorization flow отдельной задачей.
+- Следующий шаг: начать Playwright e2e покрытие authorization flow.
+- Первый сценарий: new user can sign up and continue to sign in.
 
 ## Scope
 
-- Нет активного product scope.
-- Следующий scope формулировать отдельной задачей перед началом e2e/deployment работ.
+- Добавить Playwright e2e для authorization flow через route mocks.
+- Начать с пользовательского journey:
+  sign up -> sign in -> session restore -> logout.
+- Не ходить в real backend в базовых e2e, чтобы тесты были стабильны для локального запуска и будущего CI.
 
 ## Out of Scope
 
@@ -28,7 +31,11 @@
 
 ## Acceptance Criteria
 
-- Нет активной задачи.
+- Anonymous user can open `/sign-up`, submit valid registration form and land on `/sign-in`.
+- Registered user can sign in with mocked `text/plain OK` backend response and land on `/`.
+- Authenticated user can restore current session after reload/opening `/`.
+- Authenticated user can logout and land on `/sign-in`.
+- Existing smoke `anonymous opens / -> redirected to /sign-in` remains green.
 
 ## Завершено
 
@@ -97,8 +104,6 @@ Milestone: `MVP: Authorization only`.
 
 ## Будущие задачи
 
-- Добавить Playwright e2e для authorization flow отдельной задачей:
-  sign up / sign in / session restore / logout.
 - После e2e стабилизации перейти к deployment readiness.
 
 ## Учебные инфраструктурные задачи

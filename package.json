@@ -9,7 +9,8 @@
     "test": "ng test",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "prepare": "husky"
   },
   "prettier": {
     "semi": true,
@@ -19,6 +20,15 @@
     "tabWidth": 2,
     "bracketSpacing": true,
     "arrowParens": "always"
+  },
+  "lint-staged": {
+    "*.{ts,html}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{scss,json,md}": [
+      "prettier --write"
+    ]
   },
   "private": true,
   "packageManager": "npm@10.9.2",
@@ -45,7 +55,9 @@
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
+    "husky": "^9.1.7",
     "jsdom": "^27.1.0",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",
     "typescript-eslint": "8.50.1",
