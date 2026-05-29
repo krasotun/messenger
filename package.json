@@ -13,6 +13,7 @@
     "docker:run": "docker run --rm --name messenger-frontend-local -p 8080:80 messenger-frontend:local",
     "e2e": "playwright test",
     "e2e:container": "playwright test --config=playwright.container.config.ts",
+    "e2e:report": "playwright show-report",
     "e2e:allure": "playwright test",
     "allure:generate": "allure generate allure-results --output allure-report",
     "allure:open": "allure open allure-report",
