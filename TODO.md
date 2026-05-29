@@ -19,8 +19,13 @@
 - Последняя проверка auth e2e: `npx playwright test e2e/auth --project=chromium` -> `7 passed`.
 - Allure reporting для Playwright e2e подключен без Java-зависимости через Allure 3 CLI.
 - Desktop screenshot e2e для auth UI добавлены.
-- Следующий шаг: добавить Docker production image для Angular frontend.
-- Следующий сценарий: вручную собрать image через `docker build`, запустить container через `docker run` и прогнать route-mocked auth e2e против container URL.
+- Последняя проверка screenshot e2e: `npx playwright test e2e/auth/*.screenshot.spec.ts --project=chromium` -> passed.
+- Docker production image для Angular frontend добавлен.
+- Angular production build раздается через nginx container из `dist/messenger/browser`.
+- SPA fallback на `index.html` добавлен для прямого открытия `/`, `/sign-in` и `/sign-up`.
+- Добавлен Playwright container e2e запуск против `http://localhost:8080` без `ng serve`.
+- Последняя проверка Docker-based e2e: `npm run e2e:container` -> `9 passed`.
+- Ручной Docker workflow: `docker build -t messenger-frontend:local .` -> `npm run docker:run`.
 
 ## Scope
 
@@ -127,6 +132,7 @@
 - Issue `[Infra] Add Allure reporting for Playwright e2e` закрыта.
 - Добавлены desktop screenshot e2e для auth UI.
 - Зафиксированы baseline screenshots для sign-in и sign-up empty forms после ручного просмотра.
+- Проверено: `npx playwright test e2e/auth/*.screenshot.spec.ts --project=chromium` проходит.
 - Issue `[Infra] Add desktop screenshot e2e for auth UI` закрыта.
 
 ## Текущий MVP

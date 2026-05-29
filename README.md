@@ -149,6 +149,16 @@ E2E-тесты запускаются через Playwright.
 npm run e2e
 ```
 
+Прогон auth e2e против production frontend в Docker container:
+
+```bash
+npm run e2e:container -- e2e/auth/*.spec.ts
+```
+
+Этот запуск собирает Docker image, поднимает nginx container на
+`http://localhost:8080`, запускает Playwright с route mocks и удаляет container
+после тестов. `ng serve` в этом контуре не используется.
+
 Интерактивный режим для обучения и разбора падений:
 
 ```bash
@@ -158,5 +168,41 @@ npx playwright test --ui
 В UI-режиме удобнее смотреть шаги теста, состояние страницы, trace и место, где
 ломается redirect или сетевой mock.
 
-создать эталонные скрины для теста
+Обновить эталонный скриншот для одного screenshot spec:
+
+```bash
 npx playwright test e2e/auth/sign-in.screenshot.spec.ts --project=chromium --update-snapshots
+```
+
+## Docker
+
+Docker используется для проверки production-сценария frontend-only приложения:
+Angular собирается внутри image, а готовые static files из
+`dist/messenger/browser` раздаются через nginx.
+
+Собрать image:
+
+```bash
+docker build -t messenger-frontend:local .
+```
+
+Запустить container вручную:
+
+```bash
+npm run docker:run
+```
+
+Frontend будет доступен на `http://localhost:8080`. Container работает в текущем
+терминале; остановить его можно через `Ctrl+C`. Благодаря `--rm` container будет
+удален после остановки.
+
+Проверить SPA fallback:
+
+```bash
+curl -I http://localhost:8080/
+curl -I http://localhost:8080/sign-in
+curl -I http://localhost:8080/sign-up
+```
+
+Для всех трех URL ожидается `HTTP/1.1 200 OK`: nginx должен возвращать
+`index.html`, а дальнейшую навигацию обрабатывает Angular Router.
