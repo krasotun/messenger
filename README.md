@@ -157,3 +157,6 @@ npx playwright test --ui
 
 В UI-режиме удобнее смотреть шаги теста, состояние страницы, trace и место, где
 ломается redirect или сетевой mock.
+
+создать эталонные скрины для теста
+npx playwright test e2e/auth/sign-in.screenshot.spec.ts --project=chromium --update-snapshots

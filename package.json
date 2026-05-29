@@ -10,6 +10,10 @@
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "e2e": "playwright test",
+    "e2e:allure": "playwright test",
+    "allure:generate": "allure generate allure-results --output allure-report",
+    "allure:open": "allure open allure-report",
+    "allure:run": "allure run -- playwright test",
     "prepare": "husky"
   },
   "prettier": {
@@ -49,6 +53,8 @@
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.1",
     "@vitest/coverage-v8": "^4.1.5",
+    "allure": "^3.8.2",
+    "allure-playwright": "^3.9.0",
     "angular-eslint": "21.2.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
