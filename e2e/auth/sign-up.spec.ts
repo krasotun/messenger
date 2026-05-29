@@ -18,22 +18,12 @@ const fillValidSignUpForm = async (page: Page) => {
   await page.getByRole('textbox', { name: 'Mobile phone' }).fill(phone);
 };
 
-test.beforeEach(async ({ page }) => {
-  await page.route('**/auth/user', async (route) => {
-    await route.fulfill({ status: 401, body: '' });
-  });
-
-  await page.goto('/sign-up');
+test.beforeEach(async ({ request }) => {
+  await request.post('http://localhost:3000/test/reset');
 });
 
 test('should go to sign-in page after successful sign up', async ({ page }) => {
-  await page.route('**/auth/signup', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      json: { id: 1 },
-    });
-  });
+  await page.goto('/sign-up');
 
   await fillValidSignUpForm(page);
 
@@ -43,13 +33,15 @@ test('should go to sign-in page after successful sign up', async ({ page }) => {
 });
 
 test('should show registration error when sign up fails', async ({ page }) => {
-  await page.route('**/auth/signup', async (route) => {
-    await route.fulfill({
-      status: 400,
-      contentType: 'application/json',
-      json: { reason: 'Login already exists' },
-    });
-  });
+  await page.goto('/sign-up');
+
+  await fillValidSignUpForm(page);
+
+  await page.getByRole('button', { name: 'Register' }).click();
+
+  await expect(page).toHaveURL('/sign-in');
+
+  await page.goto('/sign-up');
 
   await fillValidSignUpForm(page);
 

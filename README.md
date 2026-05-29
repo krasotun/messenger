@@ -149,15 +149,16 @@ E2E-тесты запускаются через Playwright.
 npm run e2e
 ```
 
-Прогон auth e2e против production frontend в Docker container:
+Прогон отдельного auth spec против Docker Compose окружения:
 
 ```bash
-npm run e2e:container -- e2e/auth/*.spec.ts
+npm run e2e -- e2e/auth/sign-up.spec.ts --project=chromium
 ```
 
-Этот запуск собирает Docker image, поднимает nginx container на
-`http://localhost:8080`, запускает Playwright с route mocks и удаляет container
-после тестов. `ng serve` в этом контуре не используется.
+Этот запуск собирает frontend и mock auth backend images, поднимает Docker
+Compose окружение с frontend на `http://localhost:8080` и mock backend на
+`http://localhost:3000`, запускает Playwright и останавливает compose после
+тестов. `ng serve` в этом контуре не используется.
 
 Интерактивный режим для обучения и разбора падений:
 
