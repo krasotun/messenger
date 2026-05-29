@@ -3,7 +3,7 @@
 ## Активная задача
 
 ```text
-Нет активной задачи
+[Infra] Add Docker production image and run e2e against container
 ```
 
 ## Текущий шаг
@@ -11,12 +11,27 @@
 - `[Infra] Add Playwright e2e setup` закрыта.
 - `[Auth] User can sign out` закрыта.
 - Authorization-only MVP закрыт на уровне unit/component specs.
-- Следующий рекомендуемый шаг: добавить Playwright e2e для authorization flow отдельной задачей.
+- Playwright route-mocked e2e покрытие authorization flow закрыто.
+- Sign-up e2e покрывает successful registration и backend error.
+- Sign-in e2e покрывает successful authorization и backend error.
+- Session restore e2e покрывает authenticated user opening `/`.
+- Logout e2e покрывает authenticated user logout и redirect на `/sign-in`.
+- Последняя проверка auth e2e: `npx playwright test e2e/auth --project=chromium` -> `7 passed`.
+- Allure reporting для Playwright e2e подключен без Java-зависимости через Allure 3 CLI.
+- Desktop screenshot e2e для auth UI добавлены.
+- Следующий шаг: добавить Docker production image для Angular frontend.
+- Следующий сценарий: вручную собрать image через `docker build`, запустить container через `docker run` и прогнать route-mocked auth e2e против container URL.
 
 ## Scope
 
-- Нет активного product scope.
-- Следующий scope формулировать отдельной задачей перед началом e2e/deployment работ.
+- Добавить Dockerfile для frontend production image.
+- Собрать Angular production build внутри Docker image.
+- Раздавать `dist/messenger/browser` через nginx.
+- Добавить nginx SPA fallback на `index.html`.
+- Добавить `.dockerignore`.
+- Добавить отдельный Playwright запуск против уже поднятого container URL без `ng serve`.
+- Использовать route mocks; не ходить в real backend.
+- Docker окружение запускать вручную через `docker build` и `docker run`, без Docker Compose.
 
 ## Out of Scope
 
@@ -25,10 +40,19 @@
 - Полноценная main page/settings UI.
 - Новые auth API/application flows.
 - CI/CD и deployment.
+- Mobile screenshot e2e.
+- Allure reporting changes.
+- Docker Compose.
+- Mock auth backend.
+- CI/CD и deployment automation.
 
 ## Acceptance Criteria
 
-- Нет активной задачи.
+- Docker image builds locally.
+- Container starts locally and serves Angular production build.
+- SPA fallback works: direct opening `/sign-in`, `/sign-up` and `/` returns the frontend app.
+- Playwright auth e2e can run against container URL with route mocks.
+- Existing route-mocked auth e2e suite remains green.
 
 ## Завершено
 
@@ -81,7 +105,29 @@
 - Добавлен первый smoke e2e `anonymous opens / -> redirected to /sign-in`.
 - В первом smoke e2e используется Playwright route mocking:
   `GET /auth/user -> 401 Unauthorized`.
+- Добавлены Playwright e2e для sign-up:
+  successful registration redirects to `/sign-in`; backend error stays on `/sign-up` and shows registration error.
+- Добавлены Playwright e2e для sign-in:
+  successful sign-in uses mocked `text/plain OK`, restores current session and redirects to `/`; backend error stays on `/sign-in` and shows authorization error.
+- Добавлены Playwright e2e для session restore:
+  anonymous user from `/` redirects to `/sign-in`; authenticated user opens `/` and sees home page.
+- Добавлен Playwright e2e для logout:
+  authenticated user clicks `Logout`, mocked logout succeeds and user lands on `/sign-in`.
+- Устранен race в sign-in e2e: тест ждет отрисовку anonymous sign-in form перед переключением mocked current session на authenticated response.
+- Route-mocked auth e2e suite закрыт на Chromium:
+  `npx playwright test e2e/auth --project=chromium` -> `7 passed`.
 - Зафиксирован диагностический запуск `npx playwright test --ui` в README.
+- Подключен Allure reporting для Playwright e2e:
+  `allure-playwright` пишет raw results в `allure-results`.
+- Подключен Allure 3 CLI без Java-зависимости через npm package `allure`.
+- Добавлены npm scripts для Allure:
+  `e2e:allure`, `allure:generate`, `allure:open`, `allure:run`.
+- Добавлены `.gitignore` правила для `allure-results` и `allure-report`.
+- Проверено локально: Allure raw results и HTML report генерируются и открываются.
+- Issue `[Infra] Add Allure reporting for Playwright e2e` закрыта.
+- Добавлены desktop screenshot e2e для auth UI.
+- Зафиксированы baseline screenshots для sign-in и sign-up empty forms после ручного просмотра.
+- Issue `[Infra] Add desktop screenshot e2e for auth UI` закрыта.
 
 ## Текущий MVP
 
@@ -97,26 +143,44 @@ Milestone: `MVP: Authorization only`.
 
 ## Будущие задачи
 
-- Добавить Playwright e2e для authorization flow отдельной задачей:
-  sign up / sign in / session restore / logout.
 - После e2e стабилизации перейти к deployment readiness.
 
 ## Учебные инфраструктурные задачи
 
 Milestone: `Infra: E2E and deployment readiness`.
 
-- Последовательность после текущего product scope: authorization only -> unit/component specs -> Playwright flow -> deployment.
+- Последовательность после текущего product scope: authorization only -> unit/component specs -> Playwright route-mocked auth flow -> Allure reporting -> screenshot e2e -> Docker-based e2e against frontend production build -> Docker Compose e2e with mock auth backend -> deployment.
+- Скриншотные тесты вводить после обычных Playwright e2e: сначала flow-поведение, затем visual regression.
+- Allure reporting вводить после стабильного набора Playwright flow e2e, чтобы отчетность описывала уже зафиксированные бизнес-сценарии.
+- Первый Allure scope: локальная генерация отчета по Playwright e2e и сохранение raw results для будущего CI artifact.
+- Allure не смешивать с deployment: в CI он должен быть quality artifact, а не deployment gate.
+- Скриншотное тестирование использовать как учебный regression-контроль принятого UI-состояния, а не как проверку попадания в макет.
+- На первом этапе screenshot e2e покрывают только desktop viewport; mobile пока out of scope.
+- Первый screenshot scope после стабилизации auth e2e: sign in/sign up empty form, validation errors, loading state, API error.
+- Baseline обновлять только после ручного просмотра diff и осознанного подтверждения, что визуальное изменение ожидаемое.
 - Issue `[Infra] Add Playwright e2e setup` закрыта: базовый e2e-контур готов.
-- Следующие e2e для sign up/sign in/session restore/logout заводить отдельной задачей.
+- Issue `[Auth E2E] Add Playwright coverage for sign up, sign in, session restore and logout` закрыта: route-mocked auth flow покрыт.
+- Issue `[Infra] Add Allure reporting for Playwright e2e` закрыта: локальный отчет доступен без Java Runtime.
+- Issue `[Infra] Add desktop screenshot e2e for auth UI` закрыта: sign-in/sign-up empty forms покрыты baseline screenshots.
 - Цель deployment-этапа: задеплоить Angular frontend на VDS через Docker + nginx, с CI/CD через GitHub Actions.
 - Перед началом deployment-этапа иметь стабильный `npm test` / unit specs.
-- Перед началом deployment-этапа иметь Playwright e2e для sign up / sign in / session restore.
+- Перед началом deployment-этапа иметь Playwright e2e для sign up / sign in / session restore / logout.
 - Перед началом deployment-этапа иметь production build без ошибок.
 - Перед началом deployment-этапа иметь понятную config story для API URL, даже если backend пока mock/fake.
 - Перед началом deployment-этапа иметь GitHub repository, откуда будет запускаться pipeline.
 - Изучить Docker для frontend-only сценария: собрать Angular production build и раздавать `dist` через nginx container.
 - Изучить Docker для frontend dev-сценария: Angular dev server внутри container, volumes и hot reload.
-- Добавить Playwright e2e-проверки для authorization flow.
+- Добавить отдельный Docker-based e2e контур: Playwright запускается против Angular production build, который раздается из nginx container.
+- Docker-based e2e не заменяет быстрый локальный TDD-цикл; использовать его как deployment-readiness проверку после стабильных unit/component specs и обычных Playwright flow tests.
+- Acceptance для Docker-based e2e: production image собирается, container стартует локально, health/open page проверка проходит, auth e2e используют route mocks и не требуют real backend.
+- Добавить учебный mock auth backend для Docker Compose e2e.
+- Mock backend scope: только `POST /auth/signup`, `POST /auth/signin`, `GET /auth/user`, `POST /auth/logout`; без chats/messages/profile flows.
+- Mock backend contract должен повторять текущие frontend DTO/expectations и backend Яндекс Практикума только в auth-части.
+- Первый storage для mock backend: in-memory; persistence не нужна.
+- Предпочтительная session model для mock backend: cookie-based session, чтобы отдельно изучить CORS, credentials, SameSite, container networking и deployment constraints.
+- Docker Compose e2e target: frontend production container + mock auth backend container + Playwright runner против compose окружения.
+- Route mocks остаются базовым быстрым e2e-слоем; mock backend используется как отдельная deployment-readiness проверка.
+- Mock backend явно не считается production backend и не расширяет product scope за пределы authorization only.
 - После завершения auth-flow разобрать deployment на VDS: Docker/nginx, domain или IP, HTTPS и ограничения remote backend по CORS/session cookie.
 - Первый deployment делать с GitHub через ручной `git pull` на VDS, затем `docker build` и restart container.
 - CI/CD через GitHub Actions рассмотреть после первого успешного ручного deployment.
