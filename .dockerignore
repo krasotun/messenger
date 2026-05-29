@@ -1,0 +1,11 @@
+node_modules
+dist
+.angular
+.playwright
+allure-results
+allure-report
+coverage
+.git
+.gitignore
+.DS_Store
+npm-debug.log

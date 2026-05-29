@@ -3,7 +3,7 @@
 ## Активная задача
 
 ```text
-[Infra] Add Docker production image and run e2e against container
+[Infra] Add Docker Compose e2e with mock auth backend
 ```
 
 ## Текущий шаг
@@ -19,10 +19,20 @@
 - Последняя проверка auth e2e: `npx playwright test e2e/auth --project=chromium` -> `7 passed`.
 - Allure reporting для Playwright e2e подключен без Java-зависимости через Allure 3 CLI.
 - Desktop screenshot e2e для auth UI добавлены.
-- Следующий шаг: добавить Docker production image для Angular frontend.
-- Следующий сценарий: вручную собрать image через `docker build`, запустить container через `docker run` и прогнать route-mocked auth e2e против container URL.
+- Последняя проверка screenshot e2e: `npx playwright test e2e/auth/*.screenshot.spec.ts --project=chromium` -> passed.
+- Docker production image для Angular frontend добавлен.
+- Angular production build раздается через nginx container из `dist/messenger/browser`.
+- SPA fallback на `index.html` добавлен для прямого открытия `/`, `/sign-in` и `/sign-up`.
+- Добавлен Playwright container e2e запуск против `http://localhost:8080` без `ng serve`.
+- Последняя проверка Docker-based e2e: `npm run e2e:container` -> `9 passed`.
+- Ручной Docker workflow: `docker build -t messenger-frontend:local .` -> `npm run docker:run`.
+- Issue `[Infra] Add Docker production image and run e2e against container` закрыта.
+- API URL strategy уточнена: backend URL один и стабильный, `https://ya-praktikum.tech/api/v2`; frontend получает его через `API_BASE_URL` DI token из `environment.ts`.
+- Runtime API config и nginx proxy не нужны на текущем этапе: backend поддерживает CORS/credentials для текущего сценария.
+- Ansible отложен до первого ручного VDS deployment; сейчас он преждевременен.
+- Следующий шаг: спроектировать Docker Compose e2e контур с frontend production container и учебным mock auth backend.
 
-## Scope
+## Scope закрытой Docker production image задачи
 
 - Добавить Dockerfile для frontend production image.
 - Собрать Angular production build внутри Docker image.
@@ -31,9 +41,9 @@
 - Добавить `.dockerignore`.
 - Добавить отдельный Playwright запуск против уже поднятого container URL без `ng serve`.
 - Использовать route mocks; не ходить в real backend.
-- Docker окружение запускать вручную через `docker build` и `docker run`, без Docker Compose.
+- Docker окружение можно запускать вручную через `docker build` и `npm run docker:run`, без Docker Compose.
 
-## Out of Scope
+## Out of Scope закрытой Docker production image задачи
 
 - Profile page.
 - Chats/messages.
@@ -46,7 +56,7 @@
 - Mock auth backend.
 - CI/CD и deployment automation.
 
-## Acceptance Criteria
+## Acceptance Criteria закрытой Docker production image задачи
 
 - Docker image builds locally.
 - Container starts locally and serves Angular production build.
@@ -127,6 +137,7 @@
 - Issue `[Infra] Add Allure reporting for Playwright e2e` закрыта.
 - Добавлены desktop screenshot e2e для auth UI.
 - Зафиксированы baseline screenshots для sign-in и sign-up empty forms после ручного просмотра.
+- Проверено: `npx playwright test e2e/auth/*.screenshot.spec.ts --project=chromium` проходит.
 - Issue `[Infra] Add desktop screenshot e2e for auth UI` закрыта.
 
 ## Текущий MVP
@@ -162,17 +173,19 @@ Milestone: `Infra: E2E and deployment readiness`.
 - Issue `[Auth E2E] Add Playwright coverage for sign up, sign in, session restore and logout` закрыта: route-mocked auth flow покрыт.
 - Issue `[Infra] Add Allure reporting for Playwright e2e` закрыта: локальный отчет доступен без Java Runtime.
 - Issue `[Infra] Add desktop screenshot e2e for auth UI` закрыта: sign-in/sign-up empty forms покрыты baseline screenshots.
+- Issue `[Infra] Add Docker production image and run e2e against container` закрыта: Angular production build собирается внутри Docker image, раздается через nginx, SPA fallback работает, `npm run e2e:container` проходит против container URL.
+- API URL strategy закрыта на текущем этапе: используется фиксированный `https://ya-praktikum.tech/api/v2`, предоставляемый через `API_BASE_URL` DI token; runtime config/proxy отложены до появления нескольких backend URL или реальной deployment-потребности.
 - Цель deployment-этапа: задеплоить Angular frontend на VDS через Docker + nginx, с CI/CD через GitHub Actions.
 - Перед началом deployment-этапа иметь стабильный `npm test` / unit specs.
 - Перед началом deployment-этапа иметь Playwright e2e для sign up / sign in / session restore / logout.
 - Перед началом deployment-этапа иметь production build без ошибок.
-- Перед началом deployment-этапа иметь понятную config story для API URL, даже если backend пока mock/fake.
+- Перед началом deployment-этапа иметь понятную config story для API URL: на текущем этапе закрыто через фиксированный `API_BASE_URL` DI token.
 - Перед началом deployment-этапа иметь GitHub repository, откуда будет запускаться pipeline.
 - Изучить Docker для frontend-only сценария: собрать Angular production build и раздавать `dist` через nginx container.
 - Изучить Docker для frontend dev-сценария: Angular dev server внутри container, volumes и hot reload.
-- Добавить отдельный Docker-based e2e контур: Playwright запускается против Angular production build, который раздается из nginx container.
-- Docker-based e2e не заменяет быстрый локальный TDD-цикл; использовать его как deployment-readiness проверку после стабильных unit/component specs и обычных Playwright flow tests.
-- Acceptance для Docker-based e2e: production image собирается, container стартует локально, health/open page проверка проходит, auth e2e используют route mocks и не требуют real backend.
+- Docker-based e2e контур добавлен: Playwright запускается против Angular production build, который раздается из nginx container.
+- Docker-based e2e не заменяет быстрый локальный TDD-цикл; используется как deployment-readiness проверка после стабильных unit/component specs и обычных Playwright flow tests.
+- Acceptance для Docker-based e2e закрыт: production image собирается, container стартует локально, health/open page проверка проходит, auth e2e используют route mocks и не требуют real backend.
 - Добавить учебный mock auth backend для Docker Compose e2e.
 - Mock backend scope: только `POST /auth/signup`, `POST /auth/signin`, `GET /auth/user`, `POST /auth/logout`; без chats/messages/profile flows.
 - Mock backend contract должен повторять текущие frontend DTO/expectations и backend Яндекс Практикума только в auth-части.
