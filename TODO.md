@@ -3,7 +3,7 @@
 ## Активная задача
 
 ```text
-[Auth E2E] Add Playwright coverage for sign up, sign in, session restore and logout
+[Infra] Add Allure reporting for Playwright e2e
 ```
 
 ## Текущий шаг
@@ -11,18 +11,20 @@
 - `[Infra] Add Playwright e2e setup` закрыта.
 - `[Auth] User can sign out` закрыта.
 - Authorization-only MVP закрыт на уровне unit/component specs.
-- Playwright e2e покрытие authorization flow начато.
+- Playwright route-mocked e2e покрытие authorization flow закрыто.
 - Sign-up e2e покрывает successful registration и backend error.
 - Sign-in e2e покрывает successful authorization и backend error.
-- Следующий шаг: добавить Playwright e2e для session restore.
-- Следующий сценарий: authenticated user can open `/` and restore current session.
+- Session restore e2e покрывает authenticated user opening `/`.
+- Logout e2e покрывает authenticated user logout и redirect на `/sign-in`.
+- Последняя проверка auth e2e: `npx playwright test e2e/auth --project=chromium` -> `7 passed`.
+- Следующий шаг: добавить Allure reporting для Playwright e2e.
+- Следующий сценарий: локально получать Allure raw results и HTML report по текущему auth e2e suite.
 
 ## Scope
 
-- Добавить Playwright e2e для authorization flow через route mocks.
-- Начать с пользовательского journey:
-  sign up -> sign in -> session restore -> logout.
-- Не ходить в real backend в базовых e2e, чтобы тесты были стабильны для локального запуска и будущего CI.
+- Подключить Allure reporting к существующему Playwright e2e suite.
+- Добавить npm scripts для запуска e2e с Allure output и генерации/просмотра HTML report.
+- Сохранить route-mocked auth e2e как базовый быстрый слой без real backend.
 
 ## Out of Scope
 
@@ -31,16 +33,15 @@
 - Полноценная main page/settings UI.
 - Новые auth API/application flows.
 - CI/CD и deployment.
+- Screenshot e2e.
+- Docker-based e2e.
 
 ## Acceptance Criteria
 
-- Anonymous user can open `/sign-up`, submit valid registration form and land on `/sign-in`. - done
-- Anonymous user stays on `/sign-up` and sees registration error when `POST /auth/signup` fails. - done
-- Registered user can sign in with mocked `text/plain OK` backend response and land on `/`. - done
-- Anonymous user stays on `/sign-in` and sees authorization error when `POST /auth/signin` fails. - done
-- Authenticated user can restore current session after reload/opening `/`.
-- Authenticated user can logout and land on `/sign-in`.
-- Existing smoke `anonymous opens / -> redirected to /sign-in` remains green.
+- Playwright can write Allure raw results for the existing auth e2e suite.
+- Developer can generate local Allure HTML report from raw results.
+- Developer can open/view the generated Allure report locally.
+- Existing route-mocked auth e2e suite remains green.
 
 ## Завершено
 
@@ -97,7 +98,13 @@
   successful registration redirects to `/sign-in`; backend error stays on `/sign-up` and shows registration error.
 - Добавлены Playwright e2e для sign-in:
   successful sign-in uses mocked `text/plain OK`, restores current session and redirects to `/`; backend error stays on `/sign-in` and shows authorization error.
-- Создан файл `e2e/auth/session-restore.spec.ts` для следующего сценария; тесты session restore еще не добавлены.
+- Добавлены Playwright e2e для session restore:
+  anonymous user from `/` redirects to `/sign-in`; authenticated user opens `/` and sees home page.
+- Добавлен Playwright e2e для logout:
+  authenticated user clicks `Logout`, mocked logout succeeds and user lands on `/sign-in`.
+- Устранен race в sign-in e2e: тест ждет отрисовку anonymous sign-in form перед переключением mocked current session на authenticated response.
+- Route-mocked auth e2e suite закрыт на Chromium:
+  `npx playwright test e2e/auth --project=chromium` -> `7 passed`.
 - Зафиксирован диагностический запуск `npx playwright test --ui` в README.
 
 ## Текущий MVP
@@ -114,7 +121,6 @@ Milestone: `MVP: Authorization only`.
 
 ## Будущие задачи
 
-- После стабилизации обычных Playwright e2e добавить Allure reporting для e2e-результатов.
 - После стабилизации обычных Playwright e2e добавить desktop screenshot e2e для auth UI.
 - После e2e стабилизации перейти к deployment readiness.
 
@@ -122,7 +128,7 @@ Milestone: `MVP: Authorization only`.
 
 Milestone: `Infra: E2E and deployment readiness`.
 
-- Последовательность после текущего product scope: authorization only -> unit/component specs -> Playwright route-mocked auth flow -> Docker-based e2e against frontend production build -> Docker Compose e2e with mock auth backend -> deployment.
+- Последовательность после текущего product scope: authorization only -> unit/component specs -> Playwright route-mocked auth flow -> Allure reporting -> screenshot e2e -> Docker-based e2e against frontend production build -> Docker Compose e2e with mock auth backend -> deployment.
 - Скриншотные тесты вводить после обычных Playwright e2e: сначала flow-поведение, затем visual regression.
 - Allure reporting вводить после стабильного набора Playwright flow e2e, чтобы отчетность описывала уже зафиксированные бизнес-сценарии.
 - Первый Allure scope: локальная генерация отчета по Playwright e2e и сохранение raw results для будущего CI artifact.
@@ -132,10 +138,10 @@ Milestone: `Infra: E2E and deployment readiness`.
 - Первый screenshot scope после стабилизации auth e2e: sign in/sign up empty form, validation errors, loading state, API error.
 - Baseline обновлять только после ручного просмотра diff и осознанного подтверждения, что визуальное изменение ожидаемое.
 - Issue `[Infra] Add Playwright e2e setup` закрыта: базовый e2e-контур готов.
-- Следующие e2e для sign up/sign in/session restore/logout заводить отдельной задачей.
+- Issue `[Auth E2E] Add Playwright coverage for sign up, sign in, session restore and logout` закрыта: route-mocked auth flow покрыт.
 - Цель deployment-этапа: задеплоить Angular frontend на VDS через Docker + nginx, с CI/CD через GitHub Actions.
 - Перед началом deployment-этапа иметь стабильный `npm test` / unit specs.
-- Перед началом deployment-этапа иметь Playwright e2e для sign up / sign in / session restore.
+- Перед началом deployment-этапа иметь Playwright e2e для sign up / sign in / session restore / logout.
 - Перед началом deployment-этапа иметь production build без ошибок.
 - Перед началом deployment-этапа иметь понятную config story для API URL, даже если backend пока mock/fake.
 - Перед началом deployment-этапа иметь GitHub repository, откуда будет запускаться pipeline.
@@ -152,7 +158,6 @@ Milestone: `Infra: E2E and deployment readiness`.
 - Docker Compose e2e target: frontend production container + mock auth backend container + Playwright runner против compose окружения.
 - Route mocks остаются базовым быстрым e2e-слоем; mock backend используется как отдельная deployment-readiness проверка.
 - Mock backend явно не считается production backend и не расширяет product scope за пределы authorization only.
-- Добавить Playwright e2e-проверки для authorization flow.
 - После завершения auth-flow разобрать deployment на VDS: Docker/nginx, domain или IP, HTTPS и ограничения remote backend по CORS/session cookie.
 - Первый deployment делать с GitHub через ручной `git pull` на VDS, затем `docker build` и restart container.
 - CI/CD через GitHub Actions рассмотреть после первого успешного ручного deployment.

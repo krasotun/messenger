@@ -25,6 +25,8 @@ test('should go to main page after successful sign in', async ({ page }) => {
 
   await page.goto('/sign-in');
 
+  await expect(page.getByRole('textbox', { name: 'Login' })).toBeVisible();
+
   await page.route('**/auth/user', async (route) => {
     await route.fulfill({
       status: 200,

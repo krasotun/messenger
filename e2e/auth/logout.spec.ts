@@ -1,19 +1,6 @@
 import test, { expect } from '@playwright/test';
 
-test('redirects anonymous user from home to sign in', async ({ page }) => {
-  await page.route('**/auth/user', async (route) => {
-    await route.fulfill({
-      status: 401,
-      body: '',
-    });
-  });
-
-  await page.goto('/');
-
-  await expect(page).toHaveURL('/sign-in');
-});
-
-test('restores current session for authenticated user opening home', async ({ page }) => {
+test('should redirect user to sign-in page', async ({ page }) => {
   await page.route('**/auth/user', async (route) => {
     await route.fulfill({
       status: 200,
@@ -33,5 +20,14 @@ test('restores current session for authenticated user opening home', async ({ pa
 
   await page.goto('/');
 
-  await expect(page.getByText('You are signed in.')).toBeVisible();
+  await page.route('**/auth/logout', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'text/plain',
+      body: 'OK',
+    });
+  });
+  await page.getByRole('button', { name: 'Logout' }).click();
+
+  await expect(page).toHaveURL('/sign-in');
 });
