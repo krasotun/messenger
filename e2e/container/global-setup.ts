@@ -6,15 +6,7 @@ const frontendUrl = 'http://localhost:8080';
 const backendHealthUrl = 'http://localhost:3000/health';
 
 function run(command: string, args: string[]): void {
-  execFileSync(command, args, { stdio: 'inherit' });
-}
-
-function runIfPossible(command: string, args: string[]): void {
-  try {
-    execFileSync(command, args, { stdio: 'ignore' });
-  } catch {
-    // Compose services may not exist before the first run.
-  }
+  execFileSync(command, args, { stdio: 'inherit', timeout: 300_000 });
 }
 
 async function waitForUrl(url: string, label: string): Promise<void> {
@@ -36,8 +28,6 @@ async function waitForUrl(url: string, label: string): Promise<void> {
 }
 
 export default async function globalSetup(): Promise<void> {
-  runIfPossible('docker', ['compose', '-f', composeFile, 'down']);
-
   run('docker', ['compose', '-f', composeFile, 'up', '--build', '-d']);
 
   await waitForUrl(frontendUrl, 'Frontend container');
