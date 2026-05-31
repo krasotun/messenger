@@ -1,17 +1,17 @@
 import { test, expect, Page } from '@playwright/test';
 
-const { firstName, secondName, login, email, password, phone } = {
-  firstName: 'mockFirstName',
-  secondName: 'mockSecondName',
-  login: 'mockLogin',
-  email: 'mock@email.email',
+const { first_name, second_name, login, email, password, phone } = {
+  first_name: 'mockFirstName',
+  second_name: 'mockSecondName',
+  login: 'mockSignUpLogin',
+  email: 'mock-sign-up@email.email',
   password: 'mockPasswo@123rd',
   phone: '79999999999',
 };
 
 const fillValidSignUpForm = async (page: Page) => {
-  await page.getByRole('textbox', { name: 'First name' }).fill(firstName);
-  await page.getByRole('textbox', { name: 'Second name' }).fill(secondName);
+  await page.getByRole('textbox', { name: 'First name' }).fill(first_name);
+  await page.getByRole('textbox', { name: 'Second name' }).fill(second_name);
   await page.getByRole('textbox', { name: 'Login' }).fill(login);
   await page.getByRole('textbox', { name: 'Email' }).fill(email);
   await page.getByRole('textbox', { name: 'Password' }).fill(password);
