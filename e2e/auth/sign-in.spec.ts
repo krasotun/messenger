@@ -1,6 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 
-const mockUser = {
+const successfulSignInUser = {
   first_name: 'mockFirstName',
   second_name: 'mockSecondName',
   login: 'mockSignInLogin',
@@ -9,25 +9,22 @@ const mockUser = {
   phone: '79999999999',
 };
 
-const fillValidSignInForm = async (page: Page) => {
-  const { login, password } = mockUser;
-
+const fillSignInForm = async (
+  page: Page,
+  { login, password }: { login: string; password: string },
+) => {
   await page.getByRole('textbox', { name: 'Login' }).fill(login);
   await page.getByRole('textbox', { name: 'Password' }).fill(password);
 };
 
-test.beforeEach(async ({ request }) => {
-  await request.post('http://localhost:3000/test/reset');
-});
-
 test('should go to main page after successful sign in', async ({ page, request }) => {
-  await request.post('http://localhost:3000/auth/signup', { data: mockUser });
+  await request.post('http://localhost:3000/auth/signup', { data: successfulSignInUser });
 
   await page.goto('/sign-in');
 
   await expect(page.getByRole('textbox', { name: 'Login' })).toBeVisible();
 
-  await fillValidSignInForm(page);
+  await fillSignInForm(page, successfulSignInUser);
 
   await page.getByRole('button', { name: 'Log in' }).click();
 
@@ -37,7 +34,10 @@ test('should go to main page after successful sign in', async ({ page, request }
 test('should show authorization error when sign in fails', async ({ page }) => {
   await page.goto('/sign-in');
 
-  await fillValidSignInForm(page);
+  await fillSignInForm(page, {
+    login: 'unknownSignInLogin',
+    password: 'mockPasswo@123rd',
+  });
 
   await page.getByRole('button', { name: 'Log in' }).click();
 

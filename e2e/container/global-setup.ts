@@ -27,9 +27,18 @@ async function waitForUrl(url: string, label: string): Promise<void> {
   throw new Error(`${label} did not become ready at ${url}`);
 }
 
+async function resetMockBackend(): Promise<void> {
+  const response = await fetch('http://localhost:3000/test/reset', { method: 'POST' });
+
+  if (!response.ok) {
+    throw new Error(`Mock auth backend reset failed with status ${response.status}`);
+  }
+}
+
 export default async function globalSetup(): Promise<void> {
   run('docker', ['compose', '-f', composeFile, 'up', '--build', '-d']);
 
   await waitForUrl(frontendUrl, 'Frontend container');
   await waitForUrl(backendHealthUrl, 'Mock auth backend container');
+  await resetMockBackend();
 }
