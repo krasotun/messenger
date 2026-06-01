@@ -8,4 +8,4 @@ jobs:
       - uses: actions/setup-node@v6
         with:
          node-version: '22.16.0'
-      - run: npm ci
+      - run: HUSKY=0 npm ci

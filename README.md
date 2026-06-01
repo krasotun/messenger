@@ -1,3 +1,5 @@
+[![install](https://github.com/krasotun/messenger/actions/workflows/install.yml/badge.svg)](https://github.com/krasotun/messenger/actions/workflows/install.yml)
+
 # Messenger
 
 Учебное frontend-приложение на Angular.
