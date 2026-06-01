@@ -27,4 +27,5 @@ jobs:
           node-version: '22.16.0'
 
       - run: HUSKY=0 npm ci
+      - run: npx playwright install --with-deps
       - run: npm run e2e
