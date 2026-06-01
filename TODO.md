@@ -12,10 +12,13 @@
 
 Ближайший конкретный шаг:
 
-- Определить минимальный deployment contract:
-  Docker/nginx, domain или IP, HTTPS, CORS/session-cookie ограничения.
-- На VDS вручную выполнить:
-  `git pull`, `docker build`, restart frontend container.
+- Зафиксировать минимальный deployment contract:
+  static Angular build, host nginx, domain или IP, сначала HTTP, HTTPS следующим шагом.
+- На VDS вручную выполнить первый static deployment:
+  установить nginx, собрать frontend, скопировать `dist/` в web root, настроить SPA fallback.
+- Не использовать Docker для первого frontend deployment, если не появится backend/API deployment need.
+- Вести подробный deployment guide:
+  `docs/deployment/manual-vds-deploy.md`.
 - Не добавлять GitHub Actions CD до первого успешного ручного deployment.
 
 ## Текущий статус
@@ -38,6 +41,11 @@
   - запускает `npm run e2e:visual`;
   - сохраняет `playwright-report` и `test-results` как artifacts;
   - canonical visual baseline: GitHub Actions `ubuntu-latest` + Chromium.
+- VDS manual deploy bootstrap начат:
+  - domain `73053.koara.live` указывает на VDS;
+  - nginx установлен и запущен;
+  - `curl -I http://73053.koara.live` вернул `HTTP/1.1 200 OK`;
+  - Angular app еще не deployed.
 
 ## Завершено
 
@@ -63,29 +71,37 @@
 
 ## Acceptance Criteria текущей задачи
 
-- Frontend container вручную собирается на VDS.
-- Frontend container запускается за nginx.
+- Production frontend build вручную собирается и переносится на VDS.
+- Host nginx отдает Angular static files.
+- SPA routes корректно fallback'ятся на `index.html`.
 - Приложение доступно через domain или IP.
-- HTTPS включен или явно зафиксирован как следующий технический шаг.
+- Первый шаг может быть HTTP-only; HTTPS через Let's Encrypt явно зафиксирован как следующий технический шаг.
 - CORS/session-cookie ограничения проверены для authorization-only flow.
 - Mock auth backend не используется в production deployment.
 - GitHub Actions CD не добавлен до первого успешного ручного deployment.
 
 ## Следующие задачи
 
-1. Сделать первый ручной VDS deployment:
-   Docker/nginx, domain или IP, HTTPS, CORS/session-cookie ограничения.
-2. После успешного ручного deployment рассмотреть GitHub Actions CD.
-3. Ansible рассмотреть только после первого ручного VDS deployment, если настройку сервера нужно будет повторять.
+1. Продолжить manual VDS bootstrap:
+   создать non-root admin user, добавить sudo и SSH key, проверить вход по SSH.
+2. Сделать первый ручной VDS deployment:
+   static Angular build, host nginx, domain или IP, HTTP-only на первом шаге.
+3. Добавить HTTPS через Let's Encrypt после успешной проверки HTTP.
+4. После успешного ручного deployment рассмотреть GitHub Actions CD.
+5. Ansible рассмотреть после ручного deployment и зафиксировать playbook по уже проверенным шагам.
 
 ## Deployment Notes
 
-- Production deployment на VDS должен включать только frontend container.
+- Production deployment на VDS на первом этапе должен быть static frontend через host nginx.
 - Mock auth backend используется только локально и в CI для e2e.
-- Первый deployment делать вручную: `git pull` на VDS, `docker build`, restart container.
+- Первый deployment делать вручную: build frontend, доставить `dist/` на VDS, настроить nginx.
 - CI лучше добавить перед ручным deployment как quality gate.
 - CD через GitHub Actions не добавлять до первого успешного ручного deployment.
-- Ansible сейчас преждевременен.
+- Docker не нужен для первого Angular-only deployment; вернуться к нему позже, если появится backend/API/DB или отдельная учебная цель по контейнеризации.
+- HTTPS-сертификат Let's Encrypt не хранить как критичный артефакт; хранить процедуру выпуска и учитывать rate limits.
+- Ansible сейчас преждевременен; при ручном deployment фиксировать команды и конфиги как будущий playbook draft.
+- Подробный черновик будущего Ansible playbook:
+  `docs/deployment/manual-vds-deploy.md`.
 
 ## Product Scope
 
