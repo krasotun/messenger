@@ -13,7 +13,8 @@
 Ближайший конкретный шаг:
 
 - Создать workflow, который запускает:
-  `npm ci`, `npm run test:ci`, `npm run build`, `npm run e2e`.
+  `npm ci`, `npm run lint`, `npm run test:ci`, `npm run build`, `npm run e2e`.
+- `npm run e2e` в CI запускает behavioral auth e2e без screenshot specs.
 - Не добавлять deployment/CD.
 
 ## Текущий статус
@@ -27,8 +28,9 @@
 - Последняя успешная проверка полного e2e:
   `npm run e2e` -> passed.
 - CI contract согласован:
-  - lint/format остаются локальной проверкой перед коммитом;
-  - GitHub Actions запускает `npm ci`, `npm run test:ci`, `npm run build`, `npm run e2e`;
+  - GitHub Actions запускает `npm ci`, `npm run lint`, `npm run test:ci`, `npm run build`, `npm run e2e`;
+  - `npm run e2e` исключает visual specs через `@visual`;
+  - screenshot specs запускаются отдельно через `npm run e2e:visual` и требуют отдельного GitHub Actions visual workflow с artifacts;
   - `npm run test` остается локальным watch-mode, `npm run test:ci` запускает Angular/Vitest unit tests один раз через `ng test --watch=false`;
   - `npm run e2e` использует Docker Compose через Playwright `globalSetup`.
 
@@ -45,19 +47,23 @@
 ## Acceptance Criteria текущей задачи
 
 - GitHub Actions устанавливает зависимости через `npm ci`.
+- GitHub Actions запускает lint через `npm run lint`.
 - GitHub Actions запускает unit/component specs через `npm run test:ci`.
 - GitHub Actions собирает production frontend build через `npm run build`.
-- GitHub Actions запускает Docker Compose e2e через `npm run e2e`.
+- GitHub Actions запускает Docker Compose behavioral e2e через `npm run e2e`.
+- Screenshot specs не блокируют основной CI и вынесены в отдельную будущую visual pipeline.
 - Pipeline не добавляет deployment/CD.
 
 ## Следующие задачи
 
 1. Добавить GitHub Actions CI quality pipeline:
-   unit/component specs, production build, Docker Compose e2e.
-2. Сделать первый ручной VDS deployment:
+   lint, unit/component specs, production build, Docker Compose behavioral e2e.
+2. Добавить отдельный GitHub Actions visual workflow:
+   ручной запуск `workflow_dispatch`, `npm run e2e:visual`, upload artifacts для `playwright-report` и `test-results`.
+3. Сделать первый ручной VDS deployment:
    Docker/nginx, domain или IP, HTTPS, CORS/session-cookie ограничения.
-3. После успешного ручного deployment рассмотреть GitHub Actions CD.
-4. Ansible рассмотреть только после первого ручного VDS deployment, если настройку сервера нужно будет повторять.
+4. После успешного ручного deployment рассмотреть GitHub Actions CD.
+5. Ansible рассмотреть только после первого ручного VDS deployment, если настройку сервера нужно будет повторять.
 
 ## Deployment Notes
 

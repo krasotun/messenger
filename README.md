@@ -1,4 +1,4 @@
-[![ci](https://github.com/krasotun/messenger/actions/workflows/install.yml/badge.svg)](https://github.com/krasotun/messenger/actions/workflows/ci.yml)
+[![ci](https://github.com/krasotun/messenger/actions/workflows/ci.yml/badge.svg)](https://github.com/krasotun/messenger/actions/workflows/ci.yml)
 
 # Messenger
 
