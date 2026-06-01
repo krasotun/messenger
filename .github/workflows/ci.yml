@@ -1,11 +1,16 @@
-name: install
+name: ci
 on: push
 jobs:
-  install:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+
       - uses: actions/setup-node@v6
         with:
-         node-version: '22.16.0'
+          node-version: '22.16.0'
+
       - run: HUSKY=0 npm ci
+      - run: npm run lint
+      - run: npm run test:ci
+      - run: npm run build
