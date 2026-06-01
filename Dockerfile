@@ -14,7 +14,8 @@ RUN npm ci
 COPY . .
 
 # Запускаем production build Angular-приложения.
-RUN npm run build
+ARG BUILD_CONFIGURATION=production
+RUN npm run build -- --configuration ${BUILD_CONFIGURATION}
 
 # Берем официальный nginx image на Alpine Linux для runtime-stage.
 FROM nginx:1.29-alpine
@@ -30,5 +31,4 @@ EXPOSE 80
 
 # Запускаем nginx в foreground-режиме, чтобы Docker container продолжал работать.
 CMD ["nginx", "-g", "daemon off;"]
-
 

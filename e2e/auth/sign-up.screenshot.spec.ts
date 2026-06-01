@@ -1,10 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('sign-up empty form', async ({ page }) => {
-  await page.route('**/auth/user', async (route) => {
-    await route.fulfill({ status: 401, body: '' });
-  });
-
+test('sign-up empty form @visual', async ({ page }) => {
   await page.goto('/sign-up');
 
   await expect(page.getByRole('heading', { name: 'Registration' })).toBeVisible();

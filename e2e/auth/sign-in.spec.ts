@@ -1,71 +1,43 @@
 import { test, expect, Page } from '@playwright/test';
 
-const { login, password } = {
-  login: 'mockLogin',
+const successfulSignInUser = {
+  first_name: 'mockFirstName',
+  second_name: 'mockSecondName',
+  login: 'mockSignInLogin',
+  email: 'mock-sign-in@email.email',
   password: 'mockPasswo@123rd',
+  phone: '79999999999',
 };
 
-const fillValidSignInForm = async (page: Page) => {
+const fillSignInForm = async (
+  page: Page,
+  { login, password }: { login: string; password: string },
+) => {
   await page.getByRole('textbox', { name: 'Login' }).fill(login);
   await page.getByRole('textbox', { name: 'Password' }).fill(password);
 };
 
-test('should go to main page after successful sign in', async ({ page }) => {
-  await page.route('**/auth/user', async (route) => {
-    await route.fulfill({ status: 401, body: '' });
-  });
-
-  await page.route('**/auth/signin', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'text/plain',
-      body: 'OK',
-    });
-  });
+test('should go to main page after successful sign in', async ({ page, request }) => {
+  await request.post('http://localhost:3000/auth/signup', { data: successfulSignInUser });
 
   await page.goto('/sign-in');
 
   await expect(page.getByRole('textbox', { name: 'Login' })).toBeVisible();
 
-  await page.route('**/auth/user', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      json: {
-        id: 1,
-        first_name: 'Mock',
-        second_name: 'User',
-        display_name: null,
-        login: 'mockLogin',
-        email: 'mock@email.email',
-        phone: '79999999999',
-        avatar: null,
-      },
-    });
-  });
+  await fillSignInForm(page, successfulSignInUser);
 
-  await fillValidSignInForm(page);
   await page.getByRole('button', { name: 'Log in' }).click();
 
   await expect(page).toHaveURL('/');
 });
 
 test('should show authorization error when sign in fails', async ({ page }) => {
-  await page.route('**/auth/user', async (route) => {
-    await route.fulfill({ status: 401, body: '' });
-  });
-
-  await page.route('**/auth/signin', async (route) => {
-    await route.fulfill({
-      status: 400,
-      contentType: 'application/json',
-      json: { reason: 'Login already exists' },
-    });
-  });
-
   await page.goto('/sign-in');
 
-  await fillValidSignInForm(page);
+  await fillSignInForm(page, {
+    login: 'unknownSignInLogin',
+    password: 'mockPasswo@123rd',
+  });
 
   await page.getByRole('button', { name: 'Log in' }).click();
 

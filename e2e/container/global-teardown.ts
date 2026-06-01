@@ -1,12 +1,12 @@
 /// <reference types="node" />
 import { execFileSync } from 'node:child_process';
 
-const containerName = 'messenger-frontend-local';
+const composeFile = 'docker-compose.e2e.yml';
 
 export default function globalTeardown(): void {
   try {
-    execFileSync('docker', ['rm', '-f', containerName], { stdio: 'ignore' });
+    execFileSync('docker', ['compose', '-f', composeFile, 'down'], { stdio: 'ignore' });
   } catch {
-    // Container may already be removed.
+    // Compose services may already be stopped.
   }
 }

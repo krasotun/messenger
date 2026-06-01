@@ -9,3 +9,4 @@ coverage
 .gitignore
 .DS_Store
 npm-debug.log
+mock-auth-backend
