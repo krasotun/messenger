@@ -3,19 +3,20 @@
 ## Активная задача
 
 ```text
-[CI] Add GitHub Actions quality pipeline
+[Deploy] First manual VDS deployment
 ```
 
 ## Текущий шаг
 
-Добавить GitHub Actions pre-deploy quality gate.
+Подготовить первый ручной deployment frontend на VDS.
 
 Ближайший конкретный шаг:
 
-- Создать workflow, который запускает:
-  `npm ci`, `npm run lint`, `npm run test:ci`, `npm run build`, `npm run e2e`.
-- `npm run e2e` в CI запускает behavioral auth e2e без screenshot specs.
-- Не добавлять deployment/CD.
+- Определить минимальный deployment contract:
+  Docker/nginx, domain или IP, HTTPS, CORS/session-cookie ограничения.
+- На VDS вручную выполнить:
+  `git pull`, `docker build`, restart frontend container.
+- Не добавлять GitHub Actions CD до первого успешного ручного deployment.
 
 ## Текущий статус
 
@@ -27,14 +28,30 @@
 - `POST /test/reset` выполняется один раз в Playwright `globalSetup` после старта mock backend; specs изолируются уникальными тестовыми пользователями.
 - Последняя успешная проверка полного e2e:
   `npm run e2e` -> passed.
-- CI contract согласован:
+- CI quality pipeline добавлен:
   - GitHub Actions запускает `npm ci`, `npm run lint`, `npm run test:ci`, `npm run build`, `npm run e2e`;
   - `npm run e2e` исключает visual specs через `@visual`;
-  - screenshot specs запускаются отдельно через `npm run e2e:visual` и требуют отдельного GitHub Actions visual workflow с artifacts;
   - `npm run test` остается локальным watch-mode, `npm run test:ci` запускает Angular/Vitest unit tests один раз через `ng test --watch=false`;
-  - `npm run e2e` использует Docker Compose через Playwright `globalSetup`.
+  - `npm run e2e` использует Docker Compose через Playwright `globalSetup` и `globalTeardown`.
+- Visual workflow добавлен:
+  - запускается вручную через `workflow_dispatch`;
+  - запускает `npm run e2e:visual`;
+  - сохраняет `playwright-report` и `test-results` как artifacts;
+  - canonical visual baseline: GitHub Actions `ubuntu-latest` + Chromium.
 
 ## Завершено
+
+- `[CI] Add GitHub Actions quality pipeline`
+  - Основной CI запускает `npm ci`, `npm run lint`, `npm run test:ci`, `npm run build`.
+  - Behavioral auth e2e запускаются через `npm run e2e`.
+  - Screenshot specs исключены из основного CI через `--grep-invert @visual`.
+  - Pipeline не добавляет deployment/CD.
+
+- `[Test] Add manual GitHub Actions visual workflow`
+  - Visual workflow запускается вручную через `workflow_dispatch`.
+  - Screenshot specs запускаются отдельно через `npm run e2e:visual`.
+  - Artifacts сохраняют `playwright-report` и `test-results`.
+  - Linux Chromium snapshots добавлены как baseline для GitHub Actions.
 
 - `[Infra] Add Docker Compose e2e with mock auth backend`
   - Все auth e2e проходят через mock auth backend, без `page.route(...)`.
@@ -46,24 +63,20 @@
 
 ## Acceptance Criteria текущей задачи
 
-- GitHub Actions устанавливает зависимости через `npm ci`.
-- GitHub Actions запускает lint через `npm run lint`.
-- GitHub Actions запускает unit/component specs через `npm run test:ci`.
-- GitHub Actions собирает production frontend build через `npm run build`.
-- GitHub Actions запускает Docker Compose behavioral e2e через `npm run e2e`.
-- Screenshot specs не блокируют основной CI и вынесены в отдельную будущую visual pipeline.
-- Pipeline не добавляет deployment/CD.
+- Frontend container вручную собирается на VDS.
+- Frontend container запускается за nginx.
+- Приложение доступно через domain или IP.
+- HTTPS включен или явно зафиксирован как следующий технический шаг.
+- CORS/session-cookie ограничения проверены для authorization-only flow.
+- Mock auth backend не используется в production deployment.
+- GitHub Actions CD не добавлен до первого успешного ручного deployment.
 
 ## Следующие задачи
 
-1. Добавить GitHub Actions CI quality pipeline:
-   lint, unit/component specs, production build, Docker Compose behavioral e2e.
-2. Добавить отдельный GitHub Actions visual workflow:
-   ручной запуск `workflow_dispatch`, `npm run e2e:visual`, upload artifacts для `playwright-report` и `test-results`.
-3. Сделать первый ручной VDS deployment:
+1. Сделать первый ручной VDS deployment:
    Docker/nginx, domain или IP, HTTPS, CORS/session-cookie ограничения.
-4. После успешного ручного deployment рассмотреть GitHub Actions CD.
-5. Ansible рассмотреть только после первого ручного VDS deployment, если настройку сервера нужно будет повторять.
+2. После успешного ручного deployment рассмотреть GitHub Actions CD.
+3. Ansible рассмотреть только после первого ручного VDS deployment, если настройку сервера нужно будет повторять.
 
 ## Deployment Notes
 
