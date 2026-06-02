@@ -8,17 +8,22 @@
 
 ## Текущий шаг
 
-Начать milestone с issue `[Shell] Add authenticated app header`.
+Начать milestone с issue `[Shell] Add authenticated layout with header`.
 
 Ближайший конкретный шаг:
 
 - Issue order для milestone `[Identity] User Profile Editing`:
-  1. `[Shell] Add authenticated app header`;
+  1. `[Shell] Add authenticated layout with header`;
   2. `[Identity] Add current user avatar menu`;
   3. `[Identity] Define profile editing contract`;
   4. `[Identity] Add profile editing flow`.
-- Для `[Shell] Add authenticated app header` сначала сформулировать specs:
-  authenticated layout renders header with right-side user-control area.
+- Acceptance для `[Shell] Add authenticated layout with header`:
+  - root app не содержит header напрямую;
+  - authenticated layout renders header and nested page outlet;
+  - auth pages are not wrapped with authenticated header;
+  - header has right-side user-control placeholder;
+  - no identity/profile business logic yet.
+- Для `[Shell] Add authenticated layout with header` сначала сформулировать specs.
 - Header не должен содержать profile editing business logic, API calls или browser storage access.
 - Ansible отложить: server deploy и CD уже работают.
 
@@ -153,7 +158,7 @@
 
 ## Следующие задачи
 
-1. `[Shell] Add authenticated app header`.
+1. `[Shell] Add authenticated layout with header`.
 2. `[Identity] Add current user avatar menu`.
 3. `[Identity] Define profile editing contract`.
 4. `[Identity] Add profile editing flow`.
