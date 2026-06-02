@@ -3,21 +3,20 @@
 ## Активная задача
 
 ```text
-[Deploy] Add GitHub Actions CD
+[Frontend] Continue authorization-only frontend
 ```
 
 ## Текущий шаг
 
-Проверить автоматический GitHub Actions CD на push в `main`.
+Выбрать следующий frontend-сценарий в рамках authorization-only scope.
 
 Ближайший конкретный шаг:
 
-- Запушить изменение в `main` и проверить автоматический запуск `deploy` workflow.
-- Проверить, что workflow проходит `npm ci`, lint, unit tests, behavioral e2e и production build.
-- Проверить, что `rsync` доставляет `dist/messenger/browser/` в `/var/www/messenger/`.
-- Проверить deployed routes после CD:
-  `https://73053.koara.live`, `/sign-in`, `/sign-up`.
-- Не добавлять Ansible до автоматизации регулярных frontend updates.
+- Не начинать новые messenger-сценарии.
+- Выбрать следующий authorization-only improvement:
+  validation UX, auth error handling, session restore/guards или accessibility.
+- Сначала сформулировать expected behavior и specs, затем делать минимальную реализацию.
+- Ansible отложить: сервер и CD уже работают, infra provisioning не блокирует frontend progress.
 
 ## Текущий статус
 
@@ -58,7 +57,8 @@
     `VDS_SSH_PRIVATE_KEY`, `VDS_HOST`, `VDS_USER`, `VDS_WEB_ROOT`;
   - deploy workflow добавлен:
     `.github/workflows/deploy.yml`;
-  - первый ручной запуск `deploy` workflow проверен успешно.
+  - первый ручной запуск `deploy` workflow проверен успешно;
+  - автоматический deploy на push в `main` проверен успешно.
 
 ## Завершено
 
@@ -131,6 +131,11 @@
   - Workflow `deploy` теперь запускается на `push` в `main`.
   - Ручной запуск через `workflow_dispatch` сохранен.
 
+- `[Deploy] Verify GitHub Actions CD on main push`
+  - Автоматический запуск `deploy` workflow на push в `main` проверен успешно.
+  - Quality gate, behavioral e2e, production build и `rsync` проверены.
+  - Deployed HTTPS routes после auto CD проверены.
+
 ## Acceptance Criteria текущей задачи
 
 - Production frontend build вручную собирается и переносится на VDS.
@@ -144,8 +149,8 @@
 
 ## Следующие задачи
 
-1. Проверить автоматический запуск GitHub Actions CD на push в `main`.
-2. Ansible рассмотреть после CD и зафиксировать playbook по уже проверенным шагам.
+1. Выбрать следующий frontend-сценарий в authorization-only scope.
+2. Ansible рассмотреть позже и зафиксировать playbook по уже проверенным VDS/CD шагам.
 3. Docker рассмотреть позже только при появлении backend/API/DB или отдельной учебной цели по production container deployment.
 
 ## Deployment Notes
@@ -155,6 +160,8 @@
 - Первый deployment делать вручную: build frontend, доставить `dist/` на VDS, настроить nginx.
 - CI лучше добавить перед ручным deployment как quality gate.
 - CD через GitHub Actions не добавлять до первого успешного ручного deployment.
+- CD через GitHub Actions добавлен и проверен:
+  manual `workflow_dispatch` и automatic `push` to `main`.
 - Docker не нужен для первого Angular-only deployment; вернуться к нему позже, если появится backend/API/DB или отдельная учебная цель по контейнеризации.
 - Для static Angular frontend отдельный `messenger` systemd service не нужен; автозапуск обеспечивает nginx.
 - Для администрирования VDS использовать обычного sudo-пользователя `deploy`; системного пользователя создавать позже только при появлении backend/API runtime service.
