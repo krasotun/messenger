@@ -3,20 +3,21 @@
 ## Активная задача
 
 ```text
-[Deploy] First manual VDS deployment
+[Deploy] Add GitHub Actions CD
 ```
 
 ## Текущий шаг
 
-Подготовить первый ручной deployment frontend на VDS.
+Проверить первый ручной запуск GitHub Actions CD.
 
 Ближайший конкретный шаг:
 
-- Определить минимальный deployment contract:
-  Docker/nginx, domain или IP, HTTPS, CORS/session-cookie ограничения.
-- На VDS вручную выполнить:
-  `git pull`, `docker build`, restart frontend container.
-- Не добавлять GitHub Actions CD до первого успешного ручного deployment.
+- Запустить `deploy` workflow вручную через GitHub Actions.
+- Проверить, что workflow проходит `npm ci`, lint, unit tests и production build.
+- Проверить, что `rsync` доставляет `dist/messenger/browser/` в `/var/www/messenger/`.
+- Проверить deployed routes после CD:
+  `https://73053.koara.live`, `/sign-in`, `/sign-up`.
+- Не добавлять Ansible до автоматизации регулярных frontend updates.
 
 ## Текущий статус
 
@@ -38,6 +39,25 @@
   - запускает `npm run e2e:visual`;
   - сохраняет `playwright-report` и `test-results` как artifacts;
   - canonical visual baseline: GitHub Actions `ubuntu-latest` + Chromium.
+- VDS manual deploy bootstrap начат:
+  - domain `73053.koara.live` указывает на VDS;
+  - nginx установлен и запущен;
+  - `curl -I http://73053.koara.live` вернул `HTTP/1.1 200 OK`;
+  - non-root admin user `deploy` создан, SSH key добавлен, вход по SSH и `sudo` проверены;
+  - Angular production build скопирован в `/var/www/messenger`;
+  - nginx настроен на Angular static files и SPA fallback;
+  - автозапуск nginx через systemd проверен;
+  - Angular app доступен по HTTPS;
+  - HTTP -> HTTPS redirect проверен;
+  - `/`, `/sign-in`, `/sign-up` по HTTPS проверены;
+  - Let's Encrypt сертификат выпущен и подключен к nginx;
+  - `certbot renew --dry-run` прошел успешно;
+  - production deployment не использует mock auth backend;
+  - CORS/session-cookie ограничения зафиксированы как будущая проверка при появлении production API;
+  - GitHub Actions deploy secrets добавлены:
+    `VDS_SSH_PRIVATE_KEY`, `VDS_HOST`, `VDS_USER`, `VDS_WEB_ROOT`;
+  - manual-only deploy workflow добавлен:
+    `.github/workflows/deploy.yml`.
 
 ## Завершено
 
@@ -61,31 +81,77 @@
     `POST /auth/signup`, `POST /auth/signin`, `GET /auth/user`, `POST /auth/logout`.
   - `POST /test/reset` используется только как test-only hook для e2e run setup.
 
+- `[Deploy] Bootstrap VDS non-root admin user`
+  - Создан обычный sudo-пользователь `deploy`.
+  - SSH public key добавлен в `/home/deploy/.ssh/authorized_keys`.
+  - Вход по SSH под `deploy` проверен.
+  - `sudo` для `deploy` проверен.
+
+- `[Deploy] First manual VDS frontend deployment`
+  - Production Angular build собран вручную.
+  - Build output скопирован на VDS в `/var/www/messenger`.
+  - Host nginx настроен для раздачи static files.
+  - SPA fallback настроен через `try_files ... /index.html`.
+  - Приложение доступно через `http://73053.koara.live`.
+
+- `[Deploy] Add HTTPS with Let's Encrypt`
+  - Let's Encrypt сертификат выпущен для `73053.koara.live`.
+  - Сертификат подключен к nginx site config.
+  - HTTPS доступен на `https://73053.koara.live`.
+  - `certbot renew --dry-run` прошел успешно.
+
+- `[Deploy] Complete first manual VDS deployment`
+  - HTTP -> HTTPS redirect проверен.
+  - `/`, `/sign-in`, `/sign-up` по HTTPS проверены.
+  - Mock auth backend не используется в production deployment.
+  - Для текущего static frontend production API отсутствует; CORS/session-cookie проверка переносится на этап появления production authorization API.
+
+- `[Deploy] Prepare GitHub Actions CD access`
+  - Отдельный SSH key для GitHub Actions создан.
+  - Public key добавлен пользователю `deploy` на VDS.
+  - GitHub Actions secrets добавлены:
+    `VDS_SSH_PRIVATE_KEY`, `VDS_HOST`, `VDS_USER`, `VDS_WEB_ROOT`.
+
+- `[Deploy] Add manual GitHub Actions CD workflow`
+  - Workflow `.github/workflows/deploy.yml` добавлен.
+  - Запуск только вручную через `workflow_dispatch`.
+  - CD contract:
+    `npm ci` -> `lint` -> `test:ci` -> `build` -> `rsync`.
+  - Deploy target:
+    `deploy@73053.koara.live:/var/www/messenger/`.
+
 ## Acceptance Criteria текущей задачи
 
-- Frontend container вручную собирается на VDS.
-- Frontend container запускается за nginx.
+- Production frontend build вручную собирается и переносится на VDS.
+- Host nginx отдает Angular static files.
+- SPA routes корректно fallback'ятся на `index.html`.
 - Приложение доступно через domain или IP.
-- HTTPS включен или явно зафиксирован как следующий технический шаг.
+- Первый шаг может быть HTTP-only; HTTPS через Let's Encrypt явно зафиксирован как следующий технический шаг.
 - CORS/session-cookie ограничения проверены для authorization-only flow.
 - Mock auth backend не используется в production deployment.
 - GitHub Actions CD не добавлен до первого успешного ручного deployment.
 
 ## Следующие задачи
 
-1. Сделать первый ручной VDS deployment:
-   Docker/nginx, domain или IP, HTTPS, CORS/session-cookie ограничения.
-2. После успешного ручного deployment рассмотреть GitHub Actions CD.
-3. Ansible рассмотреть только после первого ручного VDS deployment, если настройку сервера нужно будет повторять.
+1. Проверить первый ручной запуск GitHub Actions CD.
+2. После успешной проверки CD решить, добавлять ли deploy on push to `main`.
+3. Ansible рассмотреть после CD и зафиксировать playbook по уже проверенным шагам.
+4. Docker рассмотреть позже только при появлении backend/API/DB или отдельной учебной цели по production container deployment.
 
 ## Deployment Notes
 
-- Production deployment на VDS должен включать только frontend container.
+- Production deployment на VDS на первом этапе должен быть static frontend через host nginx.
 - Mock auth backend используется только локально и в CI для e2e.
-- Первый deployment делать вручную: `git pull` на VDS, `docker build`, restart container.
+- Первый deployment делать вручную: build frontend, доставить `dist/` на VDS, настроить nginx.
 - CI лучше добавить перед ручным deployment как quality gate.
 - CD через GitHub Actions не добавлять до первого успешного ручного deployment.
-- Ansible сейчас преждевременен.
+- Docker не нужен для первого Angular-only deployment; вернуться к нему позже, если появится backend/API/DB или отдельная учебная цель по контейнеризации.
+- Для static Angular frontend отдельный `messenger` systemd service не нужен; автозапуск обеспечивает nginx.
+- Для администрирования VDS использовать обычного sudo-пользователя `deploy`; системного пользователя создавать позже только при появлении backend/API runtime service.
+- HTTPS-сертификат Let's Encrypt не хранить как критичный артефакт; хранить процедуру выпуска и учитывать rate limits.
+- Ansible сейчас преждевременен; при ручном deployment фиксировать команды и конфиги как будущий playbook draft.
+- Подробный черновик будущего Ansible playbook:
+  `docs/deployment/manual-vds-deploy.md`.
 
 ## Product Scope
 

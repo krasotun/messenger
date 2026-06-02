@@ -7,6 +7,10 @@
 Проект используется для отработки архитектурного мышления, TDD-дисциплины и
 постепенного развития бизнес-логики.
 
+## Production
+
+Frontend: https://73053.koara.live
+
 ## API
 
 Swagger API: https://ya-praktikum.tech/api/v2/swagger/#/
