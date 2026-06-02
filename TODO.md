@@ -3,23 +3,21 @@
 ## Активная задача
 
 ```text
-[Deploy] First manual VDS deployment
+[Deploy] Add GitHub Actions CD
 ```
 
 ## Текущий шаг
 
-Подготовить первый ручной deployment frontend на VDS.
+Проверить первый ручной запуск GitHub Actions CD.
 
 Ближайший конкретный шаг:
 
-- Зафиксировать минимальный deployment contract:
-  static Angular build, host nginx, domain или IP, сначала HTTP, HTTPS следующим шагом.
-- На VDS вручную выполнить первый static deployment:
-  установить nginx, собрать frontend, скопировать `dist/` в web root, настроить SPA fallback.
-- Не использовать Docker для первого frontend deployment, если не появится backend/API deployment need.
-- Вести подробный deployment guide:
-  `docs/deployment/manual-vds-deploy.md`.
-- Не добавлять GitHub Actions CD до первого успешного ручного deployment.
+- Запустить `deploy` workflow вручную через GitHub Actions.
+- Проверить, что workflow проходит `npm ci`, lint, unit tests и production build.
+- Проверить, что `rsync` доставляет `dist/messenger/browser/` в `/var/www/messenger/`.
+- Проверить deployed routes после CD:
+  `https://73053.koara.live`, `/sign-in`, `/sign-up`.
+- Не добавлять Ansible до автоматизации регулярных frontend updates.
 
 ## Текущий статус
 
@@ -45,7 +43,21 @@
   - domain `73053.koara.live` указывает на VDS;
   - nginx установлен и запущен;
   - `curl -I http://73053.koara.live` вернул `HTTP/1.1 200 OK`;
-  - Angular app еще не deployed.
+  - non-root admin user `deploy` создан, SSH key добавлен, вход по SSH и `sudo` проверены;
+  - Angular production build скопирован в `/var/www/messenger`;
+  - nginx настроен на Angular static files и SPA fallback;
+  - автозапуск nginx через systemd проверен;
+  - Angular app доступен по HTTPS;
+  - HTTP -> HTTPS redirect проверен;
+  - `/`, `/sign-in`, `/sign-up` по HTTPS проверены;
+  - Let's Encrypt сертификат выпущен и подключен к nginx;
+  - `certbot renew --dry-run` прошел успешно;
+  - production deployment не использует mock auth backend;
+  - CORS/session-cookie ограничения зафиксированы как будущая проверка при появлении production API;
+  - GitHub Actions deploy secrets добавлены:
+    `VDS_SSH_PRIVATE_KEY`, `VDS_HOST`, `VDS_USER`, `VDS_WEB_ROOT`;
+  - manual-only deploy workflow добавлен:
+    `.github/workflows/deploy.yml`.
 
 ## Завершено
 
@@ -69,6 +81,45 @@
     `POST /auth/signup`, `POST /auth/signin`, `GET /auth/user`, `POST /auth/logout`.
   - `POST /test/reset` используется только как test-only hook для e2e run setup.
 
+- `[Deploy] Bootstrap VDS non-root admin user`
+  - Создан обычный sudo-пользователь `deploy`.
+  - SSH public key добавлен в `/home/deploy/.ssh/authorized_keys`.
+  - Вход по SSH под `deploy` проверен.
+  - `sudo` для `deploy` проверен.
+
+- `[Deploy] First manual VDS frontend deployment`
+  - Production Angular build собран вручную.
+  - Build output скопирован на VDS в `/var/www/messenger`.
+  - Host nginx настроен для раздачи static files.
+  - SPA fallback настроен через `try_files ... /index.html`.
+  - Приложение доступно через `http://73053.koara.live`.
+
+- `[Deploy] Add HTTPS with Let's Encrypt`
+  - Let's Encrypt сертификат выпущен для `73053.koara.live`.
+  - Сертификат подключен к nginx site config.
+  - HTTPS доступен на `https://73053.koara.live`.
+  - `certbot renew --dry-run` прошел успешно.
+
+- `[Deploy] Complete first manual VDS deployment`
+  - HTTP -> HTTPS redirect проверен.
+  - `/`, `/sign-in`, `/sign-up` по HTTPS проверены.
+  - Mock auth backend не используется в production deployment.
+  - Для текущего static frontend production API отсутствует; CORS/session-cookie проверка переносится на этап появления production authorization API.
+
+- `[Deploy] Prepare GitHub Actions CD access`
+  - Отдельный SSH key для GitHub Actions создан.
+  - Public key добавлен пользователю `deploy` на VDS.
+  - GitHub Actions secrets добавлены:
+    `VDS_SSH_PRIVATE_KEY`, `VDS_HOST`, `VDS_USER`, `VDS_WEB_ROOT`.
+
+- `[Deploy] Add manual GitHub Actions CD workflow`
+  - Workflow `.github/workflows/deploy.yml` добавлен.
+  - Запуск только вручную через `workflow_dispatch`.
+  - CD contract:
+    `npm ci` -> `lint` -> `test:ci` -> `build` -> `rsync`.
+  - Deploy target:
+    `deploy@73053.koara.live:/var/www/messenger/`.
+
 ## Acceptance Criteria текущей задачи
 
 - Production frontend build вручную собирается и переносится на VDS.
@@ -82,13 +133,10 @@
 
 ## Следующие задачи
 
-1. Продолжить manual VDS bootstrap:
-   создать non-root admin user, добавить sudo и SSH key, проверить вход по SSH.
-2. Сделать первый ручной VDS deployment:
-   static Angular build, host nginx, domain или IP, HTTP-only на первом шаге.
-3. Добавить HTTPS через Let's Encrypt после успешной проверки HTTP.
-4. После успешного ручного deployment рассмотреть GitHub Actions CD.
-5. Ansible рассмотреть после ручного deployment и зафиксировать playbook по уже проверенным шагам.
+1. Проверить первый ручной запуск GitHub Actions CD.
+2. После успешной проверки CD решить, добавлять ли deploy on push to `main`.
+3. Ansible рассмотреть после CD и зафиксировать playbook по уже проверенным шагам.
+4. Docker рассмотреть позже только при появлении backend/API/DB или отдельной учебной цели по production container deployment.
 
 ## Deployment Notes
 
@@ -98,6 +146,8 @@
 - CI лучше добавить перед ручным deployment как quality gate.
 - CD через GitHub Actions не добавлять до первого успешного ручного deployment.
 - Docker не нужен для первого Angular-only deployment; вернуться к нему позже, если появится backend/API/DB или отдельная учебная цель по контейнеризации.
+- Для static Angular frontend отдельный `messenger` systemd service не нужен; автозапуск обеспечивает nginx.
+- Для администрирования VDS использовать обычного sudo-пользователя `deploy`; системного пользователя создавать позже только при появлении backend/API runtime service.
 - HTTPS-сертификат Let's Encrypt не хранить как критичный артефакт; хранить процедуру выпуска и учитывать rate limits.
 - Ansible сейчас преждевременен; при ручном deployment фиксировать команды и конфиги как будущий playbook draft.
 - Подробный черновик будущего Ansible playbook:

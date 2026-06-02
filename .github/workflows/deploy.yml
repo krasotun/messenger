@@ -1,0 +1,35 @@
+name: deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.16.0'
+
+      - run: HUSKY=0 npm ci
+      - run: npm run lint
+      - run: npm run test:ci
+      - run: npm run build
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.VDS_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.VDS_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy frontend
+        run: |
+          rsync -av --delete \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            dist/messenger/browser/ \
+            "${{ secrets.VDS_USER }}@${{ secrets.VDS_HOST }}:${{ secrets.VDS_WEB_ROOT }}/"
