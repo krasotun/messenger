@@ -51,10 +51,9 @@ domain -> VDS public IPv4 -> host nginx :443 -> Angular static files
 
 ## Next Delivery Steps
 
-1. Run the manual GitHub Actions deploy workflow.
-2. Verify deployed HTTPS routes after CD.
-3. Decide whether deploy on push to `main` should be enabled.
-4. Consider Ansible after CD to make VDS provisioning reproducible.
+1. Verify automatic GitHub Actions deploy on push to `main`.
+2. Verify deployed HTTPS routes after automatic CD.
+3. Consider Ansible after CD to make VDS provisioning reproducible.
 
 ## GitHub Actions CD
 
@@ -67,6 +66,7 @@ Workflow:
 Trigger:
 
 ```text
+push to main
 workflow_dispatch
 ```
 
@@ -93,7 +93,7 @@ Deployment target:
 deploy@73053.koara.live:/var/www/messenger/
 ```
 
-CD is manual-only for the first iteration. Deploy on push to `main` should be added only after the manual workflow is verified.
+CD runs automatically on push to `main`. Manual `workflow_dispatch` is kept as an explicit fallback.
 
 ## Future Ansible Draft
 

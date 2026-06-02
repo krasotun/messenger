@@ -8,11 +8,11 @@
 
 ## Текущий шаг
 
-Проверить первый ручной запуск GitHub Actions CD.
+Проверить автоматический GitHub Actions CD на push в `main`.
 
 Ближайший конкретный шаг:
 
-- Запустить `deploy` workflow вручную через GitHub Actions.
+- Запушить изменение в `main` и проверить автоматический запуск `deploy` workflow.
 - Проверить, что workflow проходит `npm ci`, lint, unit tests, behavioral e2e и production build.
 - Проверить, что `rsync` доставляет `dist/messenger/browser/` в `/var/www/messenger/`.
 - Проверить deployed routes после CD:
@@ -56,8 +56,9 @@
   - CORS/session-cookie ограничения зафиксированы как будущая проверка при появлении production API;
   - GitHub Actions deploy secrets добавлены:
     `VDS_SSH_PRIVATE_KEY`, `VDS_HOST`, `VDS_USER`, `VDS_WEB_ROOT`;
-  - manual-only deploy workflow добавлен:
-    `.github/workflows/deploy.yml`.
+  - deploy workflow добавлен:
+    `.github/workflows/deploy.yml`;
+  - первый ручной запуск `deploy` workflow проверен успешно.
 
 ## Завершено
 
@@ -114,12 +115,21 @@
 
 - `[Deploy] Add manual GitHub Actions CD workflow`
   - Workflow `.github/workflows/deploy.yml` добавлен.
-  - Запуск только вручную через `workflow_dispatch`.
+  - Первый режим запуска: вручную через `workflow_dispatch`.
   - CD contract:
     `npm ci` -> `lint` -> `test:ci` -> `e2e` -> `build` -> `rsync`.
   - E2E запускаются через `npm run e2e`, visual specs исключены через `@visual`.
   - Deploy target:
     `deploy@73053.koara.live:/var/www/messenger/`.
+
+- `[Deploy] Verify manual GitHub Actions CD workflow`
+  - Первый ручной запуск `deploy` workflow прошел успешно.
+  - Quality gate, behavioral e2e, production build и `rsync` проверены.
+  - Deployed HTTPS routes после CD проверены.
+
+- `[Deploy] Enable GitHub Actions CD on main push`
+  - Workflow `deploy` теперь запускается на `push` в `main`.
+  - Ручной запуск через `workflow_dispatch` сохранен.
 
 ## Acceptance Criteria текущей задачи
 
@@ -134,10 +144,9 @@
 
 ## Следующие задачи
 
-1. Проверить первый ручной запуск GitHub Actions CD.
-2. После успешной проверки CD решить, добавлять ли deploy on push to `main`.
-3. Ansible рассмотреть после CD и зафиксировать playbook по уже проверенным шагам.
-4. Docker рассмотреть позже только при появлении backend/API/DB или отдельной учебной цели по production container deployment.
+1. Проверить автоматический запуск GitHub Actions CD на push в `main`.
+2. Ansible рассмотреть после CD и зафиксировать playbook по уже проверенным шагам.
+3. Docker рассмотреть позже только при появлении backend/API/DB или отдельной учебной цели по production container deployment.
 
 ## Deployment Notes
 
