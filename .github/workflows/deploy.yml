@@ -6,6 +6,10 @@ on:
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    env:
+      VDS_HOST: ${{ secrets.VDS_HOST }}
+      VDS_USER: ${{ secrets.VDS_USER }}
+      VDS_WEB_ROOT: ${{ secrets.VDS_WEB_ROOT }}
 
     steps:
       - uses: actions/checkout@v6
@@ -25,11 +29,16 @@ jobs:
           chmod 700 ~/.ssh
           printf '%s\n' "${{ secrets.VDS_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "${{ secrets.VDS_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$VDS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Verify deploy target
+        run: |
+          test "${VDS_WEB_ROOT#/}" != "$VDS_WEB_ROOT"
+          ssh -i ~/.ssh/deploy_key "$VDS_USER@$VDS_HOST" "test -d '$VDS_WEB_ROOT'"
 
       - name: Deploy frontend
         run: |
           rsync -av --delete \
             -e "ssh -i ~/.ssh/deploy_key" \
             dist/messenger/browser/ \
-            "${{ secrets.VDS_USER }}@${{ secrets.VDS_HOST }}:${{ secrets.VDS_WEB_ROOT }}/"
+            "$VDS_USER@$VDS_HOST:$VDS_WEB_ROOT/"
