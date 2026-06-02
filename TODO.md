@@ -3,24 +3,28 @@
 ## Активная задача
 
 ```text
-[Frontend] Continue authorization-only frontend
+[Identity] User Profile Editing
 ```
 
 ## Текущий шаг
 
-Выбрать следующий frontend-сценарий в рамках authorization-only scope.
+Начать milestone с issue `[Shell] Add authenticated app header`.
 
 Ближайший конкретный шаг:
 
-- Не начинать новые messenger-сценарии.
-- Выбрать следующий authorization-only improvement:
-  validation UX, auth error handling, session restore/guards или accessibility.
-- Сначала сформулировать expected behavior и specs, затем делать минимальную реализацию.
-- Ansible отложить: сервер и CD уже работают, infra provisioning не блокирует frontend progress.
+- Issue order для milestone `[Identity] User Profile Editing`:
+  1. `[Shell] Add authenticated app header`;
+  2. `[Identity] Add current user avatar menu`;
+  3. `[Identity] Define profile editing contract`;
+  4. `[Identity] Add profile editing flow`.
+- Для `[Shell] Add authenticated app header` сначала сформулировать specs:
+  authenticated layout renders header with right-side user-control area.
+- Header не должен содержать profile editing business logic, API calls или browser storage access.
+- Ansible отложить: server deploy и CD уже работают.
 
 ## Текущий статус
 
-- Authorization-only MVP закрыт на уровне unit/component specs.
+- Authorization-only MVP закрыт на уровне unit/component specs и production deployment.
 - Playwright auth e2e уже покрывают sign up, sign in, session restore и logout.
 - Mock auth backend добавлен в `mock-auth-backend/`.
 - `docker-compose.e2e.yml` поднимает frontend production container и mock auth backend.
@@ -149,9 +153,12 @@
 
 ## Следующие задачи
 
-1. Выбрать следующий frontend-сценарий в authorization-only scope.
-2. Ansible рассмотреть позже и зафиксировать playbook по уже проверенным VDS/CD шагам.
-3. Docker рассмотреть позже только при появлении backend/API/DB или отдельной учебной цели по production container deployment.
+1. `[Shell] Add authenticated app header`.
+2. `[Identity] Add current user avatar menu`.
+3. `[Identity] Define profile editing contract`.
+4. `[Identity] Add profile editing flow`.
+5. Ansible рассмотреть позже и зафиксировать playbook по уже проверенным VDS/CD шагам.
+6. Docker рассмотреть позже только при появлении backend/API/DB или отдельной учебной цели по production container deployment.
 
 ## Deployment Notes
 
@@ -172,9 +179,11 @@
 
 ## Product Scope
 
-Текущий фокус продукта: authorization only.
+Authorization-only MVP готов.
 
-Разрешенные сценарии:
+Текущий следующий фокус продукта: identity/account profile editing.
+
+Завершенные authorization сценарии:
 
 - sign up;
 - sign in;
@@ -182,9 +191,13 @@
 - future session restore;
 - logout.
 
+Следующий planned scenario:
+
+- edit current user's profile.
+
 Out of scope без прямого запроса:
 
 - chats;
 - messages;
-- profile/settings UI;
+- broader settings UI beyond profile editing;
 - новые non-auth application flows.
