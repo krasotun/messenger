@@ -21,6 +21,8 @@ jobs:
       - run: HUSKY=0 npm ci
       - run: npm run lint
       - run: npm run test:ci
+      - run: npx playwright install --with-deps
+      - run: npm run e2e
       - run: npm run build
 
       - name: Configure SSH

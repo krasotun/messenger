@@ -13,7 +13,7 @@
 Ближайший конкретный шаг:
 
 - Запустить `deploy` workflow вручную через GitHub Actions.
-- Проверить, что workflow проходит `npm ci`, lint, unit tests и production build.
+- Проверить, что workflow проходит `npm ci`, lint, unit tests, behavioral e2e и production build.
 - Проверить, что `rsync` доставляет `dist/messenger/browser/` в `/var/www/messenger/`.
 - Проверить deployed routes после CD:
   `https://73053.koara.live`, `/sign-in`, `/sign-up`.
@@ -116,7 +116,8 @@
   - Workflow `.github/workflows/deploy.yml` добавлен.
   - Запуск только вручную через `workflow_dispatch`.
   - CD contract:
-    `npm ci` -> `lint` -> `test:ci` -> `build` -> `rsync`.
+    `npm ci` -> `lint` -> `test:ci` -> `e2e` -> `build` -> `rsync`.
+  - E2E запускаются через `npm run e2e`, visual specs исключены через `@visual`.
   - Deploy target:
     `deploy@73053.koara.live:/var/www/messenger/`.
 

@@ -73,8 +73,10 @@ workflow_dispatch
 Contract:
 
 ```text
-npm ci -> lint -> test:ci -> build -> rsync dist/messenger/browser/ to VDS web root
+npm ci -> lint -> test:ci -> e2e -> build -> rsync dist/messenger/browser/ to VDS web root
 ```
+
+Behavioral e2e run through `npm run e2e` before deployment. Visual specs are excluded by the existing `@visual` grep-invert configuration.
 
 Required GitHub Actions secrets:
 
