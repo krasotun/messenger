@@ -8,23 +8,17 @@
 
 ## Текущий шаг
 
-Начать milestone с issue `[Shell] Add authenticated layout with header`.
+Начать issue `[Identity] Add current user avatar menu`.
 
 Ближайший конкретный шаг:
 
 - Issue order для milestone `[Identity] User Profile Editing`:
-  1. `[Shell] Add authenticated layout with header`;
-  2. `[Identity] Add current user avatar menu`;
-  3. `[Identity] Define profile editing contract`;
-  4. `[Identity] Add profile editing flow`.
-- Acceptance для `[Shell] Add authenticated layout with header`:
-  - root app не содержит header напрямую;
-  - authenticated layout renders header and nested page outlet;
-  - auth pages are not wrapped with authenticated header;
-  - header has right-side user-control placeholder;
-  - no identity/profile business logic yet.
-- Для `[Shell] Add authenticated layout with header` сначала сформулировать specs.
-- Header не должен содержать profile editing business logic, API calls или browser storage access.
+  1. `[Identity] Add current user avatar menu`;
+  2. `[Identity] Define profile editing contract`;
+  3. `[Identity] Add profile editing flow`.
+- Acceptance для `[Identity] Add current user avatar menu` сформулировать перед реализацией.
+- Avatar menu должен использовать current session state, но не должен начинать profile editing flow.
+- Header остается shell/layout-компонентом без profile editing business logic, API calls или browser storage access.
 - Ansible отложить: server deploy и CD уже работают.
 
 ## Текущий статус
@@ -145,6 +139,14 @@
   - Quality gate, behavioral e2e, production build и `rsync` проверены.
   - Deployed HTTPS routes после auto CD проверены.
 
+- `[Shell] Add authenticated layout with header`
+  - Root app больше не содержит header/nav напрямую.
+  - Authenticated shell добавлен для защищенной зоны приложения.
+  - Authenticated shell рендерит header и nested page outlet.
+  - Auth pages не оборачиваются authenticated header.
+  - Header содержит logo и right-side user-control placeholder.
+  - Header не содержит identity/profile business logic, API calls или browser storage access.
+
 ## Acceptance Criteria текущей задачи
 
 - Production frontend build вручную собирается и переносится на VDS.
@@ -158,8 +160,8 @@
 
 ## Следующие задачи
 
-1. `[Shell] Add authenticated layout with header`.
-2. `[Identity] Add current user avatar menu`.
+1. `[Identity] Add current user avatar menu`.
+2. `[Deploy] Upgrade CD to release directories with current symlink`.
 3. `[Identity] Define profile editing contract`.
 4. `[Identity] Add profile editing flow`.
 5. Ansible рассмотреть позже и зафиксировать playbook по уже проверенным VDS/CD шагам.
@@ -174,6 +176,12 @@
 - CD через GitHub Actions не добавлять до первого успешного ручного deployment.
 - CD через GitHub Actions добавлен и проверен:
   manual `workflow_dispatch` и automatic `push` to `main`.
+- Следующее deploy-улучшение после разработки header:
+  перейти от `rsync --delete` прямо в live web root к release-based deploy:
+  `dist/` загружать в `/var/www/messenger/releases/<run-id>`,
+  nginx направить на `/var/www/messenger/current`,
+  `current` переключать на новый release после проверки `index.html`,
+  хранить несколько последних releases для rollback.
 - Docker не нужен для первого Angular-only deployment; вернуться к нему позже, если появится backend/API/DB или отдельная учебная цель по контейнеризации.
 - Для static Angular frontend отдельный `messenger` systemd service не нужен; автозапуск обеспечивает nginx.
 - Для администрирования VDS использовать обычного sudo-пользователя `deploy`; системного пользователя создавать позже только при появлении backend/API runtime service.
