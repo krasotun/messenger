@@ -8,7 +8,15 @@
 
 ## Текущий шаг
 
-Начать issue `[Identity] Add current user avatar menu`.
+Продолжить issue `[Identity] Add current user avatar menu`.
+
+Рабочий фокус на завтра, 2026-06-05:
+
+- Начать `shared/ui/popover` поверх уже подготовленного `shared/ui/overlay`.
+- Сначала сформулировать acceptance и первый directive spec для `appPopover`.
+- Первый popover spec держать в UI-scope:
+  `[appPopover]` принимает `TemplateRef`, click по host открывает content внутри overlay container.
+- Не переходить к avatar menu, profile editing или identity business logic, пока reusable popover primitive не зафиксирован тестами.
 
 Ближайший конкретный шаг:
 
@@ -31,10 +39,11 @@
   - при закрытом состоянии content не отрисован;
   - directive не знает про avatar, current user, profile, logout, API или storage.
 - Popover panel имеет дефолтный внутренний отступ `8px`; сценарии со сложным контентом смогут переопределять оформление через отдельный panel class/refactor позже.
-- Перед доработкой popover перейти на общий `shared/ui/overlay`, потому что overlay пригодится и для будущих modal/dialog сценариев.
-- Минимальный контракт `shared/ui/overlay`:
+- Общий `shared/ui/overlay` v1 подготовлен как foundation для popover и будущих modal/dialog сценариев.
+- Контракт `shared/ui/overlay` v1:
   - lazy creates shared overlay container in `document.body`;
   - повторный запрос возвращает тот же container;
+  - existing overlay container из `document.body` переиспользуется;
   - overlay не знает про popover, modal, avatar, identity или business logic.
 - После overlay доработать `shared/ui/popover`:
   - directive создает shared popover panel внутри overlay container, а не рядом с host;
@@ -47,6 +56,12 @@
 ## Текущий статус
 
 - Authorization-only MVP закрыт на уровне unit/component specs и production deployment.
+- `shared/ui/overlay` v1 добавлен как reusable UI foundation:
+  - `OverlayService.getContainer()` лениво создает общий overlay container в `document.body`;
+  - container помечается техническим атрибутом `data-app-overlay-container`;
+  - повторные вызовы возвращают тот же container и не создают дубликаты;
+  - existing container из `document.body` переиспользуется;
+  - сервис остается вне popover/modal/avatar/identity business scope.
 - Playwright auth e2e уже покрывают sign up, sign in, session restore и logout.
 - Mock auth backend добавлен в `mock-auth-backend/`.
 - `docker-compose.e2e.yml` поднимает frontend production container и mock auth backend.
