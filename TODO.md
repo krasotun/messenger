@@ -19,6 +19,29 @@
 - Acceptance для `[Identity] Add current user avatar menu` сформулировать перед реализацией.
 - Avatar menu должен использовать current session state, но не должен начинать profile editing flow.
 - Header остается shell/layout-компонентом без profile editing business logic, API calls или browser storage access.
+- Учебная UI-цель перед avatar menu: сделать reusable `shared/ui/popover`.
+- Popover делать directive API, чтобы привязывать всплывающий слой к любому element:
+  `button [appPopover]="menu"` + `ng-template #menu`.
+- Контракт первой версии `shared/ui/popover`:
+  - `[appPopover]` принимает `TemplateRef`;
+  - click по host открывает popover;
+  - повторный click по host закрывает popover;
+  - `Escape` закрывает popover;
+  - click outside закрывает popover;
+  - при закрытом состоянии content не отрисован;
+  - directive не знает про avatar, current user, profile, logout, API или storage.
+- Popover panel имеет дефолтный внутренний отступ `8px`; сценарии со сложным контентом смогут переопределять оформление через отдельный panel class/refactor позже.
+- Перед доработкой popover перейти на общий `shared/ui/overlay`, потому что overlay пригодится и для будущих modal/dialog сценариев.
+- Минимальный контракт `shared/ui/overlay`:
+  - lazy creates shared overlay container in `document.body`;
+  - повторный запрос возвращает тот же container;
+  - overlay не знает про popover, modal, avatar, identity или business logic.
+- После overlay доработать `shared/ui/popover`:
+  - directive создает shared popover panel внутри overlay container, а не рядом с host;
+  - popover panel рендерит пользовательский `TemplateRef` внутри общей оболочки;
+  - panel позиционируется относительно trigger через `getBoundingClientRect()`;
+  - scroll/resize repositioning, viewport collision и focus management отложить на отдельный refactor.
+- Для отображения аватара отдельно сделать reusable `shared/ui/avatar`, а `CurrentUserAvatarMenu` держать в `identity-access/presentation`.
 - Ansible отложить: server deploy и CD уже работают.
 
 ## Текущий статус
