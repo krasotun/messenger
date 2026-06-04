@@ -13,9 +13,11 @@
 Рабочий фокус на завтра, 2026-06-05:
 
 - Начать `shared/ui/popover` поверх уже подготовленного `shared/ui/overlay`.
-- Сначала сформулировать acceptance и первый directive spec для `appPopover`.
-- Первый popover spec держать в UI-scope:
-  `[appPopover]` принимает `TemplateRef`, click по host открывает content внутри overlay container.
+- `PopoverPanelComponent` сделан как visual wrapper:
+  принимает `TemplateRef`, рендерит content внутри panel wrapper, держит default panel styling.
+- CSS-детали panel (`padding`, shadow, border, radius) не фиксировать unit-тестами; unit contract panel ограничен render переданного `TemplateRef` внутри wrapper.
+- Следующий TDD-шаг: первый directive spec для `appPopover`:
+  `[appPopover]` принимает `TemplateRef`, при закрытом состоянии content не отрисован, click по host создает `PopoverPanelComponent` внутри overlay container.
 - Не переходить к avatar menu, profile editing или identity business logic, пока reusable popover primitive не зафиксирован тестами.
 
 Ближайший конкретный шаг:
@@ -31,6 +33,8 @@
 - Popover делать directive API, чтобы привязывать всплывающий слой к любому element:
   `button [appPopover]="menu"` + `ng-template #menu`.
 - Контракт первой версии `shared/ui/popover`:
+  - `PopoverPanelComponent` отвечает только за wrapper, default styling и render переданного content;
+  - `PopoverPanelComponent` не знает про trigger click, Escape, outside click, positioning, avatar, current user, profile, logout, API или storage;
   - `[appPopover]` принимает `TemplateRef`;
   - click по host открывает popover;
   - повторный click по host закрывает popover;
@@ -38,7 +42,7 @@
   - click outside закрывает popover;
   - при закрытом состоянии content не отрисован;
   - directive не знает про avatar, current user, profile, logout, API или storage.
-- Popover panel имеет дефолтный внутренний отступ `8px`; сценарии со сложным контентом смогут переопределять оформление через отдельный panel class/refactor позже.
+- Popover panel component имеет дефолтный внутренний отступ `8px`; сценарии со сложным контентом смогут переопределять оформление через отдельный panel class/refactor позже.
 - Общий `shared/ui/overlay` v1 подготовлен как foundation для popover и будущих modal/dialog сценариев.
 - Контракт `shared/ui/overlay` v1:
   - lazy creates shared overlay container in `document.body`;
@@ -46,8 +50,8 @@
   - existing overlay container из `document.body` переиспользуется;
   - overlay не знает про popover, modal, avatar, identity или business logic.
 - После overlay доработать `shared/ui/popover`:
-  - directive создает shared popover panel внутри overlay container, а не рядом с host;
-  - popover panel рендерит пользовательский `TemplateRef` внутри общей оболочки;
+  - directive динамически создает `PopoverPanelComponent` внутри overlay container, а не рядом с host;
+  - popover panel component рендерит пользовательский `TemplateRef` внутри общей оболочки;
   - panel позиционируется относительно trigger через `getBoundingClientRect()`;
   - scroll/resize repositioning, viewport collision и focus management отложить на отдельный refactor.
 - Для отображения аватара отдельно сделать reusable `shared/ui/avatar`, а `CurrentUserAvatarMenu` держать в `identity-access/presentation`.
@@ -62,6 +66,11 @@
   - повторные вызовы возвращают тот же container и не создают дубликаты;
   - existing container из `document.body` переиспользуется;
   - сервис остается вне popover/modal/avatar/identity business scope.
+- `shared/ui/popover` начат:
+  - `PopoverPanelComponent` добавлен как visual wrapper;
+  - panel принимает `TemplateRef` через input и рендерит content внутри `.app-popover-panel`;
+  - unit spec фиксирует render contract, но не CSS padding/shadow/border/radius;
+  - следующий фокус: `appPopover` directive должен создавать panel внутри shared overlay container.
 - Playwright auth e2e уже покрывают sign up, sign in, session restore и logout.
 - Mock auth backend добавлен в `mock-auth-backend/`.
 - `docker-compose.e2e.yml` поднимает frontend production container и mock auth backend.
