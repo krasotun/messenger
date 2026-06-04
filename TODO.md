@@ -12,12 +12,13 @@
 
 Рабочий фокус на завтра, 2026-06-05:
 
-- Начать `shared/ui/popover` поверх уже подготовленного `shared/ui/overlay`.
+- Начать `shared/ui/popover` поверх Angular CDK Overlay/Portal.
 - `PopoverPanelComponent` сделан как visual wrapper:
   принимает `TemplateRef`, рендерит content внутри panel wrapper, держит default panel styling.
 - CSS-детали panel (`padding`, shadow, border, radius) не фиксировать unit-тестами; unit contract panel ограничен render переданного `TemplateRef` внутри wrapper.
-- Следующий TDD-шаг: первый directive spec для `appPopover`:
-  `[appPopover]` принимает `TemplateRef`, при закрытом состоянии content не отрисован, click по host создает `PopoverPanelComponent` внутри overlay container.
+- `appPopover` directive начал использовать Angular CDK Overlay/Portal:
+  `[appPopover]` принимает `TemplateRef`, при закрытом состоянии content не отрисован, click по host создает `PopoverPanelComponent` внутри CDK overlay container, повторный click закрывает popover.
+- Следующий TDD-шаг для `appPopover`: закрытие по `Escape`, затем закрытие по outside click.
 - Не переходить к avatar menu, profile editing или identity business logic, пока reusable popover primitive не зафиксирован тестами.
 
 Ближайший конкретный шаг:
@@ -32,6 +33,7 @@
 - Учебная UI-цель перед avatar menu: сделать reusable `shared/ui/popover`.
 - Popover делать directive API, чтобы привязывать всплывающий слой к любому element:
   `button [appPopover]="menu"` + `ng-template #menu`.
+- Для popover использовать Angular CDK Overlay/Portal как production-grade foundation; самописный `shared/ui/overlay` не развивать как основу popover.
 - Контракт первой версии `shared/ui/popover`:
   - `PopoverPanelComponent` отвечает только за wrapper, default styling и render переданного content;
   - `PopoverPanelComponent` не знает про trigger click, Escape, outside click, positioning, avatar, current user, profile, logout, API или storage;
@@ -44,16 +46,18 @@
   - directive не знает про avatar, current user, profile, logout, API или storage.
 - Popover panel component имеет дефолтный внутренний отступ `8px`; сценарии со сложным контентом смогут переопределять оформление через отдельный panel class/refactor позже.
 - Общий `shared/ui/overlay` v1 подготовлен как foundation для popover и будущих modal/dialog сценариев.
+- После решения использовать CDK Overlay/Portal общий `shared/ui/overlay` v1 остается учебным артефактом/foundation candidate, но не используется для popover.
 - Контракт `shared/ui/overlay` v1:
   - lazy creates shared overlay container in `document.body`;
   - повторный запрос возвращает тот же container;
   - existing overlay container из `document.body` переиспользуется;
   - overlay не знает про popover, modal, avatar, identity или business logic.
-- После overlay доработать `shared/ui/popover`:
-  - directive динамически создает `PopoverPanelComponent` внутри overlay container, а не рядом с host;
+- После установки `@angular/cdk` доработать `shared/ui/popover`:
+  - directive создает `PopoverPanelComponent` через CDK Overlay/Portal внутри CDK overlay container, а не рядом с host;
   - popover panel component рендерит пользовательский `TemplateRef` внутри общей оболочки;
-  - panel позиционируется относительно trigger через `getBoundingClientRect()`;
-  - scroll/resize repositioning, viewport collision и focus management отложить на отдельный refactor.
+  - panel позиционируется относительно trigger средствами CDK position strategy;
+  - повторный click по host закрывает popover через dispose текущего `OverlayRef`;
+  - scroll/resize repositioning и viewport collision делегировать CDK; focus management отложить на отдельный refactor.
 - Для отображения аватара отдельно сделать reusable `shared/ui/avatar`, а `CurrentUserAvatarMenu` держать в `identity-access/presentation`.
 - Ansible отложить: server deploy и CD уже работают.
 
@@ -70,7 +74,13 @@
   - `PopoverPanelComponent` добавлен как visual wrapper;
   - panel принимает `TemplateRef` через input и рендерит content внутри `.app-popover-panel`;
   - unit spec фиксирует render contract, но не CSS padding/shadow/border/radius;
-  - следующий фокус: `appPopover` directive должен создавать panel внутри shared overlay container.
+  - принято решение строить `appPopover` на Angular CDK Overlay/Portal;
+  - `@angular/cdk` установлен;
+  - directive spec переписан под CDK overlay container (`.cdk-overlay-container`);
+  - click по host открывает popover через `OverlayRef` + `ComponentPortal(PopoverPanel)`;
+  - повторный click закрывает popover и удаляет `.app-popover-panel`;
+  - directive очищает overlay ref при destroy;
+  - следующий фокус: закрытие по `Escape`, затем закрытие по outside click.
 - Playwright auth e2e уже покрывают sign up, sign in, session restore и logout.
 - Mock auth backend добавлен в `mock-auth-backend/`.
 - `docker-compose.e2e.yml` поднимает frontend production container и mock auth backend.
