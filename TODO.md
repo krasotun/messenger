@@ -10,260 +10,56 @@
 
 Продолжить issue `[Identity] Add current user avatar menu`.
 
-Рабочий фокус на завтра, 2026-06-05:
+Ближайший TDD-шаг:
 
-- Начать `shared/ui/popover` поверх Angular CDK Overlay/Portal.
-- `PopoverPanelComponent` сделан как visual wrapper:
-  принимает `TemplateRef`, рендерит content внутри panel wrapper, держит default panel styling.
-- CSS-детали panel (`padding`, shadow, border, radius) не фиксировать unit-тестами; unit contract panel ограничен render переданного `TemplateRef` внутри wrapper.
-- `appPopover` directive начал использовать Angular CDK Overlay/Portal:
-  `[appPopover]` принимает `TemplateRef`, при закрытом состоянии content не отрисован, click по host создает `PopoverPanelComponent` внутри CDK overlay container, повторный click закрывает popover.
-- Следующий TDD-шаг для `appPopover`: закрытие по `Escape`, затем закрытие по outside click.
-- Не переходить к avatar menu, profile editing или identity business logic, пока reusable popover primitive не зафиксирован тестами.
-
-Ближайший конкретный шаг:
-
-- Issue order для milestone `[Identity] User Profile Editing`:
-  1. `[Identity] Add current user avatar menu`;
-  2. `[Identity] Define profile editing contract`;
-  3. `[Identity] Add profile editing flow`.
-- Acceptance для `[Identity] Add current user avatar menu` сформулировать перед реализацией.
-- Avatar menu должен использовать current session state, но не должен начинать profile editing flow.
-- Header остается shell/layout-компонентом без profile editing business logic, API calls или browser storage access.
-- Учебная UI-цель перед avatar menu: сделать reusable `shared/ui/popover`.
-- Popover делать directive API, чтобы привязывать всплывающий слой к любому element:
-  `button [appPopover]="menu"` + `ng-template #menu`.
-- Для popover использовать Angular CDK Overlay/Portal как production-grade foundation; самописный `shared/ui/overlay` не развивать как основу popover.
-- Контракт первой версии `shared/ui/popover`:
-  - `PopoverPanelComponent` отвечает только за wrapper, default styling и render переданного content;
-  - `PopoverPanelComponent` не знает про trigger click, Escape, outside click, positioning, avatar, current user, profile, logout, API или storage;
-  - `[appPopover]` принимает `TemplateRef`;
-  - click по host открывает popover;
-  - повторный click по host закрывает popover;
-  - `Escape` закрывает popover;
-  - click outside закрывает popover;
-  - при закрытом состоянии content не отрисован;
-  - directive не знает про avatar, current user, profile, logout, API или storage.
-- Popover panel component имеет дефолтный внутренний отступ `8px`; сценарии со сложным контентом смогут переопределять оформление через отдельный panel class/refactor позже.
-- Общий `shared/ui/overlay` v1 подготовлен как foundation для popover и будущих modal/dialog сценариев.
-- После решения использовать CDK Overlay/Portal общий `shared/ui/overlay` v1 остается учебным артефактом/foundation candidate, но не используется для popover.
-- Контракт `shared/ui/overlay` v1:
-  - lazy creates shared overlay container in `document.body`;
-  - повторный запрос возвращает тот же container;
-  - existing overlay container из `document.body` переиспользуется;
-  - overlay не знает про popover, modal, avatar, identity или business logic.
-- После установки `@angular/cdk` доработать `shared/ui/popover`:
-  - directive создает `PopoverPanelComponent` через CDK Overlay/Portal внутри CDK overlay container, а не рядом с host;
-  - popover panel component рендерит пользовательский `TemplateRef` внутри общей оболочки;
-  - panel позиционируется относительно trigger средствами CDK position strategy;
-  - повторный click по host закрывает popover через dispose текущего `OverlayRef`;
-  - scroll/resize repositioning и viewport collision делегировать CDK; focus management отложить на отдельный refactor.
-- Для отображения аватара отдельно сделать reusable `shared/ui/avatar`, а `CurrentUserAvatarMenu` держать в `identity-access/presentation`.
-- Ansible отложить: server deploy и CD уже работают.
+- Сформулировать acceptance для `[Identity] Add current user avatar menu` перед реализацией.
+- Определить component/unit specs для avatar menu и его интеграции с header.
+- Не переходить к profile editing flow, пока avatar menu не закрыт.
 
 ## Текущий статус
 
-- Authorization-only MVP закрыт на уровне unit/component specs и production deployment.
-- `shared/ui/overlay` v1 добавлен как reusable UI foundation:
-  - `OverlayService.getContainer()` лениво создает общий overlay container в `document.body`;
-  - container помечается техническим атрибутом `data-app-overlay-container`;
-  - повторные вызовы возвращают тот же container и не создают дубликаты;
-  - existing container из `document.body` переиспользуется;
-  - сервис остается вне popover/modal/avatar/identity business scope.
-- `shared/ui/popover` начат:
-  - `PopoverPanelComponent` добавлен как visual wrapper;
-  - panel принимает `TemplateRef` через input и рендерит content внутри `.app-popover-panel`;
-  - unit spec фиксирует render contract, но не CSS padding/shadow/border/radius;
-  - принято решение строить `appPopover` на Angular CDK Overlay/Portal;
-  - `@angular/cdk` установлен;
-  - directive spec переписан под CDK overlay container (`.cdk-overlay-container`);
-  - click по host открывает popover через `OverlayRef` + `ComponentPortal(PopoverPanel)`;
-  - повторный click закрывает popover и удаляет `.app-popover-panel`;
-  - directive очищает overlay ref при destroy;
-  - следующий фокус: закрытие по `Escape`, затем закрытие по outside click.
-- Playwright auth e2e уже покрывают sign up, sign in, session restore и logout.
-- Mock auth backend добавлен в `mock-auth-backend/`.
-- `docker-compose.e2e.yml` поднимает frontend production container и mock auth backend.
-- Все auth e2e переписаны на mock auth backend без `page.route(...)`.
-- `POST /test/reset` выполняется один раз в Playwright `globalSetup` после старта mock backend; specs изолируются уникальными тестовыми пользователями.
-- Последняя успешная проверка полного e2e:
-  `npm run e2e` -> passed.
-- CI quality pipeline добавлен:
-  - GitHub Actions запускает `npm ci`, `npm run lint`, `npm run test:ci`, `npm run build`, `npm run e2e`;
-  - `npm run e2e` исключает visual specs через `@visual`;
-  - `npm run test` остается локальным watch-mode, `npm run test:ci` запускает Angular/Vitest unit tests один раз через `ng test --watch=false`;
-  - `npm run e2e` использует Docker Compose через Playwright `globalSetup` и `globalTeardown`.
-- Visual workflow добавлен:
-  - запускается вручную через `workflow_dispatch`;
-  - запускает `npm run e2e:visual`;
-  - сохраняет `playwright-report` и `test-results` как artifacts;
-  - canonical visual baseline: GitHub Actions `ubuntu-latest` + Chromium.
-- VDS manual deploy bootstrap начат:
-  - domain `73053.koara.live` указывает на VDS;
-  - nginx установлен и запущен;
-  - `curl -I http://73053.koara.live` вернул `HTTP/1.1 200 OK`;
-  - non-root admin user `deploy` создан, SSH key добавлен, вход по SSH и `sudo` проверены;
-  - Angular production build скопирован в `/var/www/messenger`;
-  - nginx настроен на Angular static files и SPA fallback;
-  - автозапуск nginx через systemd проверен;
-  - Angular app доступен по HTTPS;
-  - HTTP -> HTTPS redirect проверен;
-  - `/`, `/sign-in`, `/sign-up` по HTTPS проверены;
-  - Let's Encrypt сертификат выпущен и подключен к nginx;
-  - `certbot renew --dry-run` прошел успешно;
-  - production deployment не использует mock auth backend;
-  - CORS/session-cookie ограничения зафиксированы как будущая проверка при появлении production API;
-  - GitHub Actions deploy secrets добавлены:
-    `VDS_SSH_PRIVATE_KEY`, `VDS_HOST`, `VDS_USER`, `VDS_WEB_ROOT`;
-  - deploy workflow добавлен:
-    `.github/workflows/deploy.yml`;
-  - первый ручной запуск `deploy` workflow проверен успешно;
-  - автоматический deploy на push в `main` проверен успешно.
-
-## Завершено
-
-- `[CI] Add GitHub Actions quality pipeline`
-  - Основной CI запускает `npm ci`, `npm run lint`, `npm run test:ci`, `npm run build`.
-  - Behavioral auth e2e запускаются через `npm run e2e`.
-  - Screenshot specs исключены из основного CI через `--grep-invert @visual`.
-  - Pipeline не добавляет deployment/CD.
-
-- `[Test] Add manual GitHub Actions visual workflow`
-  - Visual workflow запускается вручную через `workflow_dispatch`.
-  - Screenshot specs запускаются отдельно через `npm run e2e:visual`.
-  - Artifacts сохраняют `playwright-report` и `test-results`.
-  - Linux Chromium snapshots добавлены как baseline для GitHub Actions.
-
-- `[Infra] Add Docker Compose e2e with mock auth backend`
-  - Все auth e2e проходят через mock auth backend, без `page.route(...)`.
-  - `npm run e2e` локально поднимает compose окружение и проходит.
-  - Frontend production image собирается и раздается через nginx container.
-  - Mock backend покрывает только authorization scope:
-    `POST /auth/signup`, `POST /auth/signin`, `GET /auth/user`, `POST /auth/logout`.
-  - `POST /test/reset` используется только как test-only hook для e2e run setup.
-
-- `[Deploy] Bootstrap VDS non-root admin user`
-  - Создан обычный sudo-пользователь `deploy`.
-  - SSH public key добавлен в `/home/deploy/.ssh/authorized_keys`.
-  - Вход по SSH под `deploy` проверен.
-  - `sudo` для `deploy` проверен.
-
-- `[Deploy] First manual VDS frontend deployment`
-  - Production Angular build собран вручную.
-  - Build output скопирован на VDS в `/var/www/messenger`.
-  - Host nginx настроен для раздачи static files.
-  - SPA fallback настроен через `try_files ... /index.html`.
-  - Приложение доступно через `http://73053.koara.live`.
-
-- `[Deploy] Add HTTPS with Let's Encrypt`
-  - Let's Encrypt сертификат выпущен для `73053.koara.live`.
-  - Сертификат подключен к nginx site config.
-  - HTTPS доступен на `https://73053.koara.live`.
-  - `certbot renew --dry-run` прошел успешно.
-
-- `[Deploy] Complete first manual VDS deployment`
-  - HTTP -> HTTPS redirect проверен.
-  - `/`, `/sign-in`, `/sign-up` по HTTPS проверены.
-  - Mock auth backend не используется в production deployment.
-  - Для текущего static frontend production API отсутствует; CORS/session-cookie проверка переносится на этап появления production authorization API.
-
-- `[Deploy] Prepare GitHub Actions CD access`
-  - Отдельный SSH key для GitHub Actions создан.
-  - Public key добавлен пользователю `deploy` на VDS.
-  - GitHub Actions secrets добавлены:
-    `VDS_SSH_PRIVATE_KEY`, `VDS_HOST`, `VDS_USER`, `VDS_WEB_ROOT`.
-
-- `[Deploy] Add manual GitHub Actions CD workflow`
-  - Workflow `.github/workflows/deploy.yml` добавлен.
-  - Первый режим запуска: вручную через `workflow_dispatch`.
-  - CD contract:
-    `npm ci` -> `lint` -> `test:ci` -> `e2e` -> `build` -> `rsync`.
-  - E2E запускаются через `npm run e2e`, visual specs исключены через `@visual`.
-  - Deploy target:
-    `deploy@73053.koara.live:/var/www/messenger/`.
-
-- `[Deploy] Verify manual GitHub Actions CD workflow`
-  - Первый ручной запуск `deploy` workflow прошел успешно.
-  - Quality gate, behavioral e2e, production build и `rsync` проверены.
-  - Deployed HTTPS routes после CD проверены.
-
-- `[Deploy] Enable GitHub Actions CD on main push`
-  - Workflow `deploy` теперь запускается на `push` в `main`.
-  - Ручной запуск через `workflow_dispatch` сохранен.
-
-- `[Deploy] Verify GitHub Actions CD on main push`
-  - Автоматический запуск `deploy` workflow на push в `main` проверен успешно.
-  - Quality gate, behavioral e2e, production build и `rsync` проверены.
-  - Deployed HTTPS routes после auto CD проверены.
-
-- `[Shell] Add authenticated layout with header`
-  - Root app больше не содержит header/nav напрямую.
-  - Authenticated shell добавлен для защищенной зоны приложения.
-  - Authenticated shell рендерит header и nested page outlet.
-  - Auth pages не оборачиваются authenticated header.
-  - Header содержит logo и right-side user-control placeholder.
-  - Header не содержит identity/profile business logic, API calls или browser storage access.
+- Authorization-only MVP готов:
+  sign up, sign in, current session, session restore, logout.
+- Authenticated shell с header уже есть.
+- Header остается shell/layout-компонентом без identity business logic, API calls и browser storage access.
+- Reusable `shared/ui/popover` v1 готов и покрыт тестами:
+  open by trigger click, close by second trigger click, `Escape`, outside click.
+- Следующий UI primitive для avatar menu:
+  `shared/ui/avatar`, если он нужен для текущего TDD-сценария.
 
 ## Acceptance Criteria текущей задачи
 
-- Production frontend build вручную собирается и переносится на VDS.
-- Host nginx отдает Angular static files.
-- SPA routes корректно fallback'ятся на `index.html`.
-- Приложение доступно через domain или IP.
-- Первый шаг может быть HTTP-only; HTTPS через Let's Encrypt явно зафиксирован как следующий технический шаг.
-- CORS/session-cookie ограничения проверены для authorization-only flow.
-- Mock auth backend не используется в production deployment.
-- GitHub Actions CD не добавлен до первого успешного ручного deployment.
+- Header показывает control текущего пользователя на основе current session state.
+- User control открывает avatar menu через `shared/ui/popover`.
+- Avatar menu отображает только authorization/account actions, разрешенные текущим scope.
+- Avatar menu не запускает profile editing flow.
+- Header не содержит profile editing business logic, API calls или browser storage access.
+- Identity-specific menu component находится в `domains/identity-access/presentation`.
+- Для отображения аватара используется отдельный reusable `shared/ui/avatar` или минимальный placeholder, если avatar component еще не выделен текущим TDD-шагом.
+- Поведение фиксируется component/unit specs до production-реализации.
 
 ## Следующие задачи
 
 1. `[Identity] Add current user avatar menu`.
-2. `[Deploy] Upgrade CD to release directories with current symlink`.
-3. `[Identity] Define profile editing contract`.
-4. `[Identity] Add profile editing flow`.
-5. Ansible рассмотреть позже и зафиксировать playbook по уже проверенным VDS/CD шагам.
+2. `[Identity] Define profile editing contract`.
+3. `[Identity] Add profile editing flow`.
+4. `[Deploy] Upgrade CD to release directories with current symlink`.
+5. Ansible рассмотреть позже, если появится отдельная infra-задача.
 6. Docker рассмотреть позже только при появлении backend/API/DB или отдельной учебной цели по production container deployment.
-
-## Deployment Notes
-
-- Production deployment на VDS на первом этапе должен быть static frontend через host nginx.
-- Mock auth backend используется только локально и в CI для e2e.
-- Первый deployment делать вручную: build frontend, доставить `dist/` на VDS, настроить nginx.
-- CI лучше добавить перед ручным deployment как quality gate.
-- CD через GitHub Actions не добавлять до первого успешного ручного deployment.
-- CD через GitHub Actions добавлен и проверен:
-  manual `workflow_dispatch` и automatic `push` to `main`.
-- Следующее deploy-улучшение после разработки header:
-  перейти от `rsync --delete` прямо в live web root к release-based deploy:
-  `dist/` загружать в `/var/www/messenger/releases/<run-id>`,
-  nginx направить на `/var/www/messenger/current`,
-  `current` переключать на новый release после проверки `index.html`,
-  хранить несколько последних releases для rollback.
-- Docker не нужен для первого Angular-only deployment; вернуться к нему позже, если появится backend/API/DB или отдельная учебная цель по контейнеризации.
-- Для static Angular frontend отдельный `messenger` systemd service не нужен; автозапуск обеспечивает nginx.
-- Для администрирования VDS использовать обычного sudo-пользователя `deploy`; системного пользователя создавать позже только при появлении backend/API runtime service.
-- HTTPS-сертификат Let's Encrypt не хранить как критичный артефакт; хранить процедуру выпуска и учитывать rate limits.
-- Ansible сейчас преждевременен; при ручном deployment фиксировать команды и конфиги как будущий playbook draft.
-- Подробный черновик будущего Ansible playbook:
-  `docs/deployment/manual-vds-deploy.md`.
 
 ## Product Scope
 
-Authorization-only MVP готов.
+Текущий продуктовый фокус: authorization/account profile editing.
 
-Текущий следующий фокус продукта: identity/account profile editing.
-
-Завершенные authorization сценарии:
+Разрешенные сценарии текущего scope:
 
 - sign up;
 - sign in;
 - current session;
 - future session restore;
-- logout.
-
-Следующий planned scenario:
-
-- edit current user's profile.
+- logout;
+- current user avatar menu;
+- future profile editing.
 
 Out of scope без прямого запроса:
 

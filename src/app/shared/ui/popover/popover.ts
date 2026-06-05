@@ -1,6 +1,7 @@
 import { FlexibleConnectedPositionStrategy, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { Directive, ElementRef, inject, input, OnDestroy, TemplateRef } from '@angular/core';
+import { filter, merge, takeUntil } from 'rxjs';
 
 import { PopoverPanel } from './popover-panel/popover-panel';
 
@@ -18,6 +19,7 @@ export class Popover implements OnDestroy {
   private readonly _elementRef = inject(ElementRef);
 
   private readonly _overlay = inject(Overlay);
+
   private _overlayRef: Nullable<OverlayRef> = null;
 
   onClick(): void {
@@ -37,6 +39,8 @@ export class Popover implements OnDestroy {
     const overlayRef = this._createOverlayRef(positionStrategy);
 
     this._attachPopoverPanel(overlayRef);
+
+    this._setSubscriptions(overlayRef);
   }
 
   close(): void {
@@ -77,6 +81,22 @@ export class Popover implements OnDestroy {
     const panelRef = overlayRef.attach(componentPortal);
 
     panelRef.setInput('content', this.content());
+  }
+
+  private _setSubscriptions(overlayRef: OverlayRef): void {
+    const keydownEvents$ = overlayRef.keydownEvents().pipe(filter(({ key }) => key === 'Escape'));
+
+    const pointerEvents$ = overlayRef.outsidePointerEvents().pipe(
+      filter(({ target }) => {
+        const triggerEl = this._elementRef.nativeElement;
+
+        return !triggerEl.contains(target);
+      }),
+    );
+
+    merge(keydownEvents$, pointerEvents$)
+      .pipe(takeUntil(overlayRef.detachments()))
+      .subscribe(() => this._disposeOverlayRef());
   }
 
   private _disposeOverlayRef(): void {

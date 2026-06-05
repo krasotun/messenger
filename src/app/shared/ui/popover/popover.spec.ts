@@ -86,5 +86,64 @@ describe('Popover', () => {
 
       expect(secondPopoverPanel).toBeNull();
     });
+
+    it('Escape should remove popover', async () => {
+      const hostEl: HTMLDivElement = fixture.nativeElement.querySelector(
+        '[data-testid="popover-trigger"]',
+      );
+
+      hostEl.dispatchEvent(new Event('click'));
+
+      fixture.detectChanges();
+
+      await fixture.whenStable();
+
+      const overlayContainer = document.querySelector('.cdk-overlay-container');
+
+      const popoverPanel = overlayContainer?.querySelector('.app-popover-panel');
+
+      expect(popoverPanel).toBeTruthy();
+
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      fixture.detectChanges();
+
+      await fixture.whenStable();
+
+      const secondPopoverPanel = document.querySelector(
+        '.cdk-overlay-container .app-popover-panel',
+      );
+
+      expect(secondPopoverPanel).toBeNull();
+    });
+
+    it('outside click should remove popover', async () => {
+      const hostEl: HTMLDivElement = fixture.nativeElement.querySelector(
+        '[data-testid="popover-trigger"]',
+      );
+
+      hostEl.dispatchEvent(new Event('click'));
+
+      fixture.detectChanges();
+
+      await fixture.whenStable();
+
+      const overlayContainer = document.querySelector('.cdk-overlay-container');
+
+      const popoverPanel = overlayContainer?.querySelector('.app-popover-panel');
+
+      expect(popoverPanel).toBeTruthy();
+
+      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const secondPopoverPanel = document.querySelector(
+        '.cdk-overlay-container .app-popover-panel',
+      );
+
+      expect(secondPopoverPanel).toBeNull();
+    });
   });
 });
