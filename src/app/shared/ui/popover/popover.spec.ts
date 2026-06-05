@@ -14,12 +14,29 @@ import { Popover } from '../popover/popover';
 })
 class TestHost {}
 
+@Component({
+  imports: [Popover],
+  template: `
+    <div data-testid="first-popover-trigger" [appPopover]="firstContent"></div>
+    <div data-testid="second-popover-trigger" [appPopover]="secondContent"></div>
+
+    <ng-template #firstContent>
+      <div data-testid="first-popover-content">First popover content</div>
+    </ng-template>
+
+    <ng-template #secondContent>
+      <div data-testid="second-popover-content">Second popover content</div>
+    </ng-template>
+  `,
+})
+class TestHostWithTwoTriggers {}
+
 describe('Popover', () => {
   let fixture: ComponentFixture<TestHost>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TestHost],
+      imports: [TestHost, TestHostWithTwoTriggers],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHost);
@@ -144,6 +161,45 @@ describe('Popover', () => {
       );
 
       expect(secondPopoverPanel).toBeNull();
+    });
+
+    it('should render only one popover when another trigger is clicked', async () => {
+      const fixtureWithTwoTriggers = TestBed.createComponent(TestHostWithTwoTriggers);
+      fixtureWithTwoTriggers.detectChanges();
+      await fixtureWithTwoTriggers.whenStable();
+
+      const firstTriggerEl: HTMLDivElement = fixtureWithTwoTriggers.nativeElement.querySelector(
+        '[data-testid="first-popover-trigger"]',
+      );
+      const secondTriggerEl: HTMLDivElement = fixtureWithTwoTriggers.nativeElement.querySelector(
+        '[data-testid="second-popover-trigger"]',
+      );
+
+      firstTriggerEl.dispatchEvent(new Event('click'));
+      fixtureWithTwoTriggers.detectChanges();
+      await fixtureWithTwoTriggers.whenStable();
+
+      const firstPopoverContent = document.querySelector(
+        '.cdk-overlay-container [data-testid="first-popover-content"]',
+      );
+
+      expect(firstPopoverContent).toBeTruthy();
+
+      secondTriggerEl.dispatchEvent(new Event('click'));
+      fixtureWithTwoTriggers.detectChanges();
+      await fixtureWithTwoTriggers.whenStable();
+
+      const firstPopoverContentAfterSecondClick = document.querySelector(
+        '.cdk-overlay-container [data-testid="first-popover-content"]',
+      );
+      const secondPopoverContent = document.querySelector(
+        '.cdk-overlay-container [data-testid="second-popover-content"]',
+      );
+      const popoverPanels = document.querySelectorAll('.cdk-overlay-container .app-popover-panel');
+
+      expect(firstPopoverContentAfterSecondClick).toBeNull();
+      expect(secondPopoverContent).toBeTruthy();
+      expect(popoverPanels).toHaveLength(1);
     });
   });
 });

@@ -3,6 +3,7 @@ import { ComponentPortal } from '@angular/cdk/portal';
 import { Directive, ElementRef, inject, input, OnDestroy, TemplateRef } from '@angular/core';
 import { filter, merge, takeUntil } from 'rxjs';
 
+import { PopoverCoordinator } from './popover-coordinator.service';
 import { PopoverPanel } from './popover-panel/popover-panel';
 
 import { Nullable } from '@app/shared/types';
@@ -15,6 +16,8 @@ import { Nullable } from '@app/shared/types';
 })
 export class Popover implements OnDestroy {
   readonly content = input.required<TemplateRef<unknown>>({ alias: 'appPopover' });
+
+  private readonly _popoverCoordinator = inject(PopoverCoordinator);
 
   private readonly _elementRef = inject(ElementRef);
 
@@ -39,6 +42,7 @@ export class Popover implements OnDestroy {
     const overlayRef = this._createOverlayRef(positionStrategy);
 
     this._attachPopoverPanel(overlayRef);
+    this._popoverCoordinator.activate(this);
 
     this._setSubscriptions(overlayRef);
   }
@@ -48,11 +52,11 @@ export class Popover implements OnDestroy {
       return;
     }
 
-    this._disposeOverlayRef();
+    this._closePopover();
   }
 
   ngOnDestroy(): void {
-    this._disposeOverlayRef();
+    this._closePopover();
   }
 
   private _createPositionStrategy(): FlexibleConnectedPositionStrategy {
@@ -96,12 +100,14 @@ export class Popover implements OnDestroy {
 
     merge(keydownEvents$, pointerEvents$)
       .pipe(takeUntil(overlayRef.detachments()))
-      .subscribe(() => this._disposeOverlayRef());
+      .subscribe(() => this.close());
   }
 
-  private _disposeOverlayRef(): void {
+  private _closePopover(): void {
     this._overlayRef?.dispose();
 
     this._overlayRef = null;
+
+    this._popoverCoordinator.deactivate(this);
   }
 }
