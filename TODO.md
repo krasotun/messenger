@@ -9,6 +9,6 @@ Next:
 3. Implement with `shared/ui/avatar` + `shared/ui/popover`.
 4. Wire current session/logout through identity application boundary.
 
-Scope: authorization only; menu action: `Выйти`; no profile editing, chats, messages, settings UI, or non-auth flows.
+Scope: authorization only; menu action: `Logout`; no profile editing, chats, messages, settings UI, or non-auth flows.
 
 Done: `shared/ui/avatar` v1; created `CurrentUserAvatarMenu`; started first component spec.

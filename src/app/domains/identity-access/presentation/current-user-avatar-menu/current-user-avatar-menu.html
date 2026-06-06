@@ -1,3 +1,10 @@
-<button>
-  <app-avatar [label]="'label'"></app-avatar>
+@if(currentUserAvatarView(); as currentUserAvatarView) {
+<button class="current-user-avatar-menu__trigger" type="button">
+  <app-avatar
+    [label]="currentUserAvatarView.label"
+    [imageUrl]="currentUserAvatarView.imageUrl"
+    [fallbackText]="currentUserAvatarView.fallbackText"
+  ></app-avatar>
 </button>
+
+}
