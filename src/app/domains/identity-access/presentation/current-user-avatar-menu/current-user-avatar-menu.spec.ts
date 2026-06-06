@@ -1,5 +1,7 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { of, throwError } from 'rxjs';
 
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
 import { CurrentUser } from '../../application/current-session/current-user';
@@ -27,10 +29,37 @@ describe('CurrentUserAvatarMenu', () => {
 
   const currentSessionServiceMock = {
     currentUser: currentUser.asReadonly(),
+    logout: vi.fn(() => of(void 0)),
   };
+  const routerMock = {
+    navigateByUrl: vi.fn(),
+  };
+
+  function openMenuAndGetLogoutButton(): HTMLButtonElement {
+    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.current-user-avatar-menu__trigger',
+    );
+
+    popoverTrigger.dispatchEvent(new Event('click'));
+
+    fixture.detectChanges();
+
+    const buttons = Array.from(
+      document.querySelectorAll('.current-user-avatar-menu__action'),
+    ) as HTMLButtonElement[];
+
+    const logoutButton = buttons.find((button) => button.textContent?.trim() === 'Logout');
+
+    expect(logoutButton).toBeTruthy();
+
+    return logoutButton as HTMLButtonElement;
+  }
 
   beforeEach(async () => {
     currentUser.set(currentUserMock);
+    currentSessionServiceMock.logout.mockReset();
+    currentSessionServiceMock.logout.mockReturnValue(of(void 0));
+    routerMock.navigateByUrl.mockReset();
 
     await TestBed.configureTestingModule({
       imports: [CurrentUserAvatarMenu],
@@ -39,12 +68,20 @@ describe('CurrentUserAvatarMenu', () => {
           provide: CurrentSessionService,
           useValue: currentSessionServiceMock,
         },
+        {
+          provide: Router,
+          useValue: routerMock,
+        },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CurrentUserAvatarMenu);
     component = fixture.componentInstance;
     await fixture.whenStable();
+  });
+
+  afterEach(() => {
+    document.body.querySelectorAll('.cdk-overlay-container').forEach((element) => element.remove());
   });
 
   it('should create', () => {
@@ -80,5 +117,59 @@ describe('CurrentUserAvatarMenu', () => {
     expect(avatarFallback).not.toBe(null);
     expect(avatarFallback.textContent.trim()).toBe('D');
     expect(avatarFallback.getAttribute('aria-label')).toBe(`Avatar ${currentUserMock.displayName}`);
+  });
+
+  it('calls logout through CurrentSessionService when Logout is clicked', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.current-user-avatar-menu__trigger',
+    );
+
+    popoverTrigger.dispatchEvent(new Event('click'));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const buttons = Array.from(
+      document.querySelectorAll('.current-user-avatar-menu__action'),
+    ) as HTMLButtonElement[];
+
+    const logoutButton = buttons.find((button) => button.textContent?.trim() === 'Logout');
+
+    expect(logoutButton).toBeTruthy();
+
+    logoutButton?.dispatchEvent(new Event('click'));
+
+    expect(currentSessionServiceMock.logout).toHaveBeenCalledOnce();
+  });
+
+  it('navigates to sign in after successful logout', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const logoutButton = openMenuAndGetLogoutButton();
+
+    logoutButton.dispatchEvent(new Event('click'));
+
+    await fixture.whenStable();
+
+    expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/sign-in');
+  });
+
+  it('navigates to sign in after logout error', async () => {
+    currentSessionServiceMock.logout.mockReturnValue(throwError(() => 'mockError'));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const logoutButton = openMenuAndGetLogoutButton();
+
+    logoutButton.dispatchEvent(new Event('click'));
+
+    await fixture.whenStable();
+
+    expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/sign-in');
   });
 });

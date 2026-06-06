@@ -1,14 +1,11 @@
 # TODO
 
-Now: `[Identity] Add current user avatar menu`
+Now: choose next authorization task.
 
 Next:
 
-1. Finish specs for `CurrentUserAvatarMenu`.
-2. Spec: authenticated header renders user control on the right.
-3. Implement with `shared/ui/avatar` + `shared/ui/popover`.
-4. Wire current session/logout through identity application boundary.
+1. Review authorization scope and pick the next TDD slice.
 
 Scope: authorization only; menu action: `Logout`; no profile editing, chats, messages, settings UI, or non-auth flows.
 
-Done: `shared/ui/avatar` v1; created `CurrentUserAvatarMenu`; started first component spec.
+Done: `shared/ui/avatar` v1; `CurrentUserAvatarMenu` with avatar trigger, popover menu, and logout redirect.

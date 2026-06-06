@@ -1,7 +1,4 @@
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
-
-import { CurrentSessionService } from '@app/domains/identity-access/application/current-session/current-session.service';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-home-page',
@@ -9,18 +6,4 @@ import { CurrentSessionService } from '@app/domains/identity-access/application/
   templateUrl: './home-page.html',
   styleUrl: './home-page.scss',
 })
-export class HomePage {
-  private readonly _currentSessionService = inject(CurrentSessionService);
-  private readonly _router = inject(Router);
-
-  protected logout(): void {
-    this._currentSessionService.logout().subscribe({
-      next: () => {
-        this._router.navigateByUrl('/sign-in');
-      },
-      error: () => {
-        this._router.navigateByUrl('/sign-in');
-      },
-    });
-  }
-}
+export class HomePage {}

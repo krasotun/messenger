@@ -16,3 +16,32 @@
     border-radius: 50%;
   }
 }
+
+.current-user-avatar-menu__actions {
+  min-width: 160px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+}
+
+.current-user-avatar-menu__action {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-surface-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 1px;
+  }
+}
