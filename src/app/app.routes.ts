@@ -2,13 +2,21 @@ import { Routes } from '@angular/router';
 
 import { authenticatedOnlyGuard } from './core/routing/authenticated-only.guard';
 import { guestOnlyGuard } from './core/routing/guest-only.guard';
-
 export const routes: Routes = [
   {
     path: '',
-    pathMatch: 'full',
     canActivate: [authenticatedOnlyGuard],
-    loadComponent: () => import('./pages/home-page/home-page').then((m) => m.HomePage),
+    loadComponent: () =>
+      import('./core/layouts/authenticated-shell/authenticated-shell').then(
+        (m) => m.AuthenticatedShell,
+      ),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('./pages/home-page/home-page').then((m) => m.HomePage),
+      },
+    ],
   },
   {
     path: 'sign-in',
