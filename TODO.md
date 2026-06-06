@@ -3,7 +3,7 @@
 ## Активная задача
 
 ```text
-[Identity] User Profile Editing
+[Identity] Add current user avatar menu
 ```
 
 ## Текущий шаг
@@ -12,13 +12,8 @@
 
 Ближайший TDD-шаг:
 
-- Сначала усилить reusable UI primitive `shared/ui/popover`: зафиксировать контракт "одновременно открыт только один popover в выбранном DI scope".
-- Написать component spec для двух `[appPopover]`: открытие второго закрывает первый и в overlay остается одна panel.
-- Покрыть `PopoverCoordinator` unit specs: закрытие предыдущего active popover, повторная активация того же popover без self-close, корректный `deactivate` для active/inactive popover.
-- Затем добавить internal `PopoverCoordinator` в `shared/ui/popover`; единственный потребитель сервиса - сама `Popover` directive.
-- Provider scope для v1: `providedIn: 'root'`, чтобы получить один active popover на приложение; не выносить coordinator в `core` или `identity-access`.
-- После закрытия popover singleton-шагa выделить reusable UI primitive `shared/ui/avatar` для отображения круглого avatar/fallback.
 - Сформулировать acceptance и component specs для `shared/ui/avatar` перед реализацией.
+- Выделить reusable UI primitive `shared/ui/avatar` для отображения круглого avatar/fallback.
 - Затем сформулировать acceptance для `[Identity] Add current user avatar menu`.
 - Определить component/unit specs для avatar menu и его интеграции с header.
 - Не переходить к profile editing flow, пока avatar menu не закрыт.
@@ -27,14 +22,15 @@
 
 - Authorization-only MVP готов:
   sign up, sign in, current session, session restore, logout.
+- `[Shell] Add authenticated layout with header` закрыта как routing/layout-фича.
 - Authenticated shell с header уже есть.
 - Header остается shell/layout-компонентом без identity business logic, API calls и browser storage access.
 - Reusable `shared/ui/popover` v1 готов и покрыт тестами:
   open by trigger click, close by second trigger click, `Escape`, outside click.
-- Следующий учебный шаг для `shared/ui/popover`:
-  явный singleton-контракт через internal coordinator, чтобы не полагаться на побочный эффект outside click.
+- Reusable `shared/ui/popover` singleton-контракт готов и покрыт тестами:
+  одновременно открыт только один popover через internal `PopoverCoordinator`.
 - Следующий UI primitive для avatar menu:
-  `shared/ui/avatar`, если он нужен для текущего TDD-сценария.
+  `shared/ui/avatar`.
 
 ## Acceptance Criteria текущей задачи
 
