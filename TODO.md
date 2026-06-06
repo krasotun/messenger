@@ -8,87 +8,78 @@
 
 ## Текущий шаг
 
-Продолжить issue `[Identity] Add current user avatar menu`.
+`shared/ui/avatar` v1 закрыт.
 
 Ближайший TDD-шаг:
 
-- Сформулировать acceptance и component specs для `shared/ui/avatar` перед реализацией.
-- Выделить reusable UI primitive `shared/ui/avatar` для отображения круглого avatar/fallback.
-- Затем сформулировать acceptance для `[Identity] Add current user avatar menu`.
-- Определить component/unit specs для avatar menu и его интеграции с header.
-- Не переходить к profile editing flow, пока avatar menu не закрыт.
+1. Сформулировать component specs для identity-specific avatar menu.
+2. Зафиксировать header integration spec: справа в authenticated header отображается user control.
+3. Реализовать минимальный avatar menu через `shared/ui/popover`.
+4. Подключить menu к current session state через application boundary.
 
-## Текущий статус
+## Что делаем
 
-- Authorization-only MVP готов:
-  sign up, sign in, current session, session restore, logout.
-- `[Shell] Add authenticated layout with header` закрыта как routing/layout-фича.
-- Authenticated shell с header уже есть.
-- Header остается shell/layout-компонентом без identity business logic, API calls и browser storage access.
-- Reusable `shared/ui/popover` v1 готов и покрыт тестами:
-  open by trigger click, close by second trigger click, `Escape`, outside click.
-- Reusable `shared/ui/popover` singleton-контракт готов и покрыт тестами:
-  одновременно открыт только один popover через internal `PopoverCoordinator`.
-- Следующий UI primitive для avatar menu:
-  `shared/ui/avatar`.
+- В authenticated header справа отображается avatar control текущего пользователя.
+- По клику avatar control открывает menu через `shared/ui/popover`.
+- Menu показывает только authorization/account actions текущего scope.
+- Header остается layout-компонентом без identity business logic, API calls и browser storage access.
+- Identity-specific menu component находится в `src/app/domains/identity-access/presentation`.
+- Avatar UI primitive находится в `src/app/shared/ui/avatar`.
 
-## Acceptance Criteria текущей задачи
+## Acceptance Criteria
 
-- Header показывает control текущего пользователя на основе current session state.
+- Header показывает user control справа на основе current session state.
+- User control использует `shared/ui/avatar` для отображения avatar/fallback.
 - User control открывает avatar menu через `shared/ui/popover`.
-- Avatar menu отображает только authorization/account actions, разрешенные текущим scope.
 - Avatar menu не запускает profile editing flow.
-- Header не содержит profile editing business logic, API calls или browser storage access.
-- Identity-specific menu component находится в `domains/identity-access/presentation`.
-- Для отображения аватара используется отдельный reusable `shared/ui/avatar` или минимальный placeholder, если avatar component еще не выделен текущим TDD-шагом.
+- Avatar menu не добавляет chats/messages/non-auth flows.
 - Поведение фиксируется component/unit specs до production-реализации.
 
-## Acceptance Criteria для `shared/ui/avatar` v1
+## Завершено
 
-- Avatar отображает круглую область фиксированного размера.
-- Если передан `imageUrl`, отображается изображение пользователя.
-- Если `imageUrl` не передан, отображается fallback.
-- Если изображение не загрузилось, компонент переключается на fallback.
-- Fallback не содержит identity/application logic.
-- Компонент принимает доступное имя для image/fallback.
-- Компонент поддерживает только предопределенные product sizes: `sm`, `md`, `lg`.
-- `custom` size не добавляется в v1; расширение размера делается только под подтвержденный сценарий.
-- Компонент находится в `src/app/shared/ui/avatar`.
+### `shared/ui/avatar` v1
 
-## Component Specs для `shared/ui/avatar`
+- Reusable primitive находится в `src/app/shared/ui/avatar`.
+- Поддерживает `imageUrl`, `label`, `size: sm | md | lg`, `fallbackText`.
+- Отображает image/fallback/error fallback.
+- Передает accessible label через `alt` или `aria-label`.
+- Размер задается predefined BEM modifier class.
+- Покрыт component specs.
 
-- Renders image when `imageUrl` is provided.
-- Renders fallback when `imageUrl` is empty.
-- Renders fallback after image loading error.
-- Applies selected predefined size.
-- Uses provided accessible label for image/fallback.
+## Avatar Menu
 
-## Следующие задачи
+Acceptance:
 
-1. `[Identity] Add current user avatar menu`.
-2. `[Identity] Define profile editing contract`.
-3. `[Identity] Add profile editing flow`.
-4. `[Deploy] Upgrade CD to release directories with current symlink`.
-5. Ansible рассмотреть позже, если появится отдельная infra-задача.
-6. Docker рассмотреть позже только при появлении backend/API/DB или отдельной учебной цели по production container deployment.
+- Menu открывается из avatar control в правой части authenticated header.
+- Menu получает данные текущего пользователя через application/session boundary.
+- Menu отображает только account/authorization actions текущего scope.
+- Logout action остается authorization action, без profile editing side effects.
+- Header делегирует identity-specific поведение presentation-компоненту домена.
+
+Component/unit specs:
+
+- Renders current user avatar from current session data.
+- Opens menu by avatar trigger click via `shared/ui/popover`.
+- Shows only authorization/account actions allowed in current scope.
+- Does not render profile editing actions yet.
+- Emits/calls logout action through identity application boundary.
+- Header renders identity user control on the right without direct identity business logic.
 
 ## Product Scope
 
-Текущий продуктовый фокус: authorization/account profile editing.
-
-Разрешенные сценарии текущего scope:
+Текущий scope:
 
 - sign up;
 - sign in;
 - current session;
-- future session restore;
+- session restore;
 - logout;
-- current user avatar menu;
-- future profile editing.
+- current user avatar menu.
 
-Out of scope без прямого запроса:
+Out of scope без отдельной задачи:
 
+- profile editing flow;
 - chats;
 - messages;
-- broader settings UI beyond profile editing;
-- новые non-auth application flows.
+- broader settings UI;
+- non-auth application flows.
