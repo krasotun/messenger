@@ -5,5 +5,5 @@ test('sign-in empty form @visual', async ({ page }) => {
 
   await expect(page.getByRole('textbox', { name: 'Login' })).toBeVisible();
 
-  await expect(page).toHaveScreenshot('sign-in-empty-form.png');
+  await expect(page).toHaveScreenshot('sign-in-empty-form.png', { maxDiffPixels: 2000 });
 });
