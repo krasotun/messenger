@@ -8,6 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false",
+    "test:coverage": "ng test --coverage --watch=false",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "docker:build": "docker build -t messenger-frontend:local .",

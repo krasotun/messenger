@@ -1,0 +1,7 @@
+<div class="avatar" [class]="sizeClass()">
+  @if(imageShown()) {
+  <img class="avatar__image" [src]="imageUrl()" [alt]="label()" (error)="onImageError()" />
+  } @else {
+  <div class="avatar__fallback" [attr.aria-label]="label()" role="img">{{ fallbackText() }}</div>
+  }
+</div>

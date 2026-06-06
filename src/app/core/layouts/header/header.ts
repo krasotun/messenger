@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 
-import { Popover } from '@app/shared/ui/popover/popover';
+import { CurrentUserAvatarMenu } from '@app/domains/identity-access/presentation/current-user-avatar-menu/current-user-avatar-menu';
 
 @Component({
   selector: 'app-header',
-  imports: [Popover],
+  imports: [CurrentUserAvatarMenu],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })

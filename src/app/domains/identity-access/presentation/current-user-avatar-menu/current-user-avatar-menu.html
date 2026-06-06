@@ -1,0 +1,20 @@
+@if(currentUserAvatarView(); as currentUserAvatarView) {
+<button class="current-user-avatar-menu__trigger" type="button" [appPopover]="popover">
+  <app-avatar
+    [label]="currentUserAvatarView.label"
+    [imageUrl]="currentUserAvatarView.imageUrl"
+    [fallbackText]="currentUserAvatarView.fallbackText"
+  ></app-avatar>
+</button>
+
+<ng-template #popover>
+  <ul class="current-user-avatar-menu__actions">
+    <li class="current-user-avatar-menu__action-item">
+      <button class="current-user-avatar-menu__action" type="button" (click)="logout()">
+        Logout
+      </button>
+    </li>
+  </ul>
+</ng-template>
+
+}
