@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { ApplicationError } from '@app/shared/errors';
+import { ApplicationError } from '@shared/errors';
 
 export const mapAuthError = (error: unknown, fallbackMessage: string): ApplicationError => {
   return new ApplicationError(

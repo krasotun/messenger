@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
-import { authenticatedOnlyGuard } from './core/routing/authenticated-only.guard';
-import { guestOnlyGuard } from './core/routing/guest-only.guard';
+import { authenticatedOnlyGuard } from '@core/routing/authenticated-only.guard';
+import { guestOnlyGuard } from '@core/routing/guest-only.guard';
 export const routes: Routes = [
   {
     path: '',

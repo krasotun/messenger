@@ -13,7 +13,7 @@ import { HttpAuthGateway } from './http-auth-gateway';
 import { SignInRequestDto } from './sign-in/sign-in.dto';
 import { SignUpRequestDto } from './sign-up/sign-up.dto';
 
-import { ApplicationError } from '@app/shared/errors';
+import { ApplicationError } from '@shared/errors';
 
 const authApiMock = {
   signUp: vi.fn(),

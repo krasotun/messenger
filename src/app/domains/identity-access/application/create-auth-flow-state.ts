@@ -2,7 +2,7 @@ import { computed, signal } from '@angular/core';
 
 import { AuthFlowStatus } from './auth-flow-status';
 
-import { Nullable } from '@app/shared/types';
+import { Nullable } from '@shared/types';
 
 export const createAuthFlowState = () => {
   const status = signal<AuthFlowStatus>(AuthFlowStatus.Idle);

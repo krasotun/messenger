@@ -8,7 +8,7 @@ import { CurrentSessionService } from '../current-session/current-session.servic
 
 import { SignInInput } from './sign-in.input';
 
-import { ApplicationError } from '@app/shared/errors';
+import { ApplicationError } from '@shared/errors';
 
 @Injectable({
   providedIn: 'root',
