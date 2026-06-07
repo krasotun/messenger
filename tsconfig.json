@@ -6,7 +6,6 @@
     "baseUrl": "./src",
     "ignoreDeprecations": "5.0",
     "paths": {
-      "@app/*": ["app/*"],
       "@core/*": ["app/core/*"],
       "@domains/*": ["app/domains/*"],
       "@shared/*": ["app/shared/*"]

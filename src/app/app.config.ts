@@ -8,8 +8,7 @@ import { routes } from './app.routes';
 
 import { provideCurrentSessionRestore } from '@core/app-initializers/restore-current-session.initializer';
 import { API_BASE_URL } from '@core/tokens';
-import { AUTH_GATEWAY } from '@domains/identity-access/application/auth.gateway';
-import { HttpAuthGateway } from '@domains/identity-access/infrastructure/http-auth-gateway';
+import { provideIdentityAccess } from '@domains/identity-access';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,10 +19,7 @@ export const appConfig: ApplicationConfig = {
       provide: API_BASE_URL,
       useValue: apiBaseUrl,
     },
-    {
-      provide: AUTH_GATEWAY,
-      useClass: HttpAuthGateway,
-    },
+    provideIdentityAccess(),
     provideCurrentSessionRestore(),
   ],
 };

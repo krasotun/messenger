@@ -1,17 +1,17 @@
 // @ts-check
-const eslint = require("@eslint/js");
-const { defineConfig } = require("eslint/config");
-const tseslint = require("typescript-eslint");
-const angular = require("angular-eslint");
-const prettierPlugin = require("eslint-plugin-prettier");
-const importPlugin = require("eslint-plugin-import");
+const eslint = require('@eslint/js');
+const { defineConfig } = require('eslint/config');
+const tseslint = require('typescript-eslint');
+const angular = require('angular-eslint');
+const prettierPlugin = require('eslint-plugin-prettier');
+const importPlugin = require('eslint-plugin-import');
 
 module.exports = defineConfig([
   {
-    ignores: ["dist/**"],
+    ignores: ['dist/**'],
   },
   {
-    files: ["**/*.ts"],
+    files: ['**/*.ts'],
     extends: [
       eslint.configs.recommended,
       tseslint.configs.recommended,
@@ -23,73 +23,106 @@ module.exports = defineConfig([
       import: importPlugin,
     },
     settings: {
-      "import/resolver": {
+      'import/resolver': {
         typescript: {
-          project: "./tsconfig.json",
+          project: './tsconfig.json',
         },
         node: {
-          extensions: [".js", ".mjs", ".cjs", ".ts", ".mts", ".cts", ".d.ts"],
+          extensions: ['.js', '.mjs', '.cjs', '.ts', '.mts', '.cts', '.d.ts'],
         },
       },
     },
     processor: angular.processInlineTemplates,
     rules: {
-      "@angular-eslint/directive-selector": [
-        "error",
+      '@angular-eslint/directive-selector': [
+        'error',
         {
-          type: "attribute",
-          prefix: "app",
-          style: "camelCase",
+          type: 'attribute',
+          prefix: 'app',
+          style: 'camelCase',
         },
       ],
-      "@angular-eslint/component-selector": [
-        "error",
+      '@angular-eslint/component-selector': [
+        'error',
         {
-          type: "element",
-          prefix: "app",
-          style: "kebab-case",
+          type: 'element',
+          prefix: 'app',
+          style: 'kebab-case',
         },
       ],
-      "@typescript-eslint/no-unused-vars": [
-        "error",
+      '@typescript-eslint/no-unused-vars': [
+        'error',
         {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
         },
       ],
-      "no-underscore-dangle": "off",
-      curly: ["error", "all"],
-      eqeqeq: ["error", "always"],
-      "no-var": "error",
-      "prefer-const": "error",
-      "no-const-assign": "error",
-      "no-alert": "error",
-      "no-duplicate-imports": "error",
-      "no-param-reassign": ["error", { props: true }],
-      "no-use-before-define": "off",
-      "@typescript-eslint/no-use-before-define": "error",
-      "no-shadow": "off",
-      "@typescript-eslint/no-shadow": "error",
-      "object-shorthand": ["error", "always"],
-      "prefer-template": "error",
-      "prettier/prettier": "error",
-      "import/no-unresolved": "error",
-      "import/no-duplicates": "error",
-      "import/order": [
-        "error",
+      'no-underscore-dangle': 'off',
+      curly: ['error', 'all'],
+      eqeqeq: ['error', 'always'],
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'no-const-assign': 'error',
+      'no-alert': 'error',
+      'no-duplicate-imports': 'error',
+      'no-param-reassign': ['error', { props: true }],
+      'no-use-before-define': 'off',
+      '@typescript-eslint/no-use-before-define': 'error',
+      'no-shadow': 'off',
+      '@typescript-eslint/no-shadow': 'error',
+      'object-shorthand': ['error', 'always'],
+      'prefer-template': 'error',
+      'prettier/prettier': 'error',
+      'import/no-unresolved': 'error',
+      'import/no-duplicates': 'error',
+      'import/order': [
+        'error',
         {
-          "newlines-between": "always",
-          alphabetize: { order: "asc", caseInsensitive: true },
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
     },
   },
   {
-    files: ["**/*.html"],
-    extends: [
-      angular.configs.templateRecommended,
-      angular.configs.templateAccessibility,
-    ],
+    files: ['src/app/app*.ts', 'src/app/core/**/*.ts', 'src/app/pages/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@domains/identity-access/application/*',
+                '@domains/identity-access/infrastructure/*',
+                '@domains/identity-access/presentation/*',
+              ],
+              message: 'Use @domains/identity-access public API for static imports.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/app/shared/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@core/*', '@domains/*'],
+              message: 'Shared code must not depend on app, core, or domains.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['**/*.html'],
+    extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
     rules: {},
-  }
+  },
 ]);

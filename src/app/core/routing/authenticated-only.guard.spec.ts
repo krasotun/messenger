@@ -9,8 +9,7 @@ import {
 
 import { authenticatedOnlyGuard } from './authenticated-only.guard';
 
-import { CurrentSessionStatus } from '@domains/identity-access/application/current-session/current-session-status';
-import { CurrentSessionService } from '@domains/identity-access/application/current-session/current-session.service';
+import { CurrentSessionStatus, CurrentSessionService } from '@domains/identity-access';
 
 const currentSessionServiceMock = {
   status: vi.fn(),
