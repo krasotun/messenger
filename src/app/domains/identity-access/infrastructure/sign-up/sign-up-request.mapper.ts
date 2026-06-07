@@ -1,4 +1,4 @@
-import { SignUpInput } from '@app/domains/identity-access/application/sign-up/sign-up.input';
+import { SignUpInput } from '@domains/identity-access/application/sign-up/sign-up.input';
 import { SignUpRequestDto } from '@domains/identity-access/infrastructure/sign-up/sign-up.dto';
 
 export const signUpRequestMapper = (signUpInput: SignUpInput): SignUpRequestDto => {

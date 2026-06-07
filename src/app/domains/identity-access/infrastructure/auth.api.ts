@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { CurrentUserDto } from './current-session/current-user.dto';
 import { SignInRequestDto } from './sign-in/sign-in.dto';
 
-import { API_BASE_URL } from '@app/core/tokens/api-base-url.token';
+import { API_BASE_URL } from '@core/tokens';
 import {
   SignUpRequestDto,
   SignUpResponseDto,

@@ -11,7 +11,7 @@ import { CurrentUser } from '../current-session/current-user';
 import { SignInInput } from './sign-in.input';
 import { SignInService } from './sign-in.service';
 
-import { ApplicationError } from '@app/shared/errors';
+import { ApplicationError } from '@shared/errors';
 
 const authGatewayMock = {
   signIn: vi.fn(),

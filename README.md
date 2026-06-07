@@ -2,20 +2,14 @@
 
 # Messenger
 
-Учебное frontend-приложение на Angular.
+Учебное Angular-приложение для отработки архитектурного мышления, TDD-дисциплины
+и постепенного развития бизнес-логики.
 
-Проект используется для отработки архитектурного мышления, TDD-дисциплины и
-постепенного развития бизнес-логики.
+Production: https://73053.koara.live
 
-## Production
+API reference: https://ya-praktikum.tech/api/v2/swagger/#/
 
-Frontend: https://73053.koara.live
-
-## API
-
-Swagger API: https://ya-praktikum.tech/api/v2/swagger/#/
-
-## Архитектура
+## Architecture
 
 Используем подход:
 
@@ -23,31 +17,35 @@ Swagger API: https://ya-praktikum.tech/api/v2/swagger/#/
 Domain-first Angular + lightweight DDD boundaries
 ```
 
-Основная структура:
+Текущая структура:
 
 ```text
 src/app
-  core
-  shared
-  domains/identity-access
+  app config/routes/root component
+  core       app-level infrastructure
+  pages      route-level pages outside a domain
+  domains    business bounded contexts
+  shared     reusable technical and UI primitives
 ```
 
-Слои домена:
+Основной bounded context сейчас:
 
 ```text
-domain -> application -> infrastructure
-presentation -> application
+src/app/domains/identity-access
+  domain
+  application
+  infrastructure
+  presentation
 ```
 
-Правила:
+Смысл слоев:
 
-- `domain` содержит чистую бизнес-модель без Angular, UI, Router, HttpClient и
-  browser storage;
-- `application` содержит сценарии приложения, orchestration и state;
-- `infrastructure` содержит HTTP API, DTO, mappers и технические adapters;
-- `presentation` содержит Angular UI, pages, forms и component-level behavior;
-- `shared` содержит переиспользуемый технический и UI-код без бизнес-логики;
-- компоненты не вызывают `HttpClient`, API services и browser storage напрямую.
+- `domain` - бизнес-модель без Angular, UI, Router, HttpClient и browser storage.
+- `application` - use cases, orchestration, application state, input/result contracts.
+- `infrastructure` - HTTP API, DTO, mappers, backend adapters.
+- `presentation` - Angular UI, pages, forms, component-level behavior.
+- `shared` - переиспользуемый технический и UI-код без бизнес-логики.
+- `core` - bootstrap, routing guards, app initializers, layouts, tokens.
 
 Предпочтительный поток:
 
@@ -55,39 +53,36 @@ presentation -> application
 Component -> ApplicationService -> Gateway/Api -> HttpClient
 ```
 
-## State
+Компоненты не вызывают `HttpClient`, API services и browser storage напрямую.
 
-Для локального application state используем Angular Signals.
+## Import Boundaries
 
-RxJS используем для HTTP, WebSocket и stream-сценариев.
+Проект движется к public API для доменов. Внешний код не должен зависеть от
+внутренней структуры bounded context.
 
-NgRx на старте не используем.
-
-## Роутинг
-
-Доменные страницы должны подключаться через Angular Router. Для новых страниц
-предпочитаем lazy loading через `loadComponent`.
-
-Routing logic не должна обращаться к HTTP/API/localStorage напрямую.
-
-## Нейминг
-
-Соглашения:
+Целевые aliases:
 
 ```text
-*.api.ts       HTTP requests only
-*.dto.ts       backend contracts
-*.input.ts     application scenario input
-*.result.ts    application scenario result
-*.mapper.ts    mapping
-*.service.ts   state, session, infrastructure или application services
+@core/*     -> app-level infrastructure
+@domains/*  -> bounded contexts
+@shared/*   -> shared primitives
+@app/*      -> app root; использовать только когда нет более точного alias
 ```
 
-Не используем `store` naming для текущих state services.
+Правила:
+
+- `shared` не импортирует `app`, `core`, `pages` или `domains`.
+- `core` может импортировать только публичный API домена, но не его
+  `infrastructure`.
+- `pages` и `core/layouts` не должны импортировать глубокие файлы домена.
+- Внешние импорты вида `@domains/identity-access/.../some-internal-file` должны
+  быть заменены на imports из public API домена после его определения.
+- `infrastructure` реализует application contracts и не импортируется напрямую
+  из UI.
 
 ## TDD
 
-Работаем по TDD:
+Работаем по циклу:
 
 ```text
 spec -> minimal implementation -> refactor
@@ -101,115 +96,42 @@ spec -> minimal implementation -> refactor
 - component specs для UI behavior;
 - routing/guard specs для navigation policy.
 
-## Разработка
+Production-реализация новой бизнес-логики не добавляется без тестового сценария,
+если это не документация, конфигурация или явно оговоренный технический долг.
 
-Установить зависимости:
+## State
+
+Для локального application state используем Angular Signals.
+
+RxJS используем для HTTP, WebSocket и stream-сценариев.
+
+NgRx на текущем этапе не используем.
+
+## Naming
+
+```text
+*.api.ts       HTTP requests only
+*.dto.ts       backend contracts
+*.input.ts     application scenario input
+*.result.ts    application scenario result
+*.mapper.ts    mapping
+*.service.ts   state, session, infrastructure или application services
+```
+
+Не используем `store` naming для текущих state services.
+
+## Development
 
 ```bash
 npm install
-```
-
-Запустить dev server:
-
-```bash
 npm start
-```
-
-Сборка:
-
-```bash
 npm run build
-```
-
-Тесты:
-
-```bash
-npm test
-```
-
-Одноразовый прогон тестов:
-
-```bash
 npm test -- --watch=false
-```
-
-Запустить один spec-файл:
-
-```bash
-npx ng test --include path/to/file.spec.ts --watch=false
-```
-
-Линтинг:
-
-```bash
 npm run lint
 ```
 
-## E2E
-
-E2E-тесты запускаются через Playwright.
-
-Обычный прогон:
-
-```bash
-npm run e2e
-```
-
-Прогон отдельного auth spec против Docker Compose окружения:
-
-```bash
-npm run e2e -- e2e/auth/sign-up.spec.ts --project=chromium
-```
-
-Этот запуск собирает frontend и mock auth backend images, поднимает Docker
-Compose окружение с frontend на `http://localhost:8080` и mock backend на
-`http://localhost:3000`, запускает Playwright и останавливает compose после
-тестов. `ng serve` в этом контуре не используется.
-
-Интерактивный режим для обучения и разбора падений:
+Визуальный запуск E2E:
 
 ```bash
 npx playwright test --ui
 ```
-
-В UI-режиме удобнее смотреть шаги теста, состояние страницы, trace и место, где
-ломается redirect или сетевой mock.
-
-Обновить эталонный скриншот для одного screenshot spec:
-
-```bash
-npx playwright test e2e/auth/sign-in.screenshot.spec.ts --project=chromium --update-snapshots
-```
-
-## Docker
-
-Docker используется для проверки production-сценария frontend-only приложения:
-Angular собирается внутри image, а готовые static files из
-`dist/messenger/browser` раздаются через nginx.
-
-Собрать image:
-
-```bash
-docker build -t messenger-frontend:local .
-```
-
-Запустить container вручную:
-
-```bash
-npm run docker:run
-```
-
-Frontend будет доступен на `http://localhost:8080`. Container работает в текущем
-терминале; остановить его можно через `Ctrl+C`. Благодаря `--rm` container будет
-удален после остановки.
-
-Проверить SPA fallback:
-
-```bash
-curl -I http://localhost:8080/
-curl -I http://localhost:8080/sign-in
-curl -I http://localhost:8080/sign-up
-```
-
-Для всех трех URL ожидается `HTTP/1.1 200 OK`: nginx должен возвращать
-`index.html`, а дальнейшую навигацию обрабатывает Angular Router.

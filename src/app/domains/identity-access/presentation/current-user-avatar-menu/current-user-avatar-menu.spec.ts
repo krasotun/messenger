@@ -8,7 +8,7 @@ import { CurrentUser } from '../../application/current-session/current-user';
 
 import { CurrentUserAvatarMenu } from './current-user-avatar-menu';
 
-import { Nullable } from '@app/shared/types';
+import { Nullable } from '@shared/types';
 
 const currentUserMock: CurrentUser = {
   id: 1,

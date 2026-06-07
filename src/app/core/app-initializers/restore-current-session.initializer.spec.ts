@@ -4,8 +4,8 @@ import { of } from 'rxjs';
 
 import { provideCurrentSessionRestore } from './restore-current-session.initializer';
 
-import { CurrentSessionStatus } from '@app/domains/identity-access/application/current-session/current-session-status';
-import { CurrentSessionService } from '@app/domains/identity-access/application/current-session/current-session.service';
+import { CurrentSessionStatus } from '@domains/identity-access/application/current-session/current-session-status';
+import { CurrentSessionService } from '@domains/identity-access/application/current-session/current-session.service';
 
 const currentSessionServiceMock = {
   restoreCurrentSession: vi.fn(),

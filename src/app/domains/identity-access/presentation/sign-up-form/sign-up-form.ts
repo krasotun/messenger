@@ -9,7 +9,7 @@ import {
 
 import { AuthFlowStatus } from '../../application/auth-flow-status';
 
-import { SignUpService } from '@app/domains/identity-access/application/sign-up/sign-up.service';
+import { SignUpService } from '@domains/identity-access/application/sign-up/sign-up.service';
 import {
   emailPattern,
   phonePattern,
