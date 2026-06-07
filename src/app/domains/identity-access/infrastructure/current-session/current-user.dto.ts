@@ -1,4 +1,4 @@
-import { Nullable } from '@app/shared/types';
+import { Nullable } from '@shared/types';
 
 export interface CurrentUserDto {
   id: number;

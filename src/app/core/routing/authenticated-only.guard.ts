@@ -1,8 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 
-import { CurrentSessionStatus } from '@app/domains/identity-access/application/current-session/current-session-status';
-import { CurrentSessionService } from '@app/domains/identity-access/application/current-session/current-session.service';
+import { CurrentSessionService, CurrentSessionStatus } from '@domains/identity-access';
 
 export const authenticatedOnlyGuard: CanActivateFn = () => {
   const currentSessionService = inject(CurrentSessionService);

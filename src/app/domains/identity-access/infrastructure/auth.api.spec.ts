@@ -7,7 +7,7 @@ import { CurrentUserDto } from './current-session/current-user.dto';
 import { SignInRequestDto } from './sign-in/sign-in.dto';
 import { SignUpRequestDto } from './sign-up/sign-up.dto';
 
-import { API_BASE_URL } from '@app/core/tokens';
+import { API_BASE_URL } from '@core/tokens';
 
 const signUpRequestMock: SignUpRequestDto = {
   first_name: 'mockFirstName',

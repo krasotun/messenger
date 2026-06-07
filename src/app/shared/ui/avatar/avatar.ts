@@ -1,6 +1,6 @@
 import { Component, computed, input, signal } from '@angular/core';
 
-import { Nullable } from '@app/shared/types';
+import { Nullable } from '@shared/types';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
 

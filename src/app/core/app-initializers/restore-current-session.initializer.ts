@@ -1,6 +1,6 @@
 import { inject, provideAppInitializer } from '@angular/core';
 
-import { CurrentSessionService } from '@app/domains/identity-access/application/current-session/current-session.service';
+import { CurrentSessionService } from '@domains/identity-access';
 
 export const provideCurrentSessionRestore = () => {
   return provideAppInitializer(() => {

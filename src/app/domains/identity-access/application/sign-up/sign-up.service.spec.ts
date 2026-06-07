@@ -7,7 +7,7 @@ import { AUTH_GATEWAY } from '../auth.gateway';
 import { SignUpInput } from './sign-up.input';
 import { SignUpService } from './sign-up.service';
 
-import { ApplicationError } from '@app/shared/errors';
+import { ApplicationError } from '@shared/errors';
 
 const authGatewayMock = {
   signUp: vi.fn(),

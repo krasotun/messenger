@@ -4,9 +4,9 @@ import { Router } from '@angular/router';
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
 import { CurrentUser } from '../../application/current-session/current-user';
 
-import { Nullable } from '@app/shared/types';
-import { Avatar } from '@app/shared/ui/avatar/avatar';
-import { Popover } from '@app/shared/ui/popover/popover';
+import { Nullable } from '@shared/types';
+import { Avatar } from '@shared/ui/avatar/avatar';
+import { Popover } from '@shared/ui/popover/popover';
 
 interface CurrentUserAvatarView {
   imageUrl: Nullable<string>;

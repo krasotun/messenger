@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { PopoverHandle } from './popover-handle';
 
-import { Nullable } from '@app/shared/types';
+import { Nullable } from '@shared/types';
 
 @Injectable({
   providedIn: 'root',

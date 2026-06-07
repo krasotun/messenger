@@ -7,7 +7,7 @@ import { CurrentSessionResult } from './current-session-result';
 import { CurrentSessionStatus } from './current-session-status';
 import { CurrentUser } from './current-user';
 
-import { Nullable } from '@app/shared/types';
+import { Nullable } from '@shared/types';
 
 @Injectable({
   providedIn: 'root',

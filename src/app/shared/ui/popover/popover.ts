@@ -6,7 +6,7 @@ import { filter, merge, takeUntil } from 'rxjs';
 import { PopoverCoordinator } from './popover-coordinator.service';
 import { PopoverPanel } from './popover-panel/popover-panel';
 
-import { Nullable } from '@app/shared/types';
+import { Nullable } from '@shared/types';
 
 @Directive({
   selector: '[appPopover]',

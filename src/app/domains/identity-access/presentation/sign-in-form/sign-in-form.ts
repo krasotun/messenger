@@ -10,8 +10,8 @@ import {
 import { AuthFlowStatus } from '../../application/auth-flow-status';
 import { SignInService } from '../../application/sign-in/sign-in.service';
 
-import { Button } from '@app/shared/ui/button/button';
-import { FormField } from '@app/shared/ui/form-field/form-field';
+import { Button } from '@shared/ui/button/button';
+import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
 
 interface SignInFormModel {

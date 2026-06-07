@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { mapAuthError } from './auth-error.mapper';
 
-import { ApplicationError } from '@app/shared/errors';
+import { ApplicationError } from '@shared/errors';
 
 describe('mapAuthError', () => {
   it('should return ApplicationError with backend reason', () => {
