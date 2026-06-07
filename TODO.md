@@ -1,20 +1,26 @@
 # TODO
 
-Now: `[Architecture] Define identity-access public API and import boundaries`
+Now: `[Identity] Define profile editing contract`
 
 Next:
 
-1. Normalize import aliases by application layer.
-2. Define `identity-access` public API.
-3. Replace external deep domain imports with public API imports.
-4. Add documented or linted import boundary rules.
-5. Resume `[Identity] Define profile editing contract`:
-   - Define editable and non-editable profile fields.
-   - Check backend API/DTO contract for profile update.
-   - Define application input/result and current session update behavior.
-   - After contract: add `shared/ui/modal` primitive for profile editing flow.
-   - Then wire avatar menu `Profile` action to open edit profile modal.
+1. Define editable and non-editable profile fields.
+2. Check backend API/DTO contract for profile update.
+3. Define application input/result and current session update behavior.
+4. After contract: add `shared/ui/modal` primitive for profile editing flow.
+5. Then wire avatar menu `Profile` action to open edit profile modal.
 
-Scope: architecture boundary clarification only; no product behavior changes, no chats, messages, or settings UI.
+Scope: identity profile editing only; modal after contract; no chats, messages, or settings UI.
 
-Done: `shared/ui/avatar` v1; `CurrentUserAvatarMenu` with avatar trigger, popover menu, and logout redirect.
+Done:
+
+- `shared/ui/avatar` v1.
+- `CurrentUserAvatarMenu` with avatar trigger, popover menu, and logout redirect.
+- Normalized import aliases by application layer.
+- Added `identity-access` public API entrypoint.
+- Added `provideIdentityAccess()` provider boundary with DI contract spec.
+- Added session/current-user public API exports for external `core` consumers.
+- Replaced external static deep imports with `@domains/identity-access`.
+- Documented lazy route imports as route boundary exception.
+- Added ESLint static import boundary rules.
+- Completed `[Architecture] Define identity-access public API and import boundaries`.

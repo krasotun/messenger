@@ -66,7 +66,6 @@ Component -> ApplicationService -> Gateway/Api -> HttpClient
 @core/*     -> app-level infrastructure
 @domains/*  -> bounded contexts
 @shared/*   -> shared primitives
-@app/*      -> app root; использовать только когда нет более точного alias
 ```
 
 Правила:
@@ -77,8 +76,15 @@ Component -> ApplicationService -> Gateway/Api -> HttpClient
 - `pages` и `core/layouts` не должны импортировать глубокие файлы домена.
 - Внешние импорты вида `@domains/identity-access/.../some-internal-file` должны
   быть заменены на imports из public API домена после его определения.
+- Public API домена находится в `src/app/domains/<domain>/index.ts`; внешний
+  static import должен идти через `@domains/<domain>`.
 - `infrastructure` реализует application contracts и не импортируется напрямую
   из UI.
+- Dynamic route imports через `loadComponent` могут указывать на конкретный
+  route component внутри домена. Это lazy boundary, а не static dependency.
+- Широкий alias `@app/*` не используется: он конкурирует с layer-specific aliases
+  и ухудшает auto imports.
+- Правила static imports закреплены в ESLint через `no-restricted-imports`.
 
 ## TDD
 
