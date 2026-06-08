@@ -1,19 +1,19 @@
 # TODO
 
-Now: `[Identity] Define profile editing contract`
+Now: `[UI] Add shared modal primitive`
 
 Next:
 
-1. Define editable and non-editable profile fields.
-2. Check backend API/DTO contract for profile update.
-3. Define application input/result and current session update behavior.
-4. After contract: add `shared/ui/modal` primitive for profile editing flow.
-5. Then wire avatar menu `Profile` action to open edit profile modal.
+1. Add `shared/ui/modal` primitive for profile editing flow.
+2. Then wire avatar menu `Profile` action to open edit profile modal.
 
 Scope: identity profile editing only; modal after contract; no chats, messages, or settings UI.
 
 Done:
 
+- Completed `[Identity] Define profile editing contract`.
+- Added `/user` profile update API contract.
+- Added update profile application contract.
 - `shared/ui/avatar` v1.
 - `CurrentUserAvatarMenu` with avatar trigger, popover menu, and logout redirect.
 - Normalized import aliases by application layer.
