@@ -1,0 +1,25 @@
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name {{ messenger_server_name }};
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    server_name {{ messenger_server_name }};
+
+    root {{ messenger_web_root }};
+    index index.html;
+
+    ssl_certificate /etc/letsencrypt/live/{{ messenger_server_name }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ messenger_server_name }}/privkey.pem;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

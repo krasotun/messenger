@@ -1,13 +1,119 @@
 # TODO
 
-Now: `[UI] Add shared modal primitive`
+Emergency: `[Deployment] Move VDS deployment to https://fastvps.ru/ via Ansible`
+
+Goal: learn Ansible by reproducing the current production server setup on a new VDS.
+
+Status:
+
+- Control node: local MacBook.
+- Ansible is installed locally: `ansible-core 2.21.0`.
+- Current server: `73053.koara.live`.
+- New FastVPS server: `s9865e4c2.fastvps-server.com`.
+- SSH access to the current server works as `deploy`.
+- Ansible ad-hoc `ping` succeeds; Python discovered at `/usr/bin/python3.12`.
+- Ansible ad-hoc `ping` to FastVPS succeeds as `root`.
+- FastVPS `deploy` user bootstrap playbook succeeded: user, sudo group, SSH key, and permissions created.
+- Ansible ad-hoc `ping` to FastVPS succeeds as `deploy`.
+- Ansible `become` on FastVPS works as `deploy` without sudo password.
+- FastVPS HTTP smoke-check passed after deploying Angular artifact: `http://s9865e4c2.fastvps-server.com` returns `200 OK`.
+- FastVPS HTTPS smoke-check passed for `https://s9865e4c2.fastvps-server.com`; HTTP redirects to HTTPS.
+- FastVPS certbot renewal dry-run succeeded for `s9865e4c2.fastvps-server.com`.
+- GitHub Actions deploy public key `github-actions-messenger-deploy` added to FastVPS `deploy` authorized keys.
+- Ansible `become` works with sudo password; `whoami` returns `root`.
+- Current server inventory document: `docs/deployment/current-server-inventory.md`.
+- FastVPS desired state document: `docs/deployment/fastvps-desired-state.md`.
+- Ansible inventory: `ansible/inventories/hosts.yml`.
+- Ansible bootstrap playbook: `ansible/playbooks/bootstrap-deploy-user.yml`.
+- Ansible setup playbook: `ansible/playbooks/setup-server.yml`.
+- Ansible HTTPS playbook: `ansible/playbooks/setup-https.yml`.
+- Ansible responsibility split: local MacBook for server inventory/provisioning; GitHub Actions runner later for repeatable Angular artifact deployment.
+- Current server inventory collected so far: OS, kernel, architecture, hostname, deploy user, sudo policy, SSH permissions, nginx service/sites, certbot certificate/renewal config, firewall status, listening ports, web root permissions, relevant runtime/deployment packages, nginx logs, environment/config file check, backups absence.
+- Desired FastVPS decisions: initial access is root SSH only, bootstrap `deploy` with passwordless sudo for Ansible, then manage through `deploy` with sudo/become; keep SSH on `22`, enable UFW for `22/80/443`, enable only nginx `messenger` site, no web root backups for static frontend.
+- New FastVPS server hostname is known: `s9865e4c2.fastvps-server.com`.
+
+Steps:
+
+0. Check Ansible prerequisites:
+   - Done: control node selected: local MacBook.
+   - Done: Ansible installed locally: `ansible-core 2.21.0`.
+   - Done: SSH access from the control node to the current server works.
+   - Done: Python is available on the current server: `/usr/bin/python3.12`.
+   - Done: sudo/become works with `--ask-become-pass`.
+   - Done: root SSH access and Python verified on `s9865e4c2.fastvps-server.com`.
+1. Inventory the current server:
+   - Done: OS and version.
+   - Done: kernel, architecture, hostname.
+   - Done: users, SSH access, sudo rules.
+   - Done: nginx service state, enabled sites, and site configs.
+   - Done: certbot version, certificate metadata, renewal config, and renewal timer.
+   - Done: firewall status and listening ports.
+   - Done: web root ownership, permissions, and top-level artifact shape.
+   - Done: installed packages relevant to runtime and deployment.
+   - Done: nginx log directory and rotation shape.
+   - Done: environment/config files check.
+   - Done: backups check; no backup flow is configured.
+   - Done: define desired FastVPS state from the inventory.
+   - Done: verify root SSH/Python prerequisites on `s9865e4c2.fastvps-server.com`.
+   - Done: bootstrap `deploy` user.
+   - Done: verify normal Ansible access to `deploy`.
+   - Done: verify sudo/become for `deploy`.
+2. Convert inventory into Ansible-managed state:
+   - Done: create inventory for the current server and the new FastVPS server.
+   - Done: verify Ansible `ping` against `fastvps_bootstrap`.
+   - Done: define bootstrap contract for managed `deploy` user.
+   - Done: run `bootstrap-deploy-user.yml`.
+   - Done: verify `fastvps_managed` ping.
+   - Done: verify `fastvps_managed` become without sudo password.
+   - Done: define `setup-server.yml` contract for nginx, UFW, certbot, and web root.
+   - Done: syntax-check and run `setup-server.yml`.
+   - Done: verify HTTP before adding HTTPS.
+   - Done: add HTTPS/certbot setup.
+   - Done: run `setup-https.yml` and verify HTTPS plus HTTP redirect.
+   - Done: verify certificate renewal with `certbot renew --dry-run`.
+   - Next: update GitHub Actions `VDS_HOST` secret to `s9865e4c2.fastvps-server.com` and verify full CD deploy.
+   - Extract repeatable setup into roles/playbooks.
+   - Keep `setup-server.yml` runnable locally from the MacBook for inventory, bootstrap, and provisioning.
+   - Later add `deploy-app.yml` runnable from GitHub Actions for deploying the built Angular artifact.
+   - Keep secrets outside the repository.
+   - Make playbooks idempotent.
+3. Apply the setup to the new VDS.
+4. Verify deployment on the new VDS before switching traffic:
+   - Done: app responds over HTTP after artifact deployment.
+   - Done: app starts successfully.
+   - Done: HTTPS works.
+   - Done: certificate renewal dry-run works.
+   - Reverse proxy routes are correct.
+   - Logs and restart policy work.
+   - Backup/restore path is understood.
+5. Switch traffic only after rollback path is defined.
+
+Now: `[Shared UI] Add modal primitive`
 
 Next:
 
-1. Add `shared/ui/modal` primitive for profile editing flow.
-2. Then wire avatar menu `Profile` action to open edit profile modal.
+1. Define service-based modal primitive behavior and test contract.
+2. Build `shared/ui/modal` on Angular CDK Overlay:
+   - `ModalService.open(component)`.
+   - `ModalRef.close()`.
+   - Close on backdrop click.
+   - Close on `Escape`.
+   - Dispose overlay after close.
+3. Then wire avatar menu `Profile` action to open edit profile modal.
 
-Scope: identity profile editing only; modal after contract; no chats, messages, or settings UI.
+Scope: shared modal primitive as prerequisite for identity profile editing; no profile form, no identity business logic, no chats, messages, or settings UI.
+
+Learning:
+
+- `[Bash] Build a simple project status helper`.
+  1. Create `scripts/project-status.sh` with a shebang and strict mode.
+  2. Print the project root.
+  3. Print the current git branch.
+  4. Print changed files from git status.
+  5. Print available npm scripts from `package.json`.
+  6. Add small checks for missing required commands.
+  7. Run `bash -n scripts/project-status.sh` and then run the script manually.
+- Later: evolve it into a boundary checker for import rules and shared/domain layer constraints.
 
 Done:
 

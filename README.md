@@ -1,6 +1,6 @@
-[![ci](https://github.com/krasotun/messenger/actions/workflows/ci.yml/badge.svg)](https://github.com/krasotun/messenger/actions/workflows/ci.yml)
-
 # Messenger
+
+[![ci](https://github.com/krasotun/messenger/actions/workflows/ci.yml/badge.svg)](https://github.com/krasotun/messenger/actions/workflows/ci.yml)
 
 Учебное Angular-приложение для отработки архитектурного мышления, TDD-дисциплины
 и постепенного развития бизнес-логики.
@@ -9,7 +9,42 @@ Production: https://73053.koara.live
 
 API reference: https://ya-praktikum.tech/api/v2/swagger/#/
 
-## Architecture
+## Команды
+
+```bash
+npm install
+npm start
+npm run build
+npm run test:ci
+npm run lint
+```
+
+Дополнительно:
+
+```bash
+npm run test:coverage
+npm run e2e
+npm run e2e:visual
+npm run e2e:local
+npm run e2e:report
+```
+
+Визуальный запуск E2E:
+
+```bash
+npx playwright test --ui
+```
+
+Docker:
+
+```bash
+npm run docker:build
+npm run docker:run
+npm run compose:e2e:up
+npm run compose:e2e:down
+```
+
+## Архитектура
 
 Используем подход:
 
@@ -17,50 +52,56 @@ API reference: https://ya-praktikum.tech/api/v2/swagger/#/
 Domain-first Angular + lightweight DDD boundaries
 ```
 
-Текущая структура:
+## Слои
 
 ```text
-src/app
-  app config/routes/root component
-  core       app-level infrastructure
-  pages      route-level pages outside a domain
-  domains    business bounded contexts
-  shared     reusable technical and UI primitives
+shared/ui
+  reusable UI primitives, no domain knowledge
+
+domains/identity/application
+  identity use cases and contracts, no Angular UI details
+
+domains/identity/ui or identity feature components
+  identity screens/components, may use shared/ui and identity application contracts
+
+app/root
+  bootstrap, routes, providers, global wiring
 ```
 
-Основной bounded context сейчас:
+`app/root` - это роль, а не обязательно отдельная папка. В Angular ее могут
+выполнять `app.config.ts`, routes, root providers, root/layout components и
+другие места, где приложение связывает зависимости.
+
+## Границы слоев
+
+- `shared/ui` не импортирует домены, страницы, app/root или core-инфраструктуру.
+- `shared/ui` не знает про identity/profile/chats/messages и другие бизнес-сценарии.
+- Domain/application слой описывает use cases, контракты и бизнес-сценарии без
+  Angular UI-деталей.
+- UI feature components могут использовать `shared/ui` и application contracts
+  своего домена.
+- Infrastructure реализует application contracts и не импортируется напрямую из UI.
+- App/root слой связывает routes, providers, bootstrap и feature entrypoints.
+
+Пример для modal/profile:
 
 ```text
-src/app/domains/identity-access
-  domain
-  application
-  infrastructure
-  presentation
+shared/ui/modal
+  knows how to open and close modal content
+  does not know about profile editing
+
+identity profile UI
+  opens EditProfile modal through shared modal primitive
+  knows about profile screen behavior
+
+identity application
+  updates profile through an application contract
+  does not know about ModalRef, Overlay, DOM or forms
 ```
-
-Смысл слоев:
-
-- `domain` - бизнес-модель без Angular, UI, Router, HttpClient и browser storage.
-- `application` - use cases, orchestration, application state, input/result contracts.
-- `infrastructure` - HTTP API, DTO, mappers, backend adapters.
-- `presentation` - Angular UI, pages, forms, component-level behavior.
-- `shared` - переиспользуемый технический и UI-код без бизнес-логики.
-- `core` - bootstrap, routing guards, app initializers, layouts, tokens.
-
-Предпочтительный поток:
-
-```text
-Component -> ApplicationService -> Gateway/Api -> HttpClient
-```
-
-Компоненты не вызывают `HttpClient`, API services и browser storage напрямую.
 
 ## Import Boundaries
 
-Проект движется к public API для доменов. Внешний код не должен зависеть от
-внутренней структуры bounded context.
-
-Целевые aliases:
+Основные aliases:
 
 ```text
 @core/*     -> app-level infrastructure
@@ -68,23 +109,13 @@ Component -> ApplicationService -> Gateway/Api -> HttpClient
 @shared/*   -> shared primitives
 ```
 
-Правила:
+Правила static imports закреплены в ESLint через `no-restricted-imports`.
 
-- `shared` не импортирует `app`, `core`, `pages` или `domains`.
-- `core` может импортировать только публичный API домена, но не его
-  `infrastructure`.
-- `pages` и `core/layouts` не должны импортировать глубокие файлы домена.
-- Внешние импорты вида `@domains/identity-access/.../some-internal-file` должны
-  быть заменены на imports из public API домена после его определения.
-- Public API домена находится в `src/app/domains/<domain>/index.ts`; внешний
-  static import должен идти через `@domains/<domain>`.
-- `infrastructure` реализует application contracts и не импортируется напрямую
-  из UI.
-- Dynamic route imports через `loadComponent` могут указывать на конкретный
-  route component внутри домена. Это lazy boundary, а не static dependency.
-- Широкий alias `@app/*` не используется: он конкурирует с layer-specific aliases
-  и ухудшает auto imports.
-- Правила static imports закреплены в ESLint через `no-restricted-imports`.
+Перед новым импортом проверяй вопрос:
+
+> Почему этот слой имеет право знать об этом модуле?
+
+Если ответ только "так удобнее", граница, скорее всего, выбрана неправильно.
 
 ## TDD
 
@@ -104,40 +135,3 @@ spec -> minimal implementation -> refactor
 
 Production-реализация новой бизнес-логики не добавляется без тестового сценария,
 если это не документация, конфигурация или явно оговоренный технический долг.
-
-## State
-
-Для локального application state используем Angular Signals.
-
-RxJS используем для HTTP, WebSocket и stream-сценариев.
-
-NgRx на текущем этапе не используем.
-
-## Naming
-
-```text
-*.api.ts       HTTP requests only
-*.dto.ts       backend contracts
-*.input.ts     application scenario input
-*.result.ts    application scenario result
-*.mapper.ts    mapping
-*.service.ts   state, session, infrastructure или application services
-```
-
-Не используем `store` naming для текущих state services.
-
-## Development
-
-```bash
-npm install
-npm start
-npm run build
-npm test -- --watch=false
-npm run lint
-```
-
-Визуальный запуск E2E:
-
-```bash
-npx playwright test --ui
-```

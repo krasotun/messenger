@@ -1,0 +1,72 @@
+- name: Configure HTTPS for Messenger frontend
+  hosts: fastvps_managed
+  become: true
+  gather_facts: false
+
+  vars:
+    messenger_server_name: s9865e4c2.fastvps-server.com
+    messenger_web_root: /var/www/messenger
+    letsencrypt_email: ""
+
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+
+  tasks:
+    - name: Verify Let's Encrypt email is provided
+      ansible.builtin.assert:
+        that:
+          - letsencrypt_email | length > 0
+          - "'@' in letsencrypt_email"
+        fail_msg: "Pass Let's Encrypt email with -e letsencrypt_email=you@example.com"
+
+    - name: Verify web root exists before certificate issuance
+      ansible.builtin.stat:
+        path: "{{ messenger_web_root }}"
+      register: messenger_web_root_stat
+
+    - name: Assert web root exists
+      ansible.builtin.assert:
+        that:
+          - messenger_web_root_stat.stat.exists
+          - messenger_web_root_stat.stat.isdir
+        fail_msg: "Expected web root to exist before HTTPS setup: {{ messenger_web_root }}"
+
+    - name: Issue Let's Encrypt certificate through webroot
+      ansible.builtin.command:
+        cmd: >-
+          certbot certonly
+          --webroot
+          --webroot-path {{ messenger_web_root }}
+          --non-interactive
+          --agree-tos
+          --email {{ letsencrypt_email }}
+          --domain {{ messenger_server_name }}
+        creates: "/etc/letsencrypt/live/{{ messenger_server_name }}/fullchain.pem"
+
+    - name: Install Messenger nginx HTTPS site
+      ansible.builtin.template:
+        src: templates/nginx-messenger-https.conf.j2
+        dest: /etc/nginx/sites-available/messenger
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload nginx
+
+    - name: Validate nginx configuration
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Ensure nginx is enabled and running
+      ansible.builtin.service:
+        name: nginx
+        enabled: true
+        state: started
+
+    - name: Ensure certbot renewal timer is enabled and running
+      ansible.builtin.service:
+        name: certbot.timer
+        enabled: true
+        state: started

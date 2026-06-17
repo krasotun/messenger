@@ -1,0 +1,13 @@
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name {{ messenger_server_name }};
+
+    root {{ messenger_web_root }};
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
