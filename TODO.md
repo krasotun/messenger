@@ -20,6 +20,9 @@ Status:
 - FastVPS HTTPS smoke-check passed for `https://s9865e4c2.fastvps-server.com`; HTTP redirects to HTTPS.
 - FastVPS certbot renewal dry-run succeeded for `s9865e4c2.fastvps-server.com`.
 - GitHub Actions deploy public key `github-actions-messenger-deploy` added to FastVPS `deploy` authorized keys.
+- GitHub Actions deployment to FastVPS verified: `/var/www/messenger` updated on `s9865e4c2.fastvps-server.com` at `2026-06-17 20:09`; old server artifact remains from `2026-06-15 22:18`.
+- Local `deploy-app.yml` run verified: Angular artifact uploads to FastVPS and deployed `index.html` exists.
+- Old `73053.koara.live` VDS is no longer a rollback target; FastVPS is the active deployment target.
 - Ansible `become` works with sudo password; `whoami` returns `root`.
 - Current server inventory document: `docs/deployment/current-server-inventory.md`.
 - FastVPS desired state document: `docs/deployment/fastvps-desired-state.md`.
@@ -27,7 +30,8 @@ Status:
 - Ansible bootstrap playbook: `ansible/playbooks/bootstrap-deploy-user.yml`.
 - Ansible setup playbook: `ansible/playbooks/setup-server.yml`.
 - Ansible HTTPS playbook: `ansible/playbooks/setup-https.yml`.
-- Ansible responsibility split: local MacBook for server inventory/provisioning; GitHub Actions runner later for repeatable Angular artifact deployment.
+- Ansible app deploy playbook: `ansible/playbooks/deploy-app.yml`.
+- Ansible responsibility split: local MacBook for server inventory/provisioning; GitHub Actions runner for repeatable Angular artifact deployment.
 - Current server inventory collected so far: OS, kernel, architecture, hostname, deploy user, sudo policy, SSH permissions, nginx service/sites, certbot certificate/renewal config, firewall status, listening ports, web root permissions, relevant runtime/deployment packages, nginx logs, environment/config file check, backups absence.
 - Desired FastVPS decisions: initial access is root SSH only, bootstrap `deploy` with passwordless sudo for Ansible, then manage through `deploy` with sudo/become; keep SSH on `22`, enable UFW for `22/80/443`, enable only nginx `messenger` site, no web root backups for static frontend.
 - New FastVPS server hostname is known: `s9865e4c2.fastvps-server.com`.
@@ -71,10 +75,12 @@ Steps:
    - Done: add HTTPS/certbot setup.
    - Done: run `setup-https.yml` and verify HTTPS plus HTTP redirect.
    - Done: verify certificate renewal with `certbot renew --dry-run`.
-   - Next: update GitHub Actions `VDS_HOST` secret to `s9865e4c2.fastvps-server.com` and verify full CD deploy.
+   - Done: update GitHub Actions `VDS_HOST` secret to `s9865e4c2.fastvps-server.com` and verify full CD deploy.
+   - Next: define FastVPS-only rollback plan before decommissioning the old VDS.
    - Extract repeatable setup into roles/playbooks.
    - Keep `setup-server.yml` runnable locally from the MacBook for inventory, bootstrap, and provisioning.
-   - Later add `deploy-app.yml` runnable from GitHub Actions for deploying the built Angular artifact.
+   - Done: add `deploy-app.yml` runnable from GitHub Actions for deploying the built Angular artifact.
+   - Done: verify local `deploy-app.yml` run against FastVPS.
    - Keep secrets outside the repository.
    - Make playbooks idempotent.
 3. Apply the setup to the new VDS.
@@ -86,7 +92,7 @@ Steps:
    - Reverse proxy routes are correct.
    - Logs and restart policy work.
    - Backup/restore path is understood.
-5. Switch traffic only after rollback path is defined.
+5. Decommission old VDS only after FastVPS-only rollback path is defined.
 
 Now: `[Shared UI] Add modal primitive`
 

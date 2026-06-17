@@ -1,0 +1,62 @@
+- name: Deploy Messenger frontend artifact
+  hosts: fastvps_managed
+  gather_facts: false
+
+  vars:
+    repo_root: "{{ playbook_dir }}/../.."
+    local_build_dir: "{{ lookup('env', 'MESSENGER_BUILD_DIR') | default(repo_root + '/dist/messenger/browser', true) }}"
+    remote_web_root: /var/www/messenger
+    deploy_ssh_command: >-
+      ssh
+      {% if ansible_ssh_private_key_file is defined %}
+      -i {{ ansible_ssh_private_key_file }}
+      {% endif %}
+      -o StrictHostKeyChecking=yes
+
+  tasks:
+    - name: Verify local Angular build artifact exists
+      ansible.builtin.stat:
+        path: "{{ local_build_dir }}/index.html"
+      delegate_to: localhost
+      register: local_index
+
+    - name: Assert local Angular build artifact is ready
+      ansible.builtin.assert:
+        that:
+          - local_index.stat.exists
+          - local_index.stat.isreg
+        fail_msg: "Expected Angular build artifact at {{ local_build_dir }}/index.html. Run npm run build first."
+
+    - name: Ensure remote web root exists
+      ansible.builtin.file:
+        path: "{{ remote_web_root }}"
+        state: directory
+        owner: deploy
+        group: deploy
+        mode: "0755"
+      become: true
+
+    - name: Upload Angular build artifact
+      ansible.builtin.command:
+        argv:
+          - rsync
+          - -az
+          - --delete
+          - -e
+          - "{{ deploy_ssh_command }}"
+          - "{{ local_build_dir }}/"
+          - "{{ ansible_user }}@{{ ansible_host }}:{{ remote_web_root }}/"
+      delegate_to: localhost
+      changed_when: true
+
+    - name: Verify deployed index.html exists
+      ansible.builtin.stat:
+        path: "{{ remote_web_root }}/index.html"
+      register: remote_index
+
+    - name: Assert deployed artifact is present
+      ansible.builtin.assert:
+        that:
+          - remote_index.stat.exists
+          - remote_index.stat.isreg
+        fail_msg: "Expected deployed artifact at {{ remote_web_root }}/index.html"
