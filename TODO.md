@@ -1,6 +1,6 @@
 # TODO
 
-Emergency: `[Deployment] Move VDS deployment to https://firstvds.ru/ via Ansible`
+Emergency: `[Deployment] Move VDS deployment to https://fastvps.ru/ via Ansible`
 
 Goal: learn Ansible by reproducing the current production server setup on a new VDS.
 
@@ -9,14 +9,28 @@ Status:
 - Control node: local MacBook.
 - Ansible is installed locally: `ansible-core 2.21.0`.
 - Current server: `73053.koara.live`.
+- New FastVPS server: `s9865e4c2.fastvps-server.com`.
 - SSH access to the current server works as `deploy`.
 - Ansible ad-hoc `ping` succeeds; Python discovered at `/usr/bin/python3.12`.
+- Ansible ad-hoc `ping` to FastVPS succeeds as `root`.
+- FastVPS `deploy` user bootstrap playbook succeeded: user, sudo group, SSH key, and permissions created.
+- Ansible ad-hoc `ping` to FastVPS succeeds as `deploy`.
+- Ansible `become` on FastVPS works as `deploy` without sudo password.
+- FastVPS HTTP smoke-check passed after deploying Angular artifact: `http://s9865e4c2.fastvps-server.com` returns `200 OK`.
+- FastVPS HTTPS smoke-check passed for `https://s9865e4c2.fastvps-server.com`; HTTP redirects to HTTPS.
+- FastVPS certbot renewal dry-run succeeded for `s9865e4c2.fastvps-server.com`.
+- GitHub Actions deploy public key `github-actions-messenger-deploy` added to FastVPS `deploy` authorized keys.
 - Ansible `become` works with sudo password; `whoami` returns `root`.
 - Current server inventory document: `docs/deployment/current-server-inventory.md`.
-- FirstVDS desired state document: `docs/deployment/firstvds-desired-state.md`.
+- FastVPS desired state document: `docs/deployment/fastvps-desired-state.md`.
+- Ansible inventory: `ansible/inventories/hosts.yml`.
+- Ansible bootstrap playbook: `ansible/playbooks/bootstrap-deploy-user.yml`.
+- Ansible setup playbook: `ansible/playbooks/setup-server.yml`.
+- Ansible HTTPS playbook: `ansible/playbooks/setup-https.yml`.
+- Ansible responsibility split: local MacBook for server inventory/provisioning; GitHub Actions runner later for repeatable Angular artifact deployment.
 - Current server inventory collected so far: OS, kernel, architecture, hostname, deploy user, sudo policy, SSH permissions, nginx service/sites, certbot certificate/renewal config, firewall status, listening ports, web root permissions, relevant runtime/deployment packages, nginx logs, environment/config file check, backups absence.
-- Desired FirstVDS decisions: initial access is root SSH only, bootstrap `deploy`, then manage through `deploy` with sudo/become; keep SSH on `22`, enable UFW for `22/80/443`, enable only nginx `messenger` site, no web root backups for static frontend.
-- New FirstVDS server is not created yet; proceed with current server inventory first.
+- Desired FastVPS decisions: initial access is root SSH only, bootstrap `deploy` with passwordless sudo for Ansible, then manage through `deploy` with sudo/become; keep SSH on `22`, enable UFW for `22/80/443`, enable only nginx `messenger` site, no web root backups for static frontend.
+- New FastVPS server hostname is known: `s9865e4c2.fastvps-server.com`.
 
 Steps:
 
@@ -26,7 +40,7 @@ Steps:
    - Done: SSH access from the control node to the current server works.
    - Done: Python is available on the current server: `/usr/bin/python3.12`.
    - Done: sudo/become works with `--ask-become-pass`.
-   - After creating the new FirstVDS server, verify SSH access and Python there.
+   - Done: root SSH access and Python verified on `s9865e4c2.fastvps-server.com`.
 1. Inventory the current server:
    - Done: OS and version.
    - Done: kernel, architecture, hostname.
@@ -39,18 +53,36 @@ Steps:
    - Done: nginx log directory and rotation shape.
    - Done: environment/config files check.
    - Done: backups check; no backup flow is configured.
-   - Done: define desired FirstVDS state from the inventory.
-   - Next: create the FirstVDS server and verify root SSH/Python prerequisites there.
-   - Then: bootstrap `deploy` user and switch normal Ansible access to `deploy` with sudo/become.
+   - Done: define desired FastVPS state from the inventory.
+   - Done: verify root SSH/Python prerequisites on `s9865e4c2.fastvps-server.com`.
+   - Done: bootstrap `deploy` user.
+   - Done: verify normal Ansible access to `deploy`.
+   - Done: verify sudo/become for `deploy`.
 2. Convert inventory into Ansible-managed state:
-   - Create inventory for the current server and the new FirstVDS server.
+   - Done: create inventory for the current server and the new FastVPS server.
+   - Done: verify Ansible `ping` against `fastvps_bootstrap`.
+   - Done: define bootstrap contract for managed `deploy` user.
+   - Done: run `bootstrap-deploy-user.yml`.
+   - Done: verify `fastvps_managed` ping.
+   - Done: verify `fastvps_managed` become without sudo password.
+   - Done: define `setup-server.yml` contract for nginx, UFW, certbot, and web root.
+   - Done: syntax-check and run `setup-server.yml`.
+   - Done: verify HTTP before adding HTTPS.
+   - Done: add HTTPS/certbot setup.
+   - Done: run `setup-https.yml` and verify HTTPS plus HTTP redirect.
+   - Done: verify certificate renewal with `certbot renew --dry-run`.
+   - Next: update GitHub Actions `VDS_HOST` secret to `s9865e4c2.fastvps-server.com` and verify full CD deploy.
    - Extract repeatable setup into roles/playbooks.
+   - Keep `setup-server.yml` runnable locally from the MacBook for inventory, bootstrap, and provisioning.
+   - Later add `deploy-app.yml` runnable from GitHub Actions for deploying the built Angular artifact.
    - Keep secrets outside the repository.
    - Make playbooks idempotent.
 3. Apply the setup to the new VDS.
 4. Verify deployment on the new VDS before switching traffic:
-   - App starts successfully.
-   - HTTPS works.
+   - Done: app responds over HTTP after artifact deployment.
+   - Done: app starts successfully.
+   - Done: HTTPS works.
+   - Done: certificate renewal dry-run works.
    - Reverse proxy routes are correct.
    - Logs and restart policy work.
    - Backup/restore path is understood.

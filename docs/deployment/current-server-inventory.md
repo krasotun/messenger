@@ -1,10 +1,10 @@
 # Current Server Inventory
 
-Purpose: capture the current VDS state before reproducing it with Ansible on a new FirstVDS server.
+Purpose: capture the current VDS state before reproducing it with Ansible on a new FastVPS server.
 
 Related manual deployment notes: `docs/deployment/manual-vds-deploy.md`.
 
-Target FirstVDS state: `docs/deployment/firstvds-desired-state.md`.
+Target FastVPS state: `docs/deployment/fastvps-desired-state.md`.
 
 ## Server
 
@@ -100,7 +100,7 @@ Target FirstVDS state: `docs/deployment/firstvds-desired-state.md`.
 - Index files: `index.html`, `index.htm`, `index.nginx-debian.html`.
 - `server_name`: `_`.
 - Location `/` uses `try_files $uri $uri/ =404`.
-- Candidate desired state for the FirstVDS migration: keep the file as package reference if present, but do not enable the default site unless there is a concrete reason.
+- Candidate desired state for the FastVPS migration: keep the file as package reference if present, but do not enable the default site unless there is a concrete reason.
 
 ## Certbot And TLS
 
@@ -128,7 +128,7 @@ Target FirstVDS state: `docs/deployment/firstvds-desired-state.md`.
 - Renewal installer: `nginx`.
 - Renewal ACME server: `https://acme-v02.api.letsencrypt.org/directory`.
 - Renewal key type: `ecdsa`.
-- Desired FirstVDS behavior: issue a new certificate for the target domain through certbot nginx integration rather than copying the current private key.
+- Desired FastVPS behavior: issue a new certificate for the target domain through certbot nginx integration rather than copying the current private key.
 
 ## Firewall And Network Exposure
 
@@ -141,7 +141,7 @@ Target FirstVDS state: `docs/deployment/firstvds-desired-state.md`.
   - `127.0.0.53:53`: `systemd-resolve`.
   - `127.0.0.54:53`: `systemd-resolve`.
 - No unexpected public application ports were observed.
-- Desired FirstVDS behavior: define firewall policy explicitly instead of inheriting the current inactive UFW state by accident.
+- Desired FastVPS behavior: define firewall policy explicitly instead of inheriting the current inactive UFW state by accident.
 
 ## Web Root
 
@@ -193,7 +193,7 @@ Target FirstVDS state: `docs/deployment/firstvds-desired-state.md`.
 
 - No backup flow is configured for the current deployment.
 - For the current static frontend, the practical recovery path is redeploying the production build through GitHub Actions.
-- Desired FirstVDS behavior: explicitly decide whether web root backups are needed or whether redeploy from source/CD is the accepted recovery path.
+- Desired FastVPS behavior: explicitly decide whether web root backups are needed or whether redeploy from source/CD is the accepted recovery path.
 
 ## Inventory Log
 
@@ -220,6 +220,6 @@ Target FirstVDS state: `docs/deployment/firstvds-desired-state.md`.
 
 ## Next Facts To Collect
 
-- Decide desired FirstVDS firewall policy.
-- Decide whether default nginx site should be disabled on FirstVDS.
+- Decide desired FastVPS firewall policy.
+- Decide whether default nginx site should be disabled on FastVPS.
 - Decide whether web root backups are needed or redeploy through GitHub Actions is enough.

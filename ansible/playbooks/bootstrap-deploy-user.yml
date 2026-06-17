@@ -1,0 +1,54 @@
+- name: Bootstrap managed deploy user
+  hosts: fastvps_bootstrap
+  gather_facts: false
+
+  vars:
+    deploy_user: deploy
+    deploy_public_key_file: "{{ lookup('env', 'HOME') }}/.ssh/id_ed25519.pub"
+
+  tasks:
+    - name: Verify local deploy public key exists
+      ansible.builtin.assert:
+        that:
+          - lookup('ansible.builtin.file', deploy_public_key_file) | length > 0
+        fail_msg: "Expected public key file was not found or is empty: {{ deploy_public_key_file }}"
+
+    - name: Ensure deploy user exists
+      ansible.builtin.user:
+        name: "{{ deploy_user }}"
+        shell: /bin/bash
+        create_home: true
+        groups: sudo
+        append: true
+
+    - name: Ensure deploy SSH directory permissions
+      ansible.builtin.file:
+        path: "/home/{{ deploy_user }}/.ssh"
+        state: directory
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: "0700"
+
+    - name: Install deploy public key
+      ansible.builtin.authorized_key:
+        user: "{{ deploy_user }}"
+        key: "{{ lookup('ansible.builtin.file', deploy_public_key_file) }}"
+        state: present
+        manage_dir: false
+
+    - name: Ensure deploy authorized_keys permissions
+      ansible.builtin.file:
+        path: "/home/{{ deploy_user }}/.ssh/authorized_keys"
+        state: file
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: "0600"
+
+    - name: Allow deploy user to run sudo without password
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ deploy_user }}"
+        content: "{{ deploy_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: "0440"
+        validate: /usr/sbin/visudo -cf %s

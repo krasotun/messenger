@@ -32,6 +32,7 @@ yarn-error.log
 
 # Miscellaneous
 /.angular/cache
+/.ansible/
 .sass-cache/
 /connect.lock
 /coverage
