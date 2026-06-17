@@ -104,6 +104,7 @@ Source inventory: `docs/deployment/current-server-inventory.md`.
 
 - Web root backups are not required for the current static frontend.
 - Accepted recovery path: redeploy the production build through GitHub Actions.
+- Old `73053.koara.live` VDS is not a rollback target after FastVPS migration.
 - If the deployment later gains server-side state, this decision must be revisited.
 
 ## Open Before Playbook

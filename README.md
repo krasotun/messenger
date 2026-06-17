@@ -5,7 +5,7 @@
 Учебное Angular-приложение для отработки архитектурного мышления, TDD-дисциплины
 и постепенного развития бизнес-логики.
 
-Production: https://73053.koara.live
+Production: https://s9865e4c2.fastvps-server.com
 
 API reference: https://ya-praktikum.tech/api/v2/swagger/#/
 
@@ -43,6 +43,45 @@ npm run docker:run
 npm run compose:e2e:up
 npm run compose:e2e:down
 ```
+
+## Deployment
+
+Production runs on FastVPS:
+
+```text
+s9865e4c2.fastvps-server.com
+```
+
+The frontend is served as static files through host nginx:
+
+```text
+FastVPS nginx :443 -> /var/www/messenger -> Angular build artifact
+```
+
+Server provisioning is managed with local Ansible:
+
+```bash
+ansible-playbook ansible/playbooks/bootstrap-deploy-user.yml
+ansible-playbook ansible/playbooks/setup-server.yml
+ansible-playbook ansible/playbooks/setup-https.yml -e letsencrypt_email=...
+```
+
+Application deployment is handled by GitHub Actions:
+
+```text
+npm ci -> lint -> test:ci -> e2e -> build -> ansible-playbook deploy-app.yml
+```
+
+Required GitHub Actions secrets:
+
+```text
+VDS_SSH_PRIVATE_KEY
+VDS_HOST=s9865e4c2.fastvps-server.com
+VDS_USER=deploy
+VDS_WEB_ROOT=/var/www/messenger
+```
+
+The old `73053.koara.live` VDS is not a rollback target. Rollback means redeploying a previous working commit/artifact to FastVPS through GitHub Actions.
 
 ## Архитектура
 
