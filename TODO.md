@@ -22,6 +22,7 @@ Status:
 - GitHub Actions deploy public key `github-actions-messenger-deploy` added to FastVPS `deploy` authorized keys.
 - GitHub Actions deployment to FastVPS verified: `/var/www/messenger` updated on `s9865e4c2.fastvps-server.com` at `2026-06-17 20:09`; old server artifact remains from `2026-06-15 22:18`.
 - Local `deploy-app.yml` run verified: Angular artifact uploads to FastVPS and deployed `index.html` exists.
+- GitHub Actions deployment through `ansible/playbooks/deploy-app.yml` verified successfully.
 - Old `73053.koara.live` VDS is no longer a rollback target; FastVPS is the active deployment target.
 - Ansible `become` works with sudo password; `whoami` returns `root`.
 - Current server inventory document: `docs/deployment/current-server-inventory.md`.
@@ -81,6 +82,7 @@ Steps:
    - Keep `setup-server.yml` runnable locally from the MacBook for inventory, bootstrap, and provisioning.
    - Done: add `deploy-app.yml` runnable from GitHub Actions for deploying the built Angular artifact.
    - Done: verify local `deploy-app.yml` run against FastVPS.
+   - Done: verify GitHub Actions deploy through `deploy-app.yml`.
    - Keep secrets outside the repository.
    - Make playbooks idempotent.
 3. Apply the setup to the new VDS.
@@ -96,16 +98,26 @@ Steps:
 
 Now: `[Shared UI] Add modal primitive`
 
+Status:
+
+- Feature contract drafted in `docs/features/shared-modal.md`: `Goal`, `Scope`, `Out of scope`, `Behavior`, `Test scenarios`, `Design notes` sections done.
+- Key decisions locked in: single active modal at a time (no nested/stacked modals; guard is a defensive no-op, not a real user-facing path, and does not affect the already-open modal); close cross is intrinsic to the modal; unified `close` event regardless of trigger (cross, `Escape`, backdrop, or content-driven cancel); `save` is a separate content-driven event carrying data (payload must be asserted, not just the event); no "opened" notification (dropped per YAGNI, no consumer yet); three width presets (`small`/`medium`/`large`, default `medium`), height always driven by content and reactive to content changes; click inside modal does not close it; overlay is disposed after close.
+- Entry point: `ModalService.open(component)` via Angular CDK Overlay, content wired through DI (not inheritance) for `ModalRef`-style close/save communication.
+- `header`/`main`/`footer` layout dropped from this primitive's scope per YAGNI; revisit as separate shared components only if a real need shows up.
+- Scaffold exists: `shared/ui/modal/modal-service.ts` (`open()` throws `Not implemented`) and its spec, both still at generator-default state.
+- First TDD scenario picked: `ModalService.open(component)` renders the given component as overlay content (checked via CDK `OverlayContainer`), kept separate from the "no second modal" guard test, which needs the happy path in place first.
+- Collaboration mode confirmed: user writes all code (production and tests); assistant only consults, reviews, and asks guiding questions.
+
 Next:
 
-1. Define service-based modal primitive behavior and test contract.
-2. Build `shared/ui/modal` on Angular CDK Overlay:
-   - `ModalService.open(component)`.
-   - `ModalRef.close()`.
-   - Close on backdrop click.
-   - Close on `Escape`.
-   - Dispose overlay after close.
-3. Then wire avatar menu `Profile` action to open edit profile modal.
+1. Build `shared/ui/modal` on Angular CDK Overlay, TDD-driven from `docs/features/shared-modal.md` `Test scenarios`, one scenario at a time:
+   - `ModalService.open(component)` renders content via overlay (in progress — user writing the test).
+   - Single-instance guard as its own test, once open() works.
+   - `ModalRef`-style `close`/`save` communication via DI, not inheritance.
+   - Close on backdrop click, `Escape`, or built-in cross; click inside content does not close.
+   - Width presets (`small`/`medium`/`large`, default `medium`); height by content.
+   - Dispose overlay after close; restore page scroll.
+2. Then wire avatar menu `Profile` action to open edit profile modal.
 
 Scope: shared modal primitive as prerequisite for identity profile editing; no profile form, no identity business logic, no chats, messages, or settings UI.
 

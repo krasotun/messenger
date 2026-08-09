@@ -96,7 +96,7 @@ export class SignUpForm {
     return this._getErrorMessage(this.signUpForm.controls[controlName].errors!);
   }
 
-  hasControlError(controlName: keyof SignUpFormModel): boolean {
+  protected hasControlError(controlName: keyof SignUpFormModel): boolean {
     const { errors, touched } = this.signUpForm.controls[controlName];
 
     return !!errors && touched;
