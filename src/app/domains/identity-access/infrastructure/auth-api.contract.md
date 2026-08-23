@@ -1,197 +1,37 @@
 # Identity Access API Contract
 
-## Sign Up
+Форма запросов и ответов описана типами в `sign-in/sign-in.dto.ts`,
+`sign-up/sign-up.dto.ts`, `current-session/current-user.dto.ts` и проверяется
+тестами мапперов. Здесь - только то, что нельзя выразить типом: адреса,
+работа с сессией и пробелы в Swagger.
 
-### Endpoint
+## Endpoints
 
-- Method: `POST`
-- Path: `/auth/signup`
+| Use case        | Method | Path           | Credentials |
+| --------------- | ------ | -------------- | ----------- |
+| Sign Up         | POST   | `/auth/signup` | -           |
+| Sign In         | POST   | `/auth/signin` | требуются   |
+| Current Session | GET    | `/auth/user`   | требуются   |
+| Logout          | POST   | `/auth/logout` | требуются   |
 
-### Request Body
+`Credentials` означает `withCredentials: true`: запрос должен нести cookie.
 
-All fields are required.
+## Session Handling
 
-- `first_name`: string
-- `second_name`: string
-- `login`: string, uniqueness is enforced by backend
-- `email`: string, pattern `^\S+@\S+$`
-- `password`: string
-- `phone`: string, pattern `^((8|+7)[- ]?)?((?\d{3})?[- ]?)?[\d- ]{7,10}$`
+- Сессией владеет бэкенд и хранит ее в cookie.
+- Фронтенд не сохраняет токены в `localStorage` или `sessionStorage`.
+- Успех sign-in определяется статусом `200 OK`, а не телом ответа. Тело ответа
+  не используется как источник состояния сессии.
+- Источник текущего пользователя - только `GET /auth/user`.
+- `GET /auth/user` отвечает `401`, если активной сессии нет; это не ошибка, а
+  штатный `Anonymous`.
 
-```json
-{
-  "first_name": "string",
-  "second_name": "string",
-  "login": "string",
-  "email": "string",
-  "password": "string",
-  "phone": "string"
-}
-```
+## Известные пробелы Swagger
 
-### Success Response
-
-- Status: `200 OK`
-- Meaning: created user id
-
-```json
-{
-  "id": 0
-}
-```
-
-### Error Responses
-
-- `400 Bad Request`
-
-```json
-{
-  "reason": "string"
-}
-```
-
-- `401 Unauthorized`
-  Swagger does not document the response body.
-
-- `500 Unexpected Error`
-  Swagger does not document the response body.
-
-### Known Limits
-
-- Swagger documents only created user id in the Success response.
-- Swagger does not document field-level validation errors.
-- Swagger does not document response bodies for `401` and `500`.
-
-## Sign In
-
-### Endpoint
-
-- Method: `POST`
-- Path: `/auth/signin`
-
-### Request Body
-
-All fields are required.
-
-- `login`: string
-- `password`: string
-
-```json
-{
-  "login": "string",
-  "password": "string"
-}
-```
-
-### Success Response
-
-- Status: `200 OK`
-- Meaning: sign-in accepted
-- Session: backend sets a session cookie
-
-Swagger does not document the response body. Frontend does not use the response body for
-session storage.
-
-### Session Handling
-
-- Backend owns session persistence through a cookie.
-- Frontend must not store auth tokens in `localStorage` or `sessionStorage`.
-- Sign-in success is determined by successful `200 OK` response.
-- Cross-origin auth requests that rely on cookies must use credentials.
-- Future session restore should be implemented through a cookie-backed current session endpoint.
-
-### Error Responses
-
-- `400 Bad Request`
-
-```json
-{
-  "reason": "string"
-}
-```
-
-- `401 Unauthorized`
-  Swagger does not document the response body.
-
-- `500 Unexpected Error`
-  Swagger does not document the response body.
-
-### Known Limits
-
-- Swagger does not document the `200 OK` response body.
-- Swagger does not document the session cookie attributes.
-- Swagger does not document the current session restore endpoint.
-- Swagger does not document field-level validation errors.
-- Swagger does not document response bodies for `401` and `500`.
-
-## Current Session
-
-### Endpoint
-
-- Method: `GET`
-- Path: `/auth/user`
-- Credentials: request must include cookies through `withCredentials: true`
-
-### Request Body
-
-No request body.
-
-### Success Response
-
-- Status: `200 OK`
-- Meaning: active backend session exists
-
-```json
-{
-  "id": 0,
-  "first_name": "string",
-  "second_name": "string",
-  "display_name": "string",
-  "login": "string",
-  "email": "string",
-  "phone": "string",
-  "avatar": "string"
-}
-```
-
-### Error Responses
-
-- `401 Unauthorized`
-  Active session is absent or invalid.
-
-- `500 Unexpected Error`
-  Swagger does not document the response body.
-
-### Known Limits
-
-- Swagger does not document whether `display_name` and `avatar` can be `null`.
-- Swagger does not document response bodies for `401` and `500`.
-
-## Logout
-
-### Endpoint
-
-- Method: `POST`
-- Path: `/auth/logout`
-- Credentials: request must include cookies through `withCredentials: true`
-
-### Request Body
-
-No request body.
-
-### Success Response
-
-- Status: `200 OK`
-- Meaning: backend session has ended
-
-Swagger does not document the response body. Frontend does not use the response body.
-
-### Error Responses
-
-- `500 Unexpected Error`
-  Swagger does not document the response body.
-
-### Known Limits
-
-- Swagger does not document the `200 OK` response body.
-- Swagger does not document whether logout can return `401` when the session is already absent.
+- Тело ответа `200 OK` не документировано для sign-in и logout.
+- Тела ответов `401` и `500` не документированы ни для одного endpoint.
+- Валидационные ошибки на уровне полей не документированы: в теле `400`
+  приходит только `reason`.
+- Атрибуты session cookie не документированы.
+- Не документировано, могут ли `display_name` и `avatar` быть `null`.
+- Не документировано, возвращает ли logout `401`, если сессия уже отсутствует.

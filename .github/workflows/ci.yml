@@ -1,9 +1,21 @@
 name: ci
+
 on:
   push:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -33,3 +45,37 @@ jobs:
       - run: HUSKY=0 npm ci
       - run: npx playwright install --with-deps
       - run: npm run e2e
+
+  pages:
+    needs: [quality, e2e]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.16.0'
+
+      - run: HUSKY=0 npm ci
+      - run: npm run build -- --base-href /messenger/
+
+      - name: Add SPA fallback for GitHub Pages
+        run: cp dist/messenger/browser/index.html dist/messenger/browser/404.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/messenger/browser
+
+  deploy:
+    needs: pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,5 +1,11 @@
 # Current Server Inventory
 
+> **Archived.** This document describes the VDS deployment that is no longer
+> used. Production now runs on GitHub Pages; see `README.md` and
+> `openspec/specs/deployment/spec.md`. The VDS described here has been
+> decommissioned, the `VDS_*` secrets have been removed, and there is no
+> rollback to it.
+
 Purpose: capture the current VDS state before reproducing it with Ansible on a new FastVPS server.
 
 Related manual deployment notes: `docs/deployment/manual-vds-deploy.md`.

@@ -2,175 +2,94 @@
 
 [![ci](https://github.com/krasotun/messenger/actions/workflows/ci.yml/badge.svg)](https://github.com/krasotun/messenger/actions/workflows/ci.yml)
 
-Учебное Angular-приложение для отработки архитектурного мышления, TDD-дисциплины
-и постепенного развития бизнес-логики.
+Веб-мессенджер на Angular: регистрация и вход, профиль пользователя, чаты и
+сообщения. Работает поверх учебного API Яндекс.Практикума.
 
-Production: https://s9865e4c2.fastvps-server.com
+- Production: https://krasotun.github.io/messenger/
+- API reference: https://ya-praktikum.tech/api/v2/swagger/#/
+- Описание проекта, стек, архитектура и конвенции: `openspec/config.yaml`
+- Требования к поведению системы: `openspec/specs/`
+- Текущие изменения в работе: `openspec/changes/`
 
-API reference: https://ya-praktikum.tech/api/v2/swagger/#/
+## Запуск
 
-## Команды
+Нужны Node.js 20+ и npm 10+.
 
 ```bash
 npm install
-npm start
-npm run build
-npm run test:ci
+npm start           # dev-сервер на http://localhost:4200
+```
+
+Dev-сборка ходит в мок-бэкенд `http://localhost:3000`, production-сборка - в
+`https://ya-praktikum.tech/api/v2` (`src/environments/`).
+
+Мок-бэкенд:
+
+```bash
+cd mock-auth-backend && npm install && npm start
+```
+
+## Сборка
+
+```bash
+npm run build       # production-сборка в dist/
+npm run watch       # dev-сборка в watch-режиме
+```
+
+## Тесты и проверки
+
+```bash
 npm run lint
-```
-
-Дополнительно:
-
-```bash
+npm run lint:fix
+npm run test            # Vitest в watch-режиме
+npm run test:ci         # Vitest один прогон
 npm run test:coverage
-npm run e2e
-npm run e2e:visual
-npm run e2e:local
-npm run e2e:report
 ```
 
-Визуальный запуск E2E:
+E2E (Playwright поднимает окружение из `docker-compose.e2e.yml`):
 
 ```bash
+npm run e2e             # все, кроме визуальных тестов
+npm run e2e:visual      # только @visual
+npm run e2e:local       # против локального dev-сервера
+npm run e2e:report
 npx playwright test --ui
 ```
 
-Docker:
+Allure-отчет:
 
 ```bash
-npm run docker:build
-npm run docker:run
-npm run compose:e2e:up
+npm run allure:run
+npm run allure:open
+```
+
+Спецификации:
+
+```bash
+npx openspec list
+npx openspec validate --strict
+```
+
+## Docker
+
+```bash
+npm run docker:build          # образ messenger-frontend:local
+npm run docker:run            # http://localhost:8080
+npm run compose:e2e:up        # фронтенд + мок-бэкенд для e2e
 npm run compose:e2e:down
 ```
 
-## Deployment
+## Деплой
 
-Production runs on FastVPS:
+Приложение раздается GitHub Pages по адресу
+https://krasotun.github.io/messenger/. Деплой выполняет workflow
+`.github/workflows/deploy.yml`: он прогоняет `lint`, `test:ci`, `e2e`, собирает
+приложение с `--base-href /messenger/` и публикует `dist/messenger/browser`
+через `actions/upload-pages-artifact` и `actions/deploy-pages`. Публикация
+запускается автоматически при пуше в `main` и вручную через
+`workflow_dispatch`; при падении любой проверки публикация не выполняется.
 
-```text
-s9865e4c2.fastvps-server.com
-```
-
-The frontend is served as static files through host nginx:
-
-```text
-FastVPS nginx :443 -> /var/www/messenger -> Angular build artifact
-```
-
-Server provisioning is managed with local Ansible:
-
-```bash
-ansible-playbook ansible/playbooks/bootstrap-deploy-user.yml
-ansible-playbook ansible/playbooks/setup-server.yml
-ansible-playbook ansible/playbooks/setup-https.yml -e letsencrypt_email=...
-```
-
-Application deployment is handled by GitHub Actions:
-
-```text
-npm ci -> lint -> test:ci -> e2e -> build -> ansible-playbook deploy-app.yml
-```
-
-Required GitHub Actions secrets:
-
-```text
-VDS_SSH_PRIVATE_KEY
-VDS_HOST=s9865e4c2.fastvps-server.com
-VDS_USER=deploy
-VDS_WEB_ROOT=/var/www/messenger
-```
-
-The old `73053.koara.live` VDS is not a rollback target. Rollback means redeploying a previous working commit/artifact to FastVPS through GitHub Actions.
-
-## Архитектура
-
-Используем подход:
-
-```text
-Domain-first Angular + lightweight DDD boundaries
-```
-
-## Слои
-
-```text
-shared/ui
-  reusable UI primitives, no domain knowledge
-
-domains/identity/application
-  identity use cases and contracts, no Angular UI details
-
-domains/identity/ui or identity feature components
-  identity screens/components, may use shared/ui and identity application contracts
-
-app/root
-  bootstrap, routes, providers, global wiring
-```
-
-`app/root` - это роль, а не обязательно отдельная папка. В Angular ее могут
-выполнять `app.config.ts`, routes, root providers, root/layout components и
-другие места, где приложение связывает зависимости.
-
-## Границы слоев
-
-- `shared/ui` не импортирует домены, страницы, app/root или core-инфраструктуру.
-- `shared/ui` не знает про identity/profile/chats/messages и другие бизнес-сценарии.
-- Domain/application слой описывает use cases, контракты и бизнес-сценарии без
-  Angular UI-деталей.
-- UI feature components могут использовать `shared/ui` и application contracts
-  своего домена.
-- Infrastructure реализует application contracts и не импортируется напрямую из UI.
-- App/root слой связывает routes, providers, bootstrap и feature entrypoints.
-
-Пример для modal/profile:
-
-```text
-shared/ui/modal
-  knows how to open and close modal content
-  does not know about profile editing
-
-identity profile UI
-  opens EditProfile modal through shared modal primitive
-  knows about profile screen behavior
-
-identity application
-  updates profile through an application contract
-  does not know about ModalRef, Overlay, DOM or forms
-```
-
-## Import Boundaries
-
-Основные aliases:
-
-```text
-@core/*     -> app-level infrastructure
-@domains/*  -> bounded contexts
-@shared/*   -> shared primitives
-```
-
-Правила static imports закреплены в ESLint через `no-restricted-imports`.
-
-Перед новым импортом проверяй вопрос:
-
-> Почему этот слой имеет право знать об этом модуле?
-
-Если ответ только "так удобнее", граница, скорее всего, выбрана неправильно.
-
-## TDD
-
-Работаем по циклу:
-
-```text
-spec -> minimal implementation -> refactor
-```
-
-Для новой бизнес-логики сначала фиксируем expected behavior на уровне нужного
-слоя:
-
-- application specs для сценариев и state;
-- infrastructure specs для API/gateway/mapper;
-- component specs для UI behavior;
-- routing/guard specs для navigation policy.
-
-Production-реализация новой бизнес-логики не добавляется без тестового сценария,
-если это не документация, конфигурация или явно оговоренный технический долг.
+Прежний деплой на VDS через Ansible больше не используется: сервер выведен из
+эксплуатации, секреты `VDS_*` удалены, отката на прежний хостинг нет. Каталоги
+`ansible/` и `docs/deployment/` остаются как архив и не описывают актуальный
+процесс.

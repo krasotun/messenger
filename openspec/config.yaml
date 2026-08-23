@@ -1,0 +1,100 @@
+schema: spec-driven
+
+context: |
+  Language: russian
+  All artifacts must be written in russian.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  ## Продукт
+
+  `messenger` - веб-мессенджер: регистрация и вход, профиль пользователя,
+  чаты и обмен сообщениями. Работает поверх учебного API Яндекс.Практикума
+  (https://ya-praktikum.tech/api/v2), собственного бэкенда у проекта нет.
+
+  Пользователь один - зарегистрированный человек, который переписывается с
+  другими пользователями. Ролей и админки нет.
+
+  Реализовано сейчас: регистрация, вход, восстановление сессии, выход,
+  guard-политика доступа к маршрутам. Чаты, сообщения и редактирование
+  профиля еще не реализованы.
+
+  ## Стек и структура
+
+  Angular 21 (standalone, signals), TypeScript, RxJS, Angular CDK.
+  Тесты: Vitest (unit/component), Playwright (e2e, визуальные).
+  Мок-бэкенд для локальной разработки и e2e: `mock-auth-backend` на :3000.
+
+  Архитектура - Domain-first Angular + lightweight DDD boundaries:
+
+  - `src/app/shared` - UI-примитивы и общие типы, без знания о доменах;
+  - `src/app/domains/<context>/domain` - модель и правила предметной области;
+  - `src/app/domains/<context>/application` - use cases, контракты, state;
+  - `src/app/domains/<context>/infrastructure` - HTTP API, DTO, мапперы;
+  - `src/app/domains/<context>/presentation` - экраны и компоненты домена;
+  - `src/app/core` - routing, guards, layouts, tokens, app initializers;
+  - `src/app/pages` - страницы-композиции.
+
+  Aliases: `@core/*`, `@domains/*`, `@shared/*`. Границы импортов закреплены в
+  ESLint через `no-restricted-imports`: `shared/ui` не импортирует домены, core
+  и pages; application не знает про DOM, Overlay, ModalRef и Angular-формы;
+  infrastructure не импортируется из presentation напрямую.
+
+  ## Глоссарий
+
+  Спеки пишутся по-русски, код - по-английски. Используй эти соответствия, не
+  придумывай синонимы.
+
+  - вход / авторизация -> sign-in (`SignInService`), поле учетных данных - `login`
+  - регистрация -> sign-up (`SignUpService`)
+  - выход -> logout (`CurrentSessionService.logout`)
+  - текущая сессия -> `CurrentSessionService`, статус - `CurrentSessionStatus`
+    (`Unknown` / `Loading` / `Authenticated` / `Anonymous`)
+  - текущий пользователь -> `CurrentUser` (модель приложения), `CurrentUserDTO`
+    (ответ бэкенда); наружу отдаем `CurrentUser`
+  - состояние формы отправки -> auth flow, статус - `AuthFlowStatus`
+    (`Idle` / `Submitting` / `Success` / `Error`)
+  - ошибка приложения -> `ApplicationError`, текст берется из `reason` бэкенда
+  - шлюз к API домена -> gateway (`AUTH_GATEWAY`), реализация - `Http*Gateway`
+  - гость -> пользователь без статуса `Authenticated`
+
+  Термины OpenSpec: capability - каталог в `openspec/specs/`; change -
+  предложенное изменение в `openspec/changes/`; delta - файл спеки внутри
+  change; requirement и scenario - заголовки внутри спеки.
+
+  ## Конвенции работы
+
+  - TDD обязателен: сначала тест на поведение из спецификации, затем
+    минимальная реализация, затем refactor.
+  - Уровень теста по слою: application specs для сценариев и state,
+    infrastructure specs для API/мапперов, component specs для UI behavior,
+    guard/routing specs для навигации, e2e для сквозных сценариев.
+  - Quality gates перед завершением задачи: `npm run lint`, `npm run test:ci`;
+    `npm run e2e` - если затронут сквозной пользовательский сценарий.
+  - Сессия хранится бэкендом в cookie; токены не кладутся в localStorage или
+    sessionStorage, запросы к API идут с `withCredentials`.
+  - До выбора Angular-сущностей ответь: кто вызывает фичу, какие данные
+    передает, какой результат получает, кто владеет состоянием, какие ошибки
+    возможны, что должно быть протестировано.
+  - Ответственности: component отображает UI и локальное взаимодействие;
+    service координирует поведение, хранит состояние и скрывает инфраструктуру;
+    directive добавляет переиспользуемое DOM-поведение без своего шаблона.
+  - Не смешивай части, которые меняются по разным причинам (UI-инфраструктура,
+    требования экрана, бизнес-логика use case).
+  - Иди от конкретного к общему: минимальный контракт под текущую задачу,
+    обобщение - только после реального повторения.
+  - Тестируй поведение, а не факт создания сервиса: действие пользователя,
+    видимый результат, изменение состояния, отсутствие изменений при отмене и
+    ошибке.
+
+rules:
+  proposal:
+    - Указывай, какие слои затрагивает изменение (domain / application / infrastructure / presentation / core)
+  tasks:
+    - Каждая задача на новое поведение начинается с шага "написать падающий тест"
+    - Последним шагом всегда идут quality gates (lint, test:ci, при необходимости e2e)
+
+# Per-operation guidance (optional)
+# operations:
+#   apply:
+#     guidance:
+#       - Keep test summaries concise
