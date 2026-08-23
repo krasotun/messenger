@@ -6,13 +6,18 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
-  frontend:
+  build:
     runs-on: ubuntu-latest
-    env:
-      VDS_HOST: ${{ secrets.VDS_HOST }}
-      VDS_USER: ${{ secrets.VDS_USER }}
-      VDS_WEB_ROOT: ${{ secrets.VDS_WEB_ROOT }}
 
     steps:
       - uses: actions/checkout@v6
@@ -26,32 +31,23 @@ jobs:
       - run: npm run test:ci
       - run: npx playwright install --with-deps
       - run: npm run e2e
-      - run: npm run build
+      - run: npm run build -- --base-href /messenger/
 
-      - name: Install Ansible
-        run: |
-          python -m pip install --user ansible-core
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Add SPA fallback for GitHub Pages
+        run: cp dist/messenger/browser/index.html dist/messenger/browser/404.html
 
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf '%s\n' "${{ secrets.VDS_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$VDS_HOST" >> ~/.ssh/known_hosts
+      - uses: actions/configure-pages@v5
 
-      - name: Verify deploy target
-        run: |
-          test "${VDS_WEB_ROOT#/}" != "$VDS_WEB_ROOT"
-          ssh -i ~/.ssh/deploy_key "$VDS_USER@$VDS_HOST" "test -d '$VDS_WEB_ROOT'"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/messenger/browser
 
-      - name: Deploy frontend
-        env:
-          MESSENGER_BUILD_DIR: ${{ github.workspace }}/dist/messenger/browser
-        run: |
-          ansible-playbook ansible/playbooks/deploy-app.yml \
-            --private-key ~/.ssh/deploy_key \
-            -e ansible_host="$VDS_HOST" \
-            -e ansible_user="$VDS_USER" \
-            -e remote_web_root="$VDS_WEB_ROOT"
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
