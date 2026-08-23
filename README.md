@@ -5,7 +5,7 @@
 Учебное Angular-приложение для отработки архитектурного мышления, TDD-дисциплины
 и постепенного развития бизнес-логики.
 
-Production: https://s9865e4c2.fastvps-server.com
+Production: https://krasotun.github.io/messenger/
 
 API reference: https://ya-praktikum.tech/api/v2/swagger/#/
 
@@ -46,42 +46,22 @@ npm run compose:e2e:down
 
 ## Deployment
 
-Production runs on FastVPS:
+Production is served by GitHub Pages at
+https://krasotun.github.io/messenger/. Deployment runs from
+`.github/workflows/deploy.yml`:
 
 ```text
-s9865e4c2.fastvps-server.com
+npm ci -> lint -> test:ci -> e2e -> build --base-href /messenger/ -> upload-pages-artifact -> deploy-pages
 ```
 
-The frontend is served as static files through host nginx:
+The workflow runs automatically on push to `main` and can also be triggered
+manually (`workflow_dispatch`). If any quality gate fails, publishing does not
+happen and the previous production version stays live.
 
-```text
-FastVPS nginx :443 -> /var/www/messenger -> Angular build artifact
-```
-
-Server provisioning is managed with local Ansible:
-
-```bash
-ansible-playbook ansible/playbooks/bootstrap-deploy-user.yml
-ansible-playbook ansible/playbooks/setup-server.yml
-ansible-playbook ansible/playbooks/setup-https.yml -e letsencrypt_email=...
-```
-
-Application deployment is handled by GitHub Actions:
-
-```text
-npm ci -> lint -> test:ci -> e2e -> build -> ansible-playbook deploy-app.yml
-```
-
-Required GitHub Actions secrets:
-
-```text
-VDS_SSH_PRIVATE_KEY
-VDS_HOST=s9865e4c2.fastvps-server.com
-VDS_USER=deploy
-VDS_WEB_ROOT=/var/www/messenger
-```
-
-The old `73053.koara.live` VDS is not a rollback target. Rollback means redeploying a previous working commit/artifact to FastVPS through GitHub Actions.
+The previous VDS deployment via Ansible/SSH is no longer used: the VDS has
+been decommissioned and the `VDS_*` secrets have been removed from the
+repository. There is no rollback to it. `ansible/` and `docs/deployment/` are
+kept only as historical reference (see `ansible/README.md`).
 
 ## Архитектура
 
