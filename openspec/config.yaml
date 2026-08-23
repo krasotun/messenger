@@ -27,8 +27,11 @@ context: |
   Архитектура - Domain-first Angular + lightweight DDD boundaries:
 
   - `src/app/shared` - UI-примитивы и общие типы, без знания о доменах;
-  - `src/app/domains/<context>/domain` - модель и правила предметной области;
-  - `src/app/domains/<context>/application` - use cases, контракты, state;
+  - `src/app/domains/<context>/application` - use cases, контракты, state, а
+    также модели предметной области, пока у них нет собственных правил;
+  - `src/app/domains/<context>/domain` - выделяется только когда появляются
+    правила и инварианты предметной области, не зависящие от use case и
+    транспорта; в `identity-access` такого слоя пока нет;
   - `src/app/domains/<context>/infrastructure` - HTTP API, DTO, мапперы;
   - `src/app/domains/<context>/presentation` - экраны и компоненты домена;
   - `src/app/core` - routing, guards, layouts, tokens, app initializers;
@@ -44,18 +47,19 @@ context: |
   Спеки пишутся по-русски, код - по-английски. Используй эти соответствия, не
   придумывай синонимы.
 
-  - вход / авторизация -> sign-in (`SignInService`), поле учетных данных - `login`
-  - регистрация -> sign-up (`SignUpService`)
-  - выход -> logout (`CurrentSessionService.logout`)
-  - текущая сессия -> `CurrentSessionService`, статус - `CurrentSessionStatus`
-    (`Unknown` / `Loading` / `Authenticated` / `Anonymous`)
-  - текущий пользователь -> `CurrentUser` (модель приложения), `CurrentUserDTO`
-    (ответ бэкенда); наружу отдаем `CurrentUser`
-  - состояние формы отправки -> auth flow, статус - `AuthFlowStatus`
-    (`Idle` / `Submitting` / `Success` / `Error`)
-  - ошибка приложения -> `ApplicationError`, текст берется из `reason` бэкенда
-  - шлюз к API домена -> gateway (`AUTH_GATEWAY`), реализация - `Http*Gateway`
+  - вход / авторизация -> sign-in, поле учетных данных - `login`
+  - регистрация -> sign-up
+  - выход -> logout
+  - текущая сессия -> current session
+  - состояние формы отправки -> auth flow
   - гость -> пользователь без статуса `Authenticated`
+  - модель приложения -> без суффикса, ответ бэкенда -> `*DTO`
+  - ошибка приложения -> `ApplicationError`, текст из `reason` бэкенда
+  - шлюз к API домена -> gateway (`<CONTEXT>_GATEWAY`, `Http*Gateway`)
+
+  Состав перечислений и полей моделей смотри в коде, а не здесь. Новый термин
+  добавляй в глоссарий, только если у него есть правдоподобный синоним, который
+  можно выдумать по ошибке.
 
   Термины OpenSpec: capability - каталог в `openspec/specs/`; change -
   предложенное изменение в `openspec/changes/`; delta - файл спеки внутри
@@ -89,12 +93,19 @@ context: |
 rules:
   proposal:
     - Указывай, какие слои затрагивает изменение (domain / application / infrastructure / presentation / core)
+    - "Если у change есть issue на GitHub, указывай его строкой `Issue: #N`"
+  specs:
+    - Сценарий описывает видимое пользователю поведение; термины бери из глоссария, новый термин согласуй
+  design:
+    - Указывай уровень теста для каждого сценария (application / infrastructure / component / guard / e2e)
+    - Приводи состав вводимых сущностей - имя, ответственность, слой; конкретные файлы оставляй для tasks
   tasks:
     - Каждая задача на новое поведение начинается с шага "написать падающий тест"
+    - Называй конкретные файлы, которые создаются или меняются
     - Последним шагом всегда идут quality gates (lint, test:ci, при необходимости e2e)
 
-# Per-operation guidance (optional)
-# operations:
-#   apply:
-#     guidance:
-#       - Keep test summaries concise
+operations:
+  apply:
+    guidance:
+      - Реализуй по одной секции tasks.md за раз, в конце секции останавливайся и жди апрува
+      - В отчете по секции перечисляй закрытые задачи, созданные и измененные файлы, результат lint и test:ci
