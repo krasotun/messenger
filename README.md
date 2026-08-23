@@ -83,7 +83,7 @@ npm run compose:e2e:down
 
 Приложение раздается GitHub Pages по адресу
 https://krasotun.github.io/messenger/. Деплой выполняет workflow
-`.github/workflows/deploy.yml`: он прогоняет `lint`, `test:ci`, `e2e`, собирает
+`.github/workflows/ci.yml`: он прогоняет `lint`, `test:ci`, `e2e`, собирает
 приложение с `--base-href /messenger/` и публикует `dist/messenger/browser`
 через `actions/upload-pages-artifact` и `actions/deploy-pages`. Публикация
 запускается автоматически при пуше в `main` и вручную через
