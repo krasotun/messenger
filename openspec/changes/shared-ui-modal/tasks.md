@@ -5,12 +5,12 @@
 `modal-shell/modal-shell.scss`, `modal-ref.ts`, `modal-size.ts` и
 спеки рядом с ними (`*.spec.ts`).
 
-- [ ] 1.1 Написать падающий spec: `open()` с компонентом-содержимым отображает его содержимое в модалке
-- [ ] 1.2 Реализовать `ModalService.open()` (`modal-service.ts`) поверх CDK Overlay вместо текущей заглушки и `ModalShell` (`modal-shell/`)
-- [ ] 1.3 Написать падающий spec на `ModalRef`, получаемый содержимым через DI
-- [ ] 1.4 Реализовать `ModalRef` (`modal-ref.ts`) с единственным методом `close()`
-- [ ] 1.5 Spec: значения inputs, переданные в `open()`, доходят до содержимого; реализовать проброс через `ComponentRef.setInput`
-- [ ] 1.6 Ввести тип `ModalSize` (`modal-size.ts`)
+- [x] 1.1 Написать падающий spec: `open()` с компонентом-содержимым отображает его содержимое в модалке
+- [x] 1.2 Реализовать `ModalService.open()` (`modal-service.ts`) поверх CDK Overlay вместо текущей заглушки и `ModalShell` (`modal-shell/`)
+- [x] 1.3 Написать падающий spec на `ModalRef`, получаемый содержимым через DI
+- [x] 1.4 Реализовать `ModalRef` (`modal-ref.ts`) с единственным методом `close()`
+- [x] 1.5 Spec: значения inputs, переданные в `open()`, доходят до содержимого; реализовать проброс через `ComponentRef.setInput`
+- [x] 1.6 Ввести тип `ModalSize` (`modal-size.ts`)
 
 ## 2. Поведение окна
 
