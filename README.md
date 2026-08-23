@@ -56,13 +56,6 @@ npm run e2e:report
 npx playwright test --ui
 ```
 
-Allure-отчет:
-
-```bash
-npm run allure:run
-npm run allure:open
-```
-
 Спецификации:
 
 ```bash

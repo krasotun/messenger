@@ -8,7 +8,7 @@ export default defineConfig({
     baseURL: 'http://localhost:8080',
     trace: 'on-first-retry',
   },
-  reporter: [['html'], ['allure-playwright', { outputFolder: 'allure-results' }]],
+  reporter: [['html']],
   projects: [
     {
       name: 'chromium',

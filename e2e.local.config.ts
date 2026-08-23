@@ -9,7 +9,7 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
-  reporter: [['html'], ['allure-playwright', { outputFolder: 'allure-results' }]],
+  reporter: [['html']],
 
   webServer: {
     command: 'npm run start',
