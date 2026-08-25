@@ -11,54 +11,65 @@
 - Требования к поведению системы: `openspec/specs/`
 - Текущие изменения в работе: `openspec/changes/`
 
-## Запуск
+## Установка
 
-Нужны Node.js 20+ и npm 10+.
+Нужны Node.js 20+ и npm 10+. Docker не нужен.
 
 ```bash
 npm install
-npm start           # dev-сервер на http://localhost:4200
+npm ci --prefix mock-auth-backend   # зависимости мок-бэкенда, нужны для e2e
 ```
 
-`npm start` собирается с `src/environments/environment.ts` и ходит в боевой API
-`https://ya-praktikum.tech/api/v2`. Чтобы работать против мок-бэкенда, нужна
-e2e-конфигурация (`environment.e2e.ts`):
+## Как запускается приложение
+
+Режима два, отличаются они тем, в какой API ходит приложение. Файлы окружений -
+в `src/environments/`.
+
+| Команда             | Порт | API                                | Когда нужен                          |
+| ------------------- | ---- | ---------------------------------- | ------------------------------------ |
+| `npm start`         | 4200 | `https://ya-praktikum.tech/api/v2` | Работа с настоящими данными          |
+| `npm run start:e2e` | 4300 | `http://localhost:3000` (мок)      | Разработка и отладка без боевого API |
+
+Мок-бэкенд под второй режим поднимается отдельной командой:
 
 ```bash
-npm ci --prefix mock-auth-backend   # один раз: зависимости мок-бэкенда
-npm run e2e:backend                 # мок-бэкенд на http://localhost:3000
-npm run start:e2e                   # приложение на http://localhost:4300
+npm run e2e:backend   # http://localhost:3000
 ```
+
+Данные он держит в памяти: состояние живет до остановки процесса, а
+`POST /test/reset` сбрасывает его.
 
 ## Сборка
 
 ```bash
-npm run build       # production-сборка в dist/
+npm run build       # production-сборка в dist/messenger/browser
 ```
 
 ## Тесты и проверки
 
+Unit и component (Vitest):
+
 ```bash
 npm run lint
 npm run lint:fix
-npm run test            # Vitest в watch-режиме
-npm run test:ci         # Vitest один прогон
+npm run test            # watch-режим
+npm run test:ci         # один прогон
 npm run test:coverage
 ```
 
-E2E (Playwright сам поднимает мок-бэкенд на :3000 и приложение на :4300):
+E2E (Playwright). Стенд поднимается сам - мок-бэкенд на :3000 и приложение на
+:4300, состояние мока сбрасывается перед прогоном. Заранее запускать ничего не
+нужно; уже поднятые процессы переиспользуются.
 
 ```bash
-npm ci --prefix mock-auth-backend   # один раз: зависимости мок-бэкенда
 npm run e2e             # все, кроме визуальных тестов
 npm run e2e:visual      # только @visual
-npm run e2e:report
+npm run e2e:report      # отчет последнего прогона
 npx playwright test --ui
 ```
 
-Приложение для e2e собирается с `environment.e2e.ts`, то есть ходит в
-мок-бэкенд, а не в боевой API. Поднять его отдельно: `npm run start:e2e`
-(:4300) и `npm run e2e:backend` (:3000).
+Скриншотный тест помечается тегом `@visual` в имени: по этому тегу разделены
+прогоны, и без тега такой тест попадет в обычный `npm run e2e` и упадет там.
 
 Спецификации:
 
