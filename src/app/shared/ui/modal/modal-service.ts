@@ -5,11 +5,13 @@ import { filter, merge, takeUntil } from 'rxjs';
 
 import { ModalRef } from './modal-ref';
 import { ModalShell } from './modal-shell/modal-shell';
+import { DEFAULT_MODAL_SIZE, ModalSize } from './modal-size';
 
 const ESCAPE_KEY = 'Escape';
 
 export interface ModalOptions {
   inputs?: Record<string, unknown>;
+  size?: ModalSize;
 }
 
 @Injectable({
@@ -60,6 +62,7 @@ export class ModalService {
 
     shellRef.setInput('content', component);
     shellRef.setInput('contentInputs', options?.inputs ?? {});
+    shellRef.setInput('size', options?.size ?? DEFAULT_MODAL_SIZE);
   }
 
   private _setSubscriptions(overlayRef: OverlayRef, modalRef: ModalRef): void {

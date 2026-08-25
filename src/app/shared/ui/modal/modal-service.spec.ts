@@ -287,6 +287,42 @@ describe('ModalService', () => {
     });
   });
 
+  describe('size', () => {
+    it('should apply requested size preset to modal', () => {
+      service.open(TestModalContent, { size: 'large' });
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const shellEl = document.querySelector('.cdk-overlay-container .app-modal-shell');
+
+      expect(shellEl?.classList.contains('app-modal-shell_large')).toBe(true);
+    });
+
+    it('should apply medium size preset when size is not specified', () => {
+      service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const shellEl = document.querySelector('.cdk-overlay-container .app-modal-shell');
+
+      expect(shellEl?.classList.contains('app-modal-shell_medium')).toBe(true);
+    });
+
+    // Высота нигде не задана, поэтому она равна высоте содержимого и меняется
+    // вместе с ним. Конкретные пиксели не проверяем - они хрупкие.
+    it('should let modal height follow its content', () => {
+      service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const shellEl = document.querySelector<HTMLElement>(
+        '.cdk-overlay-container .app-modal-shell',
+      )!;
+
+      expect(getComputedStyle(shellEl).height).toBe('');
+    });
+  });
+
   describe('focus', () => {
     afterEach(() => {
       document.body
