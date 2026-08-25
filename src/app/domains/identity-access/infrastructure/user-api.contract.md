@@ -1,79 +1,27 @@
 # Identity Access User API Contract
 
-## Update Profile
+Форма запроса и ответа описывается типами DTO и проверяется тестами мапперов.
+Здесь - только адреса, работа с сессией и пробелы в Swagger.
 
-### Endpoint
+## Endpoints
 
-- Method: `PUT`
-- Path: `/user/profile`
-- Credentials: request must include cookies through `withCredentials: true`
+| Use case       | Method | Path            | Credentials |
+| -------------- | ------ | --------------- | ----------- |
+| Update Profile | PUT    | `/user/profile` | требуются   |
 
-### Request Body
+`Credentials` означает `withCredentials: true`: запрос должен нести cookie.
 
-All fields are required.
+## Session Handling
 
-- `first_name`: string
-- `second_name`: string
-- `display_name`: string
-- `login`: string
-- `email`: string
-- `phone`: string
+- Update profile требует активной сессии бэкенда.
+- Источник обновленного текущего пользователя - `CurrentUserDTO` из ответа.
+  Выводить новое состояние из тела запроса нельзя.
+- `401` означает отсутствующую или недействительную сессию.
 
-```json
-{
-  "first_name": "string",
-  "second_name": "string",
-  "display_name": "string",
-  "login": "string",
-  "email": "string",
-  "phone": "string"
-}
-```
+## Известные пробелы Swagger
 
-### Success Response
-
-- Status: `200 OK`
-- Meaning: user profile has been updated
-
-```json
-{
-  "id": 0,
-  "first_name": "string",
-  "second_name": "string",
-  "display_name": "string",
-  "login": "string",
-  "email": "string",
-  "phone": "string",
-  "avatar": "string"
-}
-```
-
-### Session Handling
-
-- Update profile requires an active backend session.
-- Backend owns session persistence through a cookie.
-- Frontend must use the returned `CurrentUserDTO` as the source of updated current user state.
-- Frontend must not derive updated current user state from the request body.
-
-### Error Responses
-
-- `400 Bad Request`
-
-```json
-{
-  "reason": "string"
-}
-```
-
-- `401 Unauthorized`
-  Active session is absent or invalid.
-
-- `500 Unexpected Error`
-  Swagger does not document the response body.
-
-### Known Limits
-
-- Swagger does not document whether `display_name` and `avatar` can be `null`.
-- Swagger does not document field-level validation errors.
-- Swagger does not document whether `login` uniqueness conflict has a dedicated status code.
-- Swagger does not document response bodies for `401` and `500`.
+- Тела ответов `401` и `500` не документированы.
+- Валидационные ошибки на уровне полей не документированы: в теле `400`
+  приходит только `reason`.
+- Не документировано, могут ли `display_name` и `avatar` быть `null`.
+- Не документировано, есть ли отдельный статус для конфликта уникальности `login`.

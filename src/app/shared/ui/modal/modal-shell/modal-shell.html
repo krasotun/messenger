@@ -1,0 +1,13 @@
+<div class="app-modal-shell" [class]="sizeClass()" cdkTrapFocus cdkTrapFocusAutoCapture>
+  <button
+    type="button"
+    class="app-modal-shell__close-button"
+    aria-label="Закрыть"
+    (click)="close()"
+  >
+    <!-- TODO(#49): заменить глиф на иконку, когда появится примитив иконок -->
+    ×
+  </button>
+
+  <ng-template cdkPortalOutlet></ng-template>
+</div>

@@ -1,9 +1,14 @@
 /* You can add global styles to this file, and also import other style files */
 
+@use '@angular/cdk' as cdk;
 @use '../public/static/styles/normalize';
 @use '../public/static/styles/fonts';
 @use 'app/shared/ui/button/button';
 @use 'app/shared/ui/input/input';
+
+// Структурные стили CDK Overlay: позиционирование контейнера, затенение фона и
+// блокировка скролла. Нужны и модалке, и popover.
+@include cdk.overlay();
 
 :root {
   /* Base */
@@ -54,7 +59,12 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
   min-height: 100vh;
 }
 
