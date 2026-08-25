@@ -42,12 +42,28 @@ class TestModalContentCapturingRef {
   }
 }
 
+@Component({
+  selector: 'app-test-modal-content-with-focusable',
+  template: `
+    <button type="button" data-testid="content-first-button">First</button>
+    <button type="button" data-testid="content-last-button">Last</button>
+  `,
+})
+class TestModalContentWithFocusable {}
+
 /**
  * Блокировка скролла в CDK включается только для документа, который длиннее
  * вьюпорта. В тестовой среде layout не считается, поэтому длину задаем явно.
  */
 // jsdom не реализует window.scroll, который CDK вызывает при снятии блокировки.
 window.scroll = vi.fn();
+
+// jsdom не считает layout: у элементов всегда нулевая геометрия, из-за чего
+// InteractivityChecker CDK считает их невидимыми и focus trap не находит,
+// куда переводить фокус.
+Element.prototype.getClientRects = function (this: Element): DOMRectList {
+  return [{}] as unknown as DOMRectList;
+};
 
 function makeDocumentScrollable(): void {
   Object.defineProperty(document.documentElement, 'scrollHeight', {
@@ -268,6 +284,82 @@ describe('ModalService', () => {
       const overlayPaneEl = document.querySelector('.cdk-overlay-container .cdk-overlay-pane');
 
       expect(overlayPaneEl).toBeNull();
+    });
+  });
+
+  describe('focus', () => {
+    afterEach(() => {
+      document.body
+        .querySelectorAll('button[data-testid="opener-button"]')
+        .forEach((element) => element.remove());
+    });
+
+    it('should move focus inside modal after opening', async () => {
+      service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      await new Promise((resolve) => setTimeout(resolve));
+
+      const overlayContainer = document.querySelector('.cdk-overlay-container');
+
+      expect(overlayContainer?.contains(document.activeElement)).toBe(true);
+    });
+
+    it('should keep focus inside modal when Tab is pressed on the last focusable element', async () => {
+      service.open(TestModalContentWithFocusable);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      await new Promise((resolve) => setTimeout(resolve));
+
+      const overlayContainer = document.querySelector('.cdk-overlay-container') as HTMLElement;
+      const anchors = overlayContainer.querySelectorAll<HTMLElement>('.cdk-focus-trap-anchor');
+      const endAnchor = anchors[anchors.length - 1];
+
+      endAnchor.focus();
+
+      expect(overlayContainer.contains(document.activeElement)).toBe(true);
+      expect(document.activeElement?.classList.contains('cdk-focus-trap-anchor')).toBe(false);
+    });
+
+    it('should keep focus inside modal when Shift+Tab is pressed on the first focusable element', async () => {
+      service.open(TestModalContentWithFocusable);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      await new Promise((resolve) => setTimeout(resolve));
+
+      const overlayContainer = document.querySelector('.cdk-overlay-container') as HTMLElement;
+      const startAnchor = overlayContainer.querySelector<HTMLElement>('.cdk-focus-trap-anchor')!;
+
+      startAnchor.focus();
+
+      expect(overlayContainer.contains(document.activeElement)).toBe(true);
+      expect(document.activeElement?.classList.contains('cdk-focus-trap-anchor')).toBe(false);
+    });
+
+    it('should restore focus to previously focused element after closing', async () => {
+      const openerButtonEl = document.createElement('button');
+      openerButtonEl.setAttribute('data-testid', 'opener-button');
+      document.body.append(openerButtonEl);
+      openerButtonEl.focus();
+
+      service.open(TestModalContentCapturingRef);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      await new Promise((resolve) => setTimeout(resolve));
+
+      expect(document.activeElement).not.toBe(openerButtonEl);
+
+      capturedModalRef?.close();
+
+      TestBed.inject(ApplicationRef).tick();
+
+      await new Promise((resolve) => setTimeout(resolve));
+
+      expect(document.activeElement).toBe(openerButtonEl);
     });
   });
 });
