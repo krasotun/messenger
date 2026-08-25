@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { ModalRef } from '../modal-ref';
+
 import { ModalShell } from './modal-shell';
 
 @Component({
@@ -23,6 +25,7 @@ describe('ModalShell', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TestHost],
+      providers: [ModalRef],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHost);
@@ -37,5 +40,27 @@ describe('ModalShell', () => {
     const contentEl = shellEl.querySelector('[data-testid="shell-content"]');
 
     expect(contentEl).toBeTruthy();
+  });
+
+  it('should render always visible close button', () => {
+    const closeButtonEl = fixture.nativeElement.querySelector('[data-testid="modal-close-button"]');
+
+    expect(closeButtonEl).toBeTruthy();
+  });
+
+  it('should call ModalRef.close() when close button is clicked', () => {
+    const modalRef = TestBed.inject(ModalRef);
+
+    vi.spyOn(modalRef, 'close');
+
+    const closeButtonEl: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '[data-testid="modal-close-button"]',
+    );
+
+    closeButtonEl.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    fixture.detectChanges();
+
+    expect(modalRef.close).toHaveBeenCalled();
   });
 });

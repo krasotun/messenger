@@ -163,5 +163,111 @@ describe('ModalService', () => {
 
       expect(document.documentElement.classList.contains('cdk-global-scrollblock')).toBe(false);
     });
+
+    it('should close modal when close button is clicked', () => {
+      service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const closeButtonEl = document.querySelector<HTMLButtonElement>(
+        '.cdk-overlay-container [data-testid="modal-close-button"]',
+      );
+
+      closeButtonEl?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const contentEl = document.querySelector(
+        '.cdk-overlay-container [data-testid="modal-content"]',
+      );
+
+      expect(contentEl).toBeNull();
+    });
+
+    it('should close modal on Escape', () => {
+      service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const contentEl = document.querySelector(
+        '.cdk-overlay-container [data-testid="modal-content"]',
+      );
+
+      expect(contentEl).toBeNull();
+    });
+
+    it('should close modal on backdrop click', () => {
+      service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const backdropEl = document.querySelector<HTMLElement>(
+        '.cdk-overlay-container .cdk-overlay-backdrop',
+      );
+
+      backdropEl?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const contentEl = document.querySelector(
+        '.cdk-overlay-container [data-testid="modal-content"]',
+      );
+
+      expect(contentEl).toBeNull();
+    });
+
+    it('should close modal when content requests close via ModalRef', () => {
+      service.open(TestModalContentCapturingRef);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      capturedModalRef?.close();
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const contentEl = document.querySelector(
+        '.cdk-overlay-container [data-testid="modal-content"]',
+      );
+
+      expect(contentEl).toBeNull();
+    });
+
+    it('should not close modal when clicking inside modal', () => {
+      service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const contentEl = document.querySelector<HTMLElement>(
+        '.cdk-overlay-container [data-testid="modal-content"]',
+      );
+
+      contentEl?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const contentElAfterClick = document.querySelector(
+        '.cdk-overlay-container [data-testid="modal-content"]',
+      );
+
+      expect(contentElAfterClick).toBeTruthy();
+    });
+
+    it('should destroy overlay after modal is closed', () => {
+      service.open(TestModalContentCapturingRef);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      capturedModalRef?.close();
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const overlayPaneEl = document.querySelector('.cdk-overlay-container .cdk-overlay-pane');
+
+      expect(overlayPaneEl).toBeNull();
+    });
   });
 });

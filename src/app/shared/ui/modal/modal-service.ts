@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { inject, Injectable, Injector, Type } from '@angular/core';
-import { takeUntil } from 'rxjs';
+import { filter, merge, takeUntil } from 'rxjs';
 
 import { ModalRef } from './modal-ref';
 import { ModalShell } from './modal-shell/modal-shell';
@@ -61,6 +61,13 @@ export class ModalService {
   }
 
   private _setSubscriptions(overlayRef: OverlayRef, modalRef: ModalRef): void {
+    const escape$ = overlayRef.keydownEvents().pipe(filter(({ key }) => key === 'Escape'));
+    const backdropClick$ = overlayRef.backdropClick();
+
+    merge(escape$, backdropClick$)
+      .pipe(takeUntil(overlayRef.detachments()))
+      .subscribe(() => modalRef.close());
+
     modalRef.closeRequested$
       .pipe(takeUntil(overlayRef.detachments()))
       .subscribe(() => overlayRef.dispose());
