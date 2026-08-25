@@ -13,7 +13,6 @@
     "lint:fix": "ng lint --fix",
     "e2e": "playwright test --grep-invert @visual",
     "e2e:visual": "playwright test --grep @visual",
-    "e2e:report": "playwright show-report",
     "prepare": "husky"
   },
   "prettier": {

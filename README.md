@@ -64,8 +64,8 @@ E2E (Playwright). Стенд поднимается сам - мок-бэкенд
 ```bash
 npm run e2e             # все, кроме визуальных тестов
 npm run e2e:visual      # только @visual
-npm run e2e:report      # отчет последнего прогона
 npx playwright test --ui
+npx playwright show-report   # отчет последнего прогона
 ```
 
 Скриншотный тест помечается тегом `@visual` в имени: по этому тегу разделены
