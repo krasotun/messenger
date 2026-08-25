@@ -85,6 +85,10 @@
             },
             "development": {
               "buildTarget": "messenger:build:development"
+            },
+            "e2e": {
+              "buildTarget": "messenger:build:e2e",
+              "port": 4300
             }
           },
           "defaultConfiguration": "development"

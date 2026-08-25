@@ -1,12 +1,10 @@
 {
   "name": "mock-auth-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/server.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js"
+    "serve": "tsx src/server.ts"
   },
   "keywords": [],
   "author": "",

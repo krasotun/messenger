@@ -42,6 +42,10 @@ export class CurrentSessionService {
     );
   }
 
+  updateCurrentUser(currentUser: CurrentUser): void {
+    this._currentUser.set(currentUser);
+  }
+
   logout(): Observable<void> {
     return this._authGateway.logout().pipe(
       tap(() => {

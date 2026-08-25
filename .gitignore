@@ -2,7 +2,6 @@
 
 # Compiled output
 /dist
-mock-auth-backend/dist/
 /tmp
 /out-tsc
 /bazel-out
@@ -49,6 +48,7 @@ Thumbs.db
 node_modules/
 /test-results/
 /playwright-report/
+/.playwright-mcp/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/

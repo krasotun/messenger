@@ -1,11 +1,13 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
 import { CurrentUser } from '../../application/current-session/current-user';
+import { UpdateProfileModalContent } from '../update-profile-modal-content/update-profile-modal-content';
 
 import { Nullable } from '@shared/types';
 import { Avatar } from '@shared/ui/avatar/avatar';
+import { ModalService } from '@shared/ui/modal/modal-service';
 import { Popover } from '@shared/ui/popover/popover';
 
 interface CurrentUserAvatarView {
@@ -23,12 +25,21 @@ interface CurrentUserAvatarView {
 export class CurrentUserAvatarMenu {
   private readonly _currentSessionService = inject(CurrentSessionService);
   private readonly _router = inject(Router);
+  private readonly _modalService = inject(ModalService);
+
+  private readonly _popover = viewChild(Popover);
 
   readonly currentUserAvatarView = computed<Nullable<CurrentUserAvatarView>>(() => {
     const currentUser = this._currentSessionService.currentUser();
 
     return currentUser ? this._toAvatarView(currentUser) : null;
   });
+
+  protected editProfile(): void {
+    this._popover()?.close();
+
+    this._modalService.open(UpdateProfileModalContent, { title: 'Edit profile' });
+  }
 
   protected logout(): void {
     this._currentSessionService.logout().subscribe({

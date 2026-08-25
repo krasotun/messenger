@@ -1,13 +1,27 @@
-<div class="app-modal-shell" [class]="sizeClass()" cdkTrapFocus cdkTrapFocusAutoCapture>
-  <button
-    type="button"
-    class="app-modal-shell__close-button"
-    aria-label="Закрыть"
-    (click)="close()"
-  >
-    <!-- TODO(#49): заменить глиф на иконку, когда появится примитив иконок -->
-    ×
-  </button>
+<div
+  class="app-modal-shell"
+  role="dialog"
+  aria-modal="true"
+  [class]="sizeClass()"
+  [attr.aria-labelledby]="title() ? titleId : null"
+  cdkTrapFocus
+  cdkTrapFocusAutoCapture
+>
+  <div class="app-modal-shell__header">
+    @if (title(); as title) {
+    <h2 class="app-modal-shell__title" [id]="titleId">{{ title }}</h2>
+    }
+
+    <button
+      type="button"
+      class="app-modal-shell__close-button"
+      aria-label="Закрыть"
+      (click)="close()"
+    >
+      <!-- TODO(#49): заменить глиф на иконку, когда появится примитив иконок -->
+      ×
+    </button>
+  </div>
 
   <ng-template cdkPortalOutlet></ng-template>
 </div>

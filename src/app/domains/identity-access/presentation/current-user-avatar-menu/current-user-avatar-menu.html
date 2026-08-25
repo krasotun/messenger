@@ -10,6 +10,11 @@
 <ng-template #popover>
   <ul class="current-user-avatar-menu__actions">
     <li class="current-user-avatar-menu__action-item">
+      <button class="current-user-avatar-menu__action" type="button" (click)="editProfile()">
+        Edit profile
+      </button>
+    </li>
+    <li class="current-user-avatar-menu__action-item">
       <button class="current-user-avatar-menu__action" type="button" (click)="logout()">
         Logout
       </button>

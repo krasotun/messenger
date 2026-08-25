@@ -5,10 +5,12 @@ import { of, throwError } from 'rxjs';
 
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
 import { CurrentUser } from '../../application/current-session/current-user';
+import { UpdateProfileModalContent } from '../update-profile-modal-content/update-profile-modal-content';
 
 import { CurrentUserAvatarMenu } from './current-user-avatar-menu';
 
 import { Nullable } from '@shared/types';
+import { ModalService } from '@shared/ui/modal/modal-service';
 
 const currentUserMock: CurrentUser = {
   id: 1,
@@ -33,6 +35,9 @@ describe('CurrentUserAvatarMenu', () => {
   };
   const routerMock = {
     navigateByUrl: vi.fn(),
+  };
+  const modalServiceMock = {
+    open: vi.fn(),
   };
 
   function openMenuAndGetLogoutButton(): HTMLButtonElement {
@@ -60,6 +65,7 @@ describe('CurrentUserAvatarMenu', () => {
     currentSessionServiceMock.logout.mockReset();
     currentSessionServiceMock.logout.mockReturnValue(of(void 0));
     routerMock.navigateByUrl.mockReset();
+    modalServiceMock.open.mockReset();
 
     await TestBed.configureTestingModule({
       imports: [CurrentUserAvatarMenu],
@@ -71,6 +77,10 @@ describe('CurrentUserAvatarMenu', () => {
         {
           provide: Router,
           useValue: routerMock,
+        },
+        {
+          provide: ModalService,
+          useValue: modalServiceMock,
         },
       ],
     }).compileComponents();
@@ -156,6 +166,65 @@ describe('CurrentUserAvatarMenu', () => {
     await fixture.whenStable();
 
     expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/sign-in');
+  });
+
+  it('opens update profile modal when Edit profile is clicked', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.current-user-avatar-menu__trigger',
+    );
+
+    popoverTrigger.dispatchEvent(new Event('click'));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const buttons = Array.from(
+      document.querySelectorAll('.current-user-avatar-menu__action'),
+    ) as HTMLButtonElement[];
+
+    const editProfileButton = buttons.find(
+      (button) => button.textContent?.trim() === 'Edit profile',
+    );
+
+    expect(editProfileButton).toBeTruthy();
+
+    editProfileButton?.dispatchEvent(new Event('click'));
+
+    expect(modalServiceMock.open).toHaveBeenCalledWith(UpdateProfileModalContent, {
+      title: 'Edit profile',
+    });
+  });
+
+  it('closes the menu when Edit profile is clicked', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.current-user-avatar-menu__trigger',
+    );
+
+    popoverTrigger.dispatchEvent(new Event('click'));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const buttons = Array.from(
+      document.querySelectorAll('.current-user-avatar-menu__action'),
+    ) as HTMLButtonElement[];
+
+    const editProfileButton = buttons.find(
+      (button) => button.textContent?.trim() === 'Edit profile',
+    );
+
+    editProfileButton?.dispatchEvent(new Event('click'));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(document.querySelector('.current-user-avatar-menu__actions')).toBeNull();
   });
 
   it('navigates to sign in after logout error', async () => {
