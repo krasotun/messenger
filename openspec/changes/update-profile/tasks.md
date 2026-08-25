@@ -37,12 +37,12 @@
 
 ## 6. Сквозной сценарий
 
-- [ ] 6.1 E2E: пользователь меняет данные профиля и видит их в интерфейсе без перезагрузки
-- [ ] 6.2 Добавить поддержку `PUT /user/profile` в `mock-auth-backend`, если ее нет
+- [x] 6.1 E2E: пользователь меняет данные профиля и видит их в интерфейсе без перезагрузки
+- [x] 6.2 Добавить поддержку `PUT /user/profile` в `mock-auth-backend`, если ее нет
 
 ## 7. Quality gates
 
-- [ ] 7.1 `npm run lint`
-- [ ] 7.2 `npm run test:ci`
+- [x] 7.1 `npm run lint`
+- [x] 7.2 `npm run test:ci`
 - [ ] 7.3 `npm run e2e`
-- [ ] 7.4 `npx openspec validate update-profile --strict`
+- [x] 7.4 `npx openspec validate update-profile --strict`

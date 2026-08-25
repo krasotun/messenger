@@ -136,6 +136,72 @@ app.get('/auth/user', (request, response) => {
   });
 });
 
+interface UpdateProfileRequest {
+  first_name: string;
+  second_name: string;
+  display_name: string | null;
+  login: string;
+  email: string;
+  phone: string;
+}
+
+function findUserBySession(request: express.Request): User | undefined {
+  const sessionId = request.cookies[sessionCookieName] as string | undefined;
+
+  if (!sessionId) {
+    return undefined;
+  }
+
+  const userId = sessionsById.get(sessionId);
+
+  if (!userId) {
+    return undefined;
+  }
+
+  return [...usersByLogin.values()].find((candidate) => candidate.id === userId);
+}
+
+app.put('/user/profile', (request, response) => {
+  const user = findUserBySession(request);
+
+  if (!user) {
+    response.sendStatus(401);
+    return;
+  }
+
+  const body = request.body as UpdateProfileRequest;
+  const userWithSameLogin = usersByLogin.get(body.login);
+
+  if (userWithSameLogin && userWithSameLogin.id !== user.id) {
+    response.status(400).json({ reason: 'Login already exists' });
+    return;
+  }
+
+  const updatedUser: User = {
+    ...user,
+    first_name: body.first_name,
+    second_name: body.second_name,
+    display_name: body.display_name,
+    login: body.login,
+    email: body.email,
+    phone: body.phone,
+  };
+
+  usersByLogin.delete(user.login);
+  usersByLogin.set(updatedUser.login, updatedUser);
+
+  response.json({
+    id: updatedUser.id,
+    first_name: updatedUser.first_name,
+    second_name: updatedUser.second_name,
+    display_name: updatedUser.display_name,
+    login: updatedUser.login,
+    email: updatedUser.email,
+    phone: updatedUser.phone,
+    avatar: updatedUser.avatar,
+  });
+});
+
 app.post('/auth/logout', (request, response) => {
   const sessionId = request.cookies[sessionCookieName] as string | undefined;
 

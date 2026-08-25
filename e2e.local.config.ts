@@ -4,16 +4,18 @@ export default defineConfig({
   testDir: './e2e',
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: 'http://localhost:4200',
+    baseURL: 'http://localhost:4300',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
   reporter: [['html']],
 
+  // Локальный прогон идет против mock-auth-backend, поэтому приложение
+  // поднимается с e2e-конфигурацией: npm start собирается с боевым API.
   webServer: {
-    command: 'npm run start',
-    url: 'http://localhost:4200',
+    command: 'npm run start:e2e',
+    url: 'http://localhost:4300',
     reuseExistingServer: true,
   },
 
