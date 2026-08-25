@@ -126,6 +126,26 @@ describe('ModalService', () => {
       expect(inputEl?.textContent?.trim()).toBe('Hello');
     });
 
+    it('should pass title to modal shell', () => {
+      service.open(TestModalContent, { title: 'Edit profile' });
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const titleEl = document.querySelector('.cdk-overlay-container .app-modal-shell__title');
+
+      expect(titleEl?.textContent?.trim()).toBe('Edit profile');
+    });
+
+    it('should open without a title', () => {
+      service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const titleEl = document.querySelector('.cdk-overlay-container .app-modal-shell__title');
+
+      expect(titleEl).toBeNull();
+    });
+
     it('should dim application behind modal', () => {
       service.open(TestModalContent);
 

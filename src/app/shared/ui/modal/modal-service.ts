@@ -12,6 +12,7 @@ const ESCAPE_KEY = 'Escape';
 export interface ModalOptions {
   inputs?: Record<string, unknown>;
   size?: ModalSize;
+  title?: string;
 }
 
 @Injectable({
@@ -71,6 +72,7 @@ export class ModalService {
     shellRef.setInput('content', component);
     shellRef.setInput('contentInputs', options?.inputs ?? {});
     shellRef.setInput('size', options?.size ?? DEFAULT_MODAL_SIZE);
+    shellRef.setInput('title', options?.title);
   }
 
   private _setSubscriptions(overlayRef: OverlayRef, modalRef: ModalRef): void {
