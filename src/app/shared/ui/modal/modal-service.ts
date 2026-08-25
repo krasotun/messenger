@@ -22,10 +22,18 @@ export class ModalService {
 
   private readonly _injector = inject(Injector);
 
+  private _activeOverlayRef: OverlayRef | null = null;
+
   open<T>(component: Type<T>, options?: ModalOptions): void {
+    if (this._activeOverlayRef) {
+      return;
+    }
+
     const modalRef = new ModalRef();
 
     const overlayRef = this._createOverlayRef();
+
+    this._activeOverlayRef = overlayRef;
 
     this._attachModalShell(overlayRef, modalRef, component, options);
 
@@ -76,5 +84,11 @@ export class ModalService {
     modalRef.closeRequested$
       .pipe(takeUntil(overlayRef.detachments()))
       .subscribe(() => overlayRef.dispose());
+
+    overlayRef.detachments().subscribe(() => {
+      if (this._activeOverlayRef === overlayRef) {
+        this._activeOverlayRef = null;
+      }
+    });
   }
 }
