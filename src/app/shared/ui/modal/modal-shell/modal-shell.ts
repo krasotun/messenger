@@ -1,3 +1,4 @@
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { CdkPortalOutlet, ComponentPortal, PortalModule } from '@angular/cdk/portal';
 import {
   AfterViewInit,
@@ -13,7 +14,7 @@ import { ModalRef } from '../modal-ref';
 
 @Component({
   selector: 'app-modal-shell',
-  imports: [PortalModule],
+  imports: [PortalModule, CdkTrapFocus],
   templateUrl: './modal-shell.html',
   styleUrl: './modal-shell.scss',
 })
