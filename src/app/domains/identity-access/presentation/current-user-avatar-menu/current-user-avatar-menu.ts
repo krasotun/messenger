@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
@@ -27,6 +27,8 @@ export class CurrentUserAvatarMenu {
   private readonly _router = inject(Router);
   private readonly _modalService = inject(ModalService);
 
+  private readonly _popover = viewChild(Popover);
+
   readonly currentUserAvatarView = computed<Nullable<CurrentUserAvatarView>>(() => {
     const currentUser = this._currentSessionService.currentUser();
 
@@ -34,6 +36,8 @@ export class CurrentUserAvatarMenu {
   });
 
   protected editProfile(): void {
+    this._popover()?.close();
+
     this._modalService.open(UpdateProfileModalContent);
   }
 

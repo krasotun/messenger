@@ -196,6 +196,35 @@ describe('CurrentUserAvatarMenu', () => {
     expect(modalServiceMock.open).toHaveBeenCalledWith(UpdateProfileModalContent);
   });
 
+  it('closes the menu when Edit profile is clicked', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.current-user-avatar-menu__trigger',
+    );
+
+    popoverTrigger.dispatchEvent(new Event('click'));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const buttons = Array.from(
+      document.querySelectorAll('.current-user-avatar-menu__action'),
+    ) as HTMLButtonElement[];
+
+    const editProfileButton = buttons.find(
+      (button) => button.textContent?.trim() === 'Edit profile',
+    );
+
+    editProfileButton?.dispatchEvent(new Event('click'));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(document.querySelector('.current-user-avatar-menu__actions')).toBeNull();
+  });
+
   it('navigates to sign in after logout error', async () => {
     currentSessionServiceMock.logout.mockReturnValue(throwError(() => 'mockError'));
 
