@@ -4,6 +4,7 @@ import {
   AfterViewInit,
   Component,
   ComponentRef,
+  computed,
   inject,
   input,
   Type,
@@ -11,6 +12,7 @@ import {
 } from '@angular/core';
 
 import { ModalRef } from '../modal-ref';
+import { DEFAULT_MODAL_SIZE, ModalSize } from '../modal-size';
 
 @Component({
   selector: 'app-modal-shell',
@@ -22,6 +24,10 @@ export class ModalShell implements AfterViewInit {
   readonly content = input.required<Type<unknown>>();
 
   readonly contentInputs = input<Record<string, unknown>>({});
+
+  readonly size = input<ModalSize>(DEFAULT_MODAL_SIZE);
+
+  readonly sizeClass = computed(() => `app-modal-shell_${this.size()}`);
 
   private readonly _modalRef = inject(ModalRef);
 

@@ -4,6 +4,19 @@
   border-radius: 8px;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
 
+  // Высота не задается: модалка тянется за содержимым.
+  &_small {
+    width: 320px;
+  }
+
+  &_medium {
+    width: 480px;
+  }
+
+  &_large {
+    width: 640px;
+  }
+
   &__close-button {
     position: absolute;
     top: 8px;
