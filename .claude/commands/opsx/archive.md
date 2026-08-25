@@ -1,6 +1,7 @@
 ---
 name: 'OPSX: Archive'
 description: 'Archive a completed change in the experimental workflow'
+model: haiku
 allowed-tools: Bash(openspec:*)
 category: 'Workflow'
 tags: ['workflow', 'archive', 'experimental']
