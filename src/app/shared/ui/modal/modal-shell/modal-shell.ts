@@ -27,6 +27,12 @@ export class ModalShell implements AfterViewInit {
 
   readonly size = input<ModalSize>(DEFAULT_MODAL_SIZE);
 
+  readonly title = input<string>();
+
+  // Модалка на экране всегда одна, поэтому фиксированный id не столкнется с
+  // другим окном.
+  readonly titleId = 'app-modal-shell-title';
+
   readonly sizeClass = computed(() => `app-modal-shell_${this.size()}`);
 
   private readonly _modalRef = inject(ModalRef);
