@@ -20,20 +20,20 @@ npm install
 npm start           # dev-сервер на http://localhost:4200
 ```
 
-Dev-сборка ходит в мок-бэкенд `http://localhost:3000`, production-сборка - в
-`https://ya-praktikum.tech/api/v2` (`src/environments/`).
-
-Мок-бэкенд:
+`npm start` собирается с `src/environments/environment.ts` и ходит в боевой API
+`https://ya-praktikum.tech/api/v2`. Чтобы работать против мок-бэкенда, нужна
+e2e-конфигурация (`environment.e2e.ts`):
 
 ```bash
-cd mock-auth-backend && npm install && npm start
+npm ci --prefix mock-auth-backend   # один раз: зависимости мок-бэкенда
+npm run e2e:backend                 # мок-бэкенд на http://localhost:3000
+npm run start:e2e                   # приложение на http://localhost:4300
 ```
 
 ## Сборка
 
 ```bash
 npm run build       # production-сборка в dist/
-npm run watch       # dev-сборка в watch-режиме
 ```
 
 ## Тесты и проверки
