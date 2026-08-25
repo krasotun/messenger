@@ -38,7 +38,7 @@ export class CurrentUserAvatarMenu {
   protected editProfile(): void {
     this._popover()?.close();
 
-    this._modalService.open(UpdateProfileModalContent);
+    this._modalService.open(UpdateProfileModalContent, { title: 'Edit profile' });
   }
 
   protected logout(): void {

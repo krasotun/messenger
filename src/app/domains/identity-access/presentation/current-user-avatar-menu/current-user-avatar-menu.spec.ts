@@ -193,7 +193,9 @@ describe('CurrentUserAvatarMenu', () => {
 
     editProfileButton?.dispatchEvent(new Event('click'));
 
-    expect(modalServiceMock.open).toHaveBeenCalledWith(UpdateProfileModalContent);
+    expect(modalServiceMock.open).toHaveBeenCalledWith(UpdateProfileModalContent, {
+      title: 'Edit profile',
+    });
   });
 
   it('closes the menu when Edit profile is clicked', async () => {
