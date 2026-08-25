@@ -51,6 +51,6 @@
 
 ## 8. Quality gates
 
-- [ ] 8.1 `npm run lint`
-- [ ] 8.2 `npm run test:ci`
-- [ ] 8.3 `npx openspec validate shared-ui-modal --strict`
+- [x] 8.1 `npm run lint`
+- [x] 8.2 `npm run test:ci`
+- [x] 8.3 `npx openspec validate shared-ui-modal --strict`
