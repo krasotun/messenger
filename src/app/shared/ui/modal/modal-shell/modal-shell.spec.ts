@@ -43,7 +43,7 @@ describe('ModalShell', () => {
   });
 
   it('should render always visible close button', () => {
-    const closeButtonEl = fixture.nativeElement.querySelector('[data-testid="modal-close-button"]');
+    const closeButtonEl = fixture.nativeElement.querySelector('.app-modal-shell__close-button');
 
     expect(closeButtonEl).toBeTruthy();
   });
@@ -54,10 +54,10 @@ describe('ModalShell', () => {
     vi.spyOn(modalRef, 'close');
 
     const closeButtonEl: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '[data-testid="modal-close-button"]',
+      '.app-modal-shell__close-button',
     );
 
-    closeButtonEl.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    closeButtonEl.dispatchEvent(new MouseEvent('click'));
 
     fixture.detectChanges();
 

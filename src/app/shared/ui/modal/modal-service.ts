@@ -6,6 +6,8 @@ import { filter, merge, takeUntil } from 'rxjs';
 import { ModalRef } from './modal-ref';
 import { ModalShell } from './modal-shell/modal-shell';
 
+const ESCAPE_KEY = 'Escape';
+
 export interface ModalOptions {
   inputs?: Record<string, unknown>;
 }
@@ -61,7 +63,7 @@ export class ModalService {
   }
 
   private _setSubscriptions(overlayRef: OverlayRef, modalRef: ModalRef): void {
-    const escape$ = overlayRef.keydownEvents().pipe(filter(({ key }) => key === 'Escape'));
+    const escape$ = overlayRef.keydownEvents().pipe(filter(({ key }) => key === ESCAPE_KEY));
     const backdropClick$ = overlayRef.backdropClick();
 
     merge(escape$, backdropClick$)

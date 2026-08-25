@@ -1,5 +1,13 @@
 import { CdkPortalOutlet, ComponentPortal, PortalModule } from '@angular/cdk/portal';
-import { AfterViewInit, Component, inject, input, Type, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ComponentRef,
+  inject,
+  input,
+  Type,
+  viewChild,
+} from '@angular/core';
 
 import { ModalRef } from '../modal-ref';
 
@@ -16,19 +24,22 @@ export class ModalShell implements AfterViewInit {
 
   private readonly _modalRef = inject(ModalRef);
 
-  @ViewChild(CdkPortalOutlet, { static: true })
-  private readonly _portalOutlet!: CdkPortalOutlet;
+  private readonly _portalOutlet = viewChild.required(CdkPortalOutlet);
 
   ngAfterViewInit(): void {
     const contentPortal = new ComponentPortal(this.content());
-    const contentRef = this._portalOutlet.attach(contentPortal);
+    const contentRef = this._portalOutlet().attach(contentPortal);
 
-    for (const [inputName, inputValue] of Object.entries(this.contentInputs())) {
-      contentRef.setInput(inputName, inputValue);
-    }
+    this._applyContentInputs(contentRef);
   }
 
   close(): void {
     this._modalRef.close();
+  }
+
+  private _applyContentInputs(contentRef: ComponentRef<unknown>): void {
+    for (const [inputName, inputValue] of Object.entries(this.contentInputs())) {
+      contentRef.setInput(inputName, inputValue);
+    }
   }
 }

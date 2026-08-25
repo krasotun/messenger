@@ -170,10 +170,10 @@ describe('ModalService', () => {
       TestBed.inject(ApplicationRef).tick();
 
       const closeButtonEl = document.querySelector<HTMLButtonElement>(
-        '.cdk-overlay-container [data-testid="modal-close-button"]',
+        '.cdk-overlay-container .app-modal-shell__close-button',
       );
 
-      closeButtonEl?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      closeButtonEl?.dispatchEvent(new MouseEvent('click'));
 
       TestBed.inject(ApplicationRef).tick();
 
@@ -209,7 +209,7 @@ describe('ModalService', () => {
         '.cdk-overlay-container .cdk-overlay-backdrop',
       );
 
-      backdropEl?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      backdropEl?.dispatchEvent(new MouseEvent('click'));
 
       TestBed.inject(ApplicationRef).tick();
 
