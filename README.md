@@ -46,30 +46,25 @@ npm run test:ci         # Vitest один прогон
 npm run test:coverage
 ```
 
-E2E (Playwright поднимает окружение из `docker-compose.e2e.yml`):
+E2E (Playwright сам поднимает мок-бэкенд на :3000 и приложение на :4300):
 
 ```bash
+npm ci --prefix mock-auth-backend   # один раз: зависимости мок-бэкенда
 npm run e2e             # все, кроме визуальных тестов
 npm run e2e:visual      # только @visual
-npm run e2e:local       # против локального dev-сервера
 npm run e2e:report
 npx playwright test --ui
 ```
+
+Приложение для e2e собирается с `environment.e2e.ts`, то есть ходит в
+мок-бэкенд, а не в боевой API. Поднять его отдельно: `npm run start:e2e`
+(:4300) и `npm run e2e:backend` (:3000).
 
 Спецификации:
 
 ```bash
 npx openspec list
 npx openspec validate --strict
-```
-
-## Docker
-
-```bash
-npm run docker:build          # образ messenger-frontend:local
-npm run docker:run            # http://localhost:8080
-npm run compose:e2e:up        # фронтенд + мок-бэкенд для e2e
-npm run compose:e2e:down
 ```
 
 ## Деплой

@@ -44,5 +44,5 @@
 
 - [x] 7.1 `npm run lint`
 - [x] 7.2 `npm run test:ci`
-- [ ] 7.3 `npm run e2e`
+- [x] 7.3 `npm run e2e`
 - [x] 7.4 `npx openspec validate update-profile --strict`

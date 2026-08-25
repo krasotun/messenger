@@ -43,6 +43,7 @@ jobs:
           node-version: '22.16.0'
 
       - run: HUSKY=0 npm ci
+      - run: HUSKY=0 npm ci --prefix mock-auth-backend
       - run: npx playwright install --with-deps
       - run: npm run e2e
 
