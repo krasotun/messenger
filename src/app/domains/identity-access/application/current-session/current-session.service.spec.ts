@@ -166,4 +166,29 @@ describe('CurrentSessionService', () => {
       });
     });
   });
+
+  describe('updateCurrentUser', () => {
+    it('should replace the current user', () => {
+      authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
+      service.restoreCurrentSession().subscribe();
+
+      const updatedUserMock: CurrentUser = {
+        ...currentUserMock,
+        firstName: 'updatedFirstName',
+      };
+
+      service.updateCurrentUser(updatedUserMock);
+
+      expect(service.currentUser()).toEqual(updatedUserMock);
+    });
+
+    it('should keep the session authenticated', () => {
+      authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
+      service.restoreCurrentSession().subscribe();
+
+      service.updateCurrentUser({ ...currentUserMock, firstName: 'updatedFirstName' });
+
+      expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
+    });
+  });
 });
