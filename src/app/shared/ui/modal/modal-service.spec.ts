@@ -163,6 +163,31 @@ describe('ModalService', () => {
       expect(wrapperEl?.style.justifyContent).toBe('center');
       expect(wrapperEl?.style.alignItems).toBe('center');
     });
+
+    it('should not open a second modal when called while a modal is already open', () => {
+      service.open(TestModalContentWithInput, { inputs: { label: 'First' } });
+      service.open(TestModalContentWithInput, { inputs: { label: 'Second' } });
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const overlayContainers = document.querySelectorAll(
+        '.cdk-overlay-container .cdk-overlay-pane',
+      );
+
+      expect(overlayContainers.length).toBe(1);
+    });
+
+    it('should leave the already open modal unaffected when open is called again', () => {
+      service.open(TestModalContentWithInput, { inputs: { label: 'First' } });
+      service.open(TestModalContentWithInput, { inputs: { label: 'Second' } });
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const overlayContainer = document.querySelector('.cdk-overlay-container');
+      const inputEl = overlayContainer?.querySelector('[data-testid="modal-input-value"]');
+
+      expect(inputEl?.textContent?.trim()).toBe('First');
+    });
   });
 
   describe('close', () => {
