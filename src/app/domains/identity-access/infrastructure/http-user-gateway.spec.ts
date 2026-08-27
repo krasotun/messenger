@@ -105,9 +105,13 @@ describe('HttpUserGateway', () => {
     it('should map successful response to current user', () => {
       userApiMock.updateProfile.mockReturnValue(of(currentUserDtoMock));
 
+      const results: unknown[] = [];
+
       service.updateProfile(updateProfileInputMock).subscribe((response) => {
-        expect(response).toEqual({ user: currentUserMock });
+        results.push(response);
       });
+
+      expect(results).toEqual([{ user: currentUserMock }]);
     });
 
     it('should map error to ApplicationError with reason from response body', () => {
@@ -117,25 +121,33 @@ describe('HttpUserGateway', () => {
 
       userApiMock.updateProfile.mockReturnValue(throwError(() => error));
 
+      const errors: ApplicationError[] = [];
+
       service.updateProfile(updateProfileInputMock).subscribe({
-        error: (applicationError) => {
-          expect(applicationError).toBeInstanceOf(ApplicationError);
-          expect(applicationError.message).toBe('mockReason');
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
         },
       });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('mockReason');
     });
 
     it('should map generic error to ApplicationError with fallback message', () => {
-      const error = 'mockError';
+      userApiMock.updateProfile.mockReturnValue(throwError(() => 'mockError'));
 
-      userApiMock.updateProfile.mockReturnValue(throwError(() => error));
+      const errors: ApplicationError[] = [];
 
       service.updateProfile(updateProfileInputMock).subscribe({
-        error: (applicationError) => {
-          expect(applicationError).toBeInstanceOf(ApplicationError);
-          expect(applicationError.message).toBe('Failed to update profile. Please try again.');
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
         },
       });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('Failed to update profile. Please try again.');
     });
   });
   describe('changePassword', () => {

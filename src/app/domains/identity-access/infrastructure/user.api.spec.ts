@@ -33,8 +33,10 @@ describe('UserApi', () => {
 
   describe('changePassword', () => {
     it('should send PUT request to relative url with camelCase body as text', () => {
+      const results: unknown[] = [];
+
       service.changePassword(changePasswordRequestMock).subscribe((response) => {
-        expect(response).toBe('OK');
+        results.push(response);
       });
 
       const request = httpTestingController.expectOne('/user/password');
@@ -45,6 +47,8 @@ describe('UserApi', () => {
       expect(request.request.withCredentials).toBe(false);
 
       request.flush('OK');
+
+      expect(results).toEqual(['OK']);
     });
   });
 });

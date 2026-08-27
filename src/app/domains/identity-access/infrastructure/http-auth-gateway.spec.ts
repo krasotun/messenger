@@ -110,11 +110,13 @@ describe('HttpAuthGateway', () => {
     it('should transform id to userId', () => {
       authApiMock.signUp.mockReturnValue(of({ id: 1 }));
 
-      service.signUp(signUpInputMock).subscribe({
-        next: (response) => {
-          expect(response).toEqual({ userId: 1 });
-        },
+      const results: unknown[] = [];
+
+      service.signUp(signUpInputMock).subscribe((response) => {
+        results.push(response);
       });
+
+      expect(results).toEqual([{ userId: 1 }]);
     });
 
     it('should map generic error to ApplicationError', () => {
@@ -122,12 +124,17 @@ describe('HttpAuthGateway', () => {
 
       authApiMock.signUp.mockReturnValue(throwError(() => error));
 
+      const errors: ApplicationError[] = [];
+
       service.signUp(signUpInputMock).subscribe({
-        error: (applicationError) => {
-          expect(applicationError).toBeInstanceOf(ApplicationError);
-          expect(applicationError.message).toBe('Failed to sign up. Please try again.');
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
         },
       });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('Failed to sign up. Please try again.');
     });
   });
 
@@ -144,11 +151,13 @@ describe('HttpAuthGateway', () => {
     it('should transform successful response to sign-in result', () => {
       authApiMock.signIn.mockImplementation(() => of({}));
 
-      service.signIn(signInInputMock).subscribe({
-        next: (response) => {
-          expect(response).toEqual({ authenticated: true });
-        },
+      const results: unknown[] = [];
+
+      service.signIn(signInInputMock).subscribe((response) => {
+        results.push(response);
       });
+
+      expect(results).toEqual([{ authenticated: true }]);
     });
 
     it('should map generic error to ApplicationError', () => {
@@ -156,12 +165,17 @@ describe('HttpAuthGateway', () => {
 
       authApiMock.signIn.mockReturnValue(throwError(() => error));
 
+      const errors: ApplicationError[] = [];
+
       service.signIn(signInInputMock).subscribe({
-        error: (applicationError) => {
-          expect(applicationError).toBeInstanceOf(ApplicationError);
-          expect(applicationError.message).toBe('Failed to sign in. Please try again.');
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
         },
       });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('Failed to sign in. Please try again.');
     });
   });
 
@@ -177,12 +191,18 @@ describe('HttpAuthGateway', () => {
     it('should transform successful response to Authenticated', () => {
       authApiMock.currentSession.mockImplementation(() => of(currentUserDtoMock));
 
+      const results: unknown[] = [];
+
       service.currentSession().subscribe((response) => {
-        expect(response).toEqual({
+        results.push(response);
+      });
+
+      expect(results).toEqual([
+        {
           status: CurrentSessionStatus.Authenticated,
           user: currentUserMock,
-        });
-      });
+        },
+      ]);
     });
 
     it('should transform 401 error to Anonymous', () => {
@@ -192,11 +212,17 @@ describe('HttpAuthGateway', () => {
 
       authApiMock.currentSession.mockImplementation(() => throwError(() => noSessionError));
 
+      const results: unknown[] = [];
+
       service.currentSession().subscribe((response) => {
-        expect(response).toEqual({
-          status: CurrentSessionStatus.Anonymous,
-        });
+        results.push(response);
       });
+
+      expect(results).toEqual([
+        {
+          status: CurrentSessionStatus.Anonymous,
+        },
+      ]);
     });
 
     it('should map generic error to ApplicationError', () => {
@@ -204,12 +230,17 @@ describe('HttpAuthGateway', () => {
 
       authApiMock.currentSession.mockReturnValue(throwError(() => error));
 
+      const errors: ApplicationError[] = [];
+
       service.currentSession().subscribe({
-        error: (applicationError) => {
-          expect(applicationError).toBeInstanceOf(ApplicationError);
-          expect(applicationError.message).toBe('Failed to load session. Please try again.');
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
         },
       });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('Failed to load session. Please try again.');
     });
   });
 
@@ -227,12 +258,17 @@ describe('HttpAuthGateway', () => {
 
       authApiMock.logout.mockReturnValue(throwError(() => error));
 
+      const errors: ApplicationError[] = [];
+
       service.logout().subscribe({
-        error: (applicationError) => {
-          expect(applicationError).toBeInstanceOf(ApplicationError);
-          expect(applicationError.message).toBe('Failed to logout. Please try again.');
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
         },
       });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('Failed to logout. Please try again.');
     });
   });
 });
