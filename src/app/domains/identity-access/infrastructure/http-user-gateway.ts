@@ -1,11 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
+import { ChangePasswordInput } from '../application/change-password/change-password.input';
 import { UpdateProfileInput } from '../application/update-profile/update-profile.input';
 import { UpdateProfileResult } from '../application/update-profile/update-profile.result';
 import { UserGateway } from '../application/user.gateway';
 
 import { mapAuthError } from './auth-error.mapper';
+import { changePasswordRequestMapper } from './change-password/change-password-request.mapper';
 import { currentUserMapper } from './current-session/current-user.mapper';
 import { updateProfileRequestMapper } from './update-profile/update-profile-request.mapper';
 import { UserApi } from './user.api';
@@ -25,6 +27,21 @@ export class HttpUserGateway implements UserGateway {
       }),
       catchError((error) => {
         return throwError(() => mapAuthError(error, 'Failed to update profile. Please try again.'));
+      }),
+    );
+  }
+
+  changePassword(changePasswordInput: ChangePasswordInput): Observable<void> {
+    const changePasswordRequest = changePasswordRequestMapper(changePasswordInput);
+
+    return this._userApi.changePassword(changePasswordRequest).pipe(
+      map(() => {
+        return undefined;
+      }),
+      catchError((error) => {
+        return throwError(() =>
+          mapAuthError(error, 'Failed to change password. Please try again.'),
+        );
       }),
     );
   }

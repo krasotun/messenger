@@ -1,31 +1,31 @@
 ## 1. Инфраструктура user API
 
-- [ ] 1.1 Написать падающий spec на маппер запроса в
+- [x] 1.1 Написать падающий spec на маппер запроса в
       `src/app/domains/identity-access/infrastructure/change-password/change-password-request.mapper.spec.ts`:
       входная модель переводится в тело с полями `oldPassword` и `newPassword`
       в camelCase, повтор пароля в тело не попадает
-- [ ] 1.2 Написать падающий spec в
+- [x] 1.2 Написать падающий spec в
       `src/app/domains/identity-access/infrastructure/user.api.spec.ts`:
       `changePassword` идет `PUT` на относительный `/user/password` с
       `responseType: 'text'`, ответ `OK` считается успехом; базовый URL и
       `withCredentials` проставляет `apiRequestInterceptor`, в методе их нет
-- [ ] 1.3 Написать падающий spec в
+- [x] 1.3 Написать падающий spec в
       `src/app/domains/identity-access/infrastructure/http-user-gateway.spec.ts`:
       успех отдает пустой результат, ошибка приводится к `ApplicationError` с
       текстом из `reason`, а без `reason` - к generic-сообщению
-- [ ] 1.4 Реализовать `change-password/change-password.dto.ts`,
+- [x] 1.4 Реализовать `change-password/change-password.dto.ts`,
       `change-password/change-password-request.mapper.ts`, метод
       `UserApi.changePassword` и `HttpUserGateway.changePassword`;
       объявить `changePassword` в
       `src/app/domains/identity-access/application/user.gateway.ts` и
       `application/change-password/change-password.input.ts`; проверить
       прогоном `npm run test:ci`
-- [ ] 1.5 Дописать `PUT /user/password` в
+- [x] 1.5 Дописать `PUT /user/password` в
       `src/app/domains/identity-access/infrastructure/user-api.contract.md`:
       относительный адрес, camelCase тела как аномалия относительно
       `/user/profile`, отсутствие тела ответа и пробелы Swagger; строку про
       credentials не добавлять - политика в контракте уже общая для всего API
-- [ ] 1.6 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 1.6 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 2. Use case смены пароля
 

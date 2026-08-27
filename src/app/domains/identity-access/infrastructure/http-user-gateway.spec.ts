@@ -2,9 +2,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
+import { ChangePasswordInput } from '../application/change-password/change-password.input';
 import { CurrentUser } from '../application/current-session/current-user';
 import { UpdateProfileInput } from '../application/update-profile/update-profile.input';
 
+import { ChangePasswordRequestDto } from './change-password/change-password.dto';
 import { CurrentUserDto } from './current-session/current-user.dto';
 import { HttpUserGateway } from './http-user-gateway';
 import { UpdateProfileRequestDto } from './update-profile/update-profile.dto';
@@ -14,6 +16,17 @@ import { ApplicationError } from '@shared/errors';
 
 const userApiMock = {
   updateProfile: vi.fn(),
+  changePassword: vi.fn(),
+};
+
+const changePasswordInputMock: ChangePasswordInput = {
+  oldPassword: 'mockOldPassword',
+  newPassword: 'mockNewPassword',
+};
+
+const changePasswordRequestMock: ChangePasswordRequestDto = {
+  oldPassword: 'mockOldPassword',
+  newPassword: 'mockNewPassword',
 };
 
 const updateProfileInputMock: UpdateProfileInput = {
@@ -61,6 +74,7 @@ describe('HttpUserGateway', () => {
 
   beforeEach(() => {
     userApiMock.updateProfile.mockReset();
+    userApiMock.changePassword.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -120,6 +134,52 @@ describe('HttpUserGateway', () => {
         error: (applicationError) => {
           expect(applicationError).toBeInstanceOf(ApplicationError);
           expect(applicationError.message).toBe('Failed to update profile. Please try again.');
+        },
+      });
+    });
+  });
+  describe('changePassword', () => {
+    it('should call api with mapped camelCase request', () => {
+      userApiMock.changePassword.mockReturnValue(of('OK'));
+
+      service.changePassword(changePasswordInputMock).subscribe();
+
+      expect(userApiMock.changePassword).toHaveBeenCalledOnce();
+      expect(userApiMock.changePassword).toHaveBeenCalledWith(changePasswordRequestMock);
+    });
+
+    it('should map successful response to empty result', () => {
+      userApiMock.changePassword.mockReturnValue(of('OK'));
+
+      service.changePassword(changePasswordInputMock).subscribe((response) => {
+        expect(response).toBeUndefined();
+      });
+    });
+
+    it('should map error to ApplicationError with reason from response body', () => {
+      const error = new HttpErrorResponse({
+        error: { reason: 'mockReason' },
+      });
+
+      userApiMock.changePassword.mockReturnValue(throwError(() => error));
+
+      service.changePassword(changePasswordInputMock).subscribe({
+        error: (applicationError) => {
+          expect(applicationError).toBeInstanceOf(ApplicationError);
+          expect(applicationError.message).toBe('mockReason');
+        },
+      });
+    });
+
+    it('should map generic error to ApplicationError with fallback message', () => {
+      const error = 'mockError';
+
+      userApiMock.changePassword.mockReturnValue(throwError(() => error));
+
+      service.changePassword(changePasswordInputMock).subscribe({
+        error: (applicationError) => {
+          expect(applicationError).toBeInstanceOf(ApplicationError);
+          expect(applicationError.message).toBe('Failed to change password. Please try again.');
         },
       });
     });
