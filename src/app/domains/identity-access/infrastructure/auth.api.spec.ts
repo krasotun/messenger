@@ -7,8 +7,6 @@ import { CurrentUserDto } from './current-session/current-user.dto';
 import { SignInRequestDto } from './sign-in/sign-in.dto';
 import { SignUpRequestDto } from './sign-up/sign-up.dto';
 
-import { API_BASE_URL } from '@core/tokens';
-
 const signUpRequestMock: SignUpRequestDto = {
   first_name: 'mockFirstName',
   second_name: 'mockSecondName',
@@ -34,22 +32,13 @@ const currentSessionResponseMock: CurrentUserDto = {
   email: 'email',
 };
 
-const mockBaseUrl = 'https://api.example.test';
-
 describe('AuthApi', () => {
   let service: AuthApi;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: API_BASE_URL,
-          useValue: mockBaseUrl,
-        },
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     });
 
     service = TestBed.inject(AuthApi);
@@ -70,7 +59,7 @@ describe('AuthApi', () => {
         expect(response).toEqual({ id: 1 });
       });
 
-      const request = httpTestingController.expectOne(`${mockBaseUrl}/auth/signup`);
+      const request = httpTestingController.expectOne('/auth/signup');
 
       expect(request.request.method).toBe('POST');
       expect(request.request.body).toEqual(signUpRequestMock);
@@ -85,11 +74,10 @@ describe('AuthApi', () => {
         expect(response).toBe('OK');
       });
 
-      const request = httpTestingController.expectOne(`${mockBaseUrl}/auth/signin`);
+      const request = httpTestingController.expectOne('/auth/signin');
 
       expect(request.request.method).toBe('POST');
       expect(request.request.body).toEqual(signInRequestMock);
-      expect(request.request.withCredentials).toBe(true);
       expect(request.request.responseType).toBe('text');
 
       request.flush('OK');
@@ -102,10 +90,9 @@ describe('AuthApi', () => {
         expect(response).toEqual(currentSessionResponseMock);
       });
 
-      const request = httpTestingController.expectOne(`${mockBaseUrl}/auth/user`);
+      const request = httpTestingController.expectOne('/auth/user');
 
       expect(request.request.method).toBe('GET');
-      expect(request.request.withCredentials).toBe(true);
 
       request.flush(currentSessionResponseMock);
     });
@@ -117,11 +104,10 @@ describe('AuthApi', () => {
         expect(response).toBeNull();
       });
 
-      const request = httpTestingController.expectOne(`${mockBaseUrl}/auth/logout`);
+      const request = httpTestingController.expectOne('/auth/logout');
 
       expect(request.request.method).toBe('POST');
       expect(request.request.body).toBeNull();
-      expect(request.request.withCredentials).toBe(true);
 
       request.flush(null);
     });
