@@ -100,5 +100,5 @@
 
 ## 6. Quality gates
 
-- [ ] 6.1 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e` целиком
-- [ ] 6.2 Прогнать `npx openspec validate --changes --strict`
+- [x] 6.1 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e` целиком
+- [x] 6.2 Прогнать `npx openspec validate --changes --strict`
