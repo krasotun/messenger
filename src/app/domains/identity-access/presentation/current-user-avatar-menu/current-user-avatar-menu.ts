@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
 import { CurrentUser } from '../../application/current-session/current-user';
+import { ChangePasswordModalContent } from '../change-password-modal-content/change-password-modal-content';
 import { UpdateProfileModalContent } from '../update-profile-modal-content/update-profile-modal-content';
 
 import { Nullable } from '@shared/types';
@@ -39,6 +40,12 @@ export class CurrentUserAvatarMenu {
     this._popover()?.close();
 
     this._modalService.open(UpdateProfileModalContent, { title: 'Edit profile' });
+  }
+
+  protected changePassword(): void {
+    this._popover()?.close();
+
+    this._modalService.open(ChangePasswordModalContent, { title: 'Change password' });
   }
 
   protected logout(): void {

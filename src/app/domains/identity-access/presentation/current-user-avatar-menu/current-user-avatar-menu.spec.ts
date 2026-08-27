@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
 import { CurrentUser } from '../../application/current-session/current-user';
+import { ChangePasswordModalContent } from '../change-password-modal-content/change-password-modal-content';
 import { UpdateProfileModalContent } from '../update-profile-modal-content/update-profile-modal-content';
 
 import { CurrentUserAvatarMenu } from './current-user-avatar-menu';
@@ -220,6 +221,65 @@ describe('CurrentUserAvatarMenu', () => {
     );
 
     editProfileButton?.dispatchEvent(new Event('click'));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(document.querySelector('.current-user-avatar-menu__actions')).toBeNull();
+  });
+
+  it('opens the change password modal when Change password is clicked', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.current-user-avatar-menu__trigger',
+    );
+
+    popoverTrigger.dispatchEvent(new Event('click'));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const buttons = Array.from(
+      document.querySelectorAll('.current-user-avatar-menu__action'),
+    ) as HTMLButtonElement[];
+
+    const changePasswordButton = buttons.find(
+      (button) => button.textContent?.trim() === 'Change password',
+    );
+
+    expect(changePasswordButton).toBeTruthy();
+
+    changePasswordButton?.dispatchEvent(new Event('click'));
+
+    expect(modalServiceMock.open).toHaveBeenCalledWith(ChangePasswordModalContent, {
+      title: 'Change password',
+    });
+  });
+
+  it('closes the menu when Change password is clicked', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.current-user-avatar-menu__trigger',
+    );
+
+    popoverTrigger.dispatchEvent(new Event('click'));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const buttons = Array.from(
+      document.querySelectorAll('.current-user-avatar-menu__action'),
+    ) as HTMLButtonElement[];
+
+    const changePasswordButton = buttons.find(
+      (button) => button.textContent?.trim() === 'Change password',
+    );
+
+    changePasswordButton?.dispatchEvent(new Event('click'));
 
     fixture.detectChanges();
     await fixture.whenStable();

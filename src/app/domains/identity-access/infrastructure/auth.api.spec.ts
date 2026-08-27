@@ -55,8 +55,10 @@ describe('AuthApi', () => {
 
   describe('signUp', () => {
     it('should send POST request to correct URL with correct data', () => {
+      const results: unknown[] = [];
+
       service.signUp(signUpRequestMock).subscribe((response) => {
-        expect(response).toEqual({ id: 1 });
+        results.push(response);
       });
 
       const request = httpTestingController.expectOne('/auth/signup');
@@ -65,13 +67,17 @@ describe('AuthApi', () => {
       expect(request.request.body).toEqual(signUpRequestMock);
 
       request.flush({ id: 1 });
+
+      expect(results).toEqual([{ id: 1 }]);
     });
   });
 
   describe('signIn', () => {
     it('should send POST request to correct url with correct data', () => {
+      const results: unknown[] = [];
+
       service.signIn(signInRequestMock).subscribe((response) => {
-        expect(response).toBe('OK');
+        results.push(response);
       });
 
       const request = httpTestingController.expectOne('/auth/signin');
@@ -81,13 +87,17 @@ describe('AuthApi', () => {
       expect(request.request.responseType).toBe('text');
 
       request.flush('OK');
+
+      expect(results).toEqual(['OK']);
     });
   });
 
   describe('currentSession', () => {
     it('should send GET request to correct URL', () => {
+      const results: unknown[] = [];
+
       service.currentSession().subscribe((response) => {
-        expect(response).toEqual(currentSessionResponseMock);
+        results.push(response);
       });
 
       const request = httpTestingController.expectOne('/auth/user');
@@ -95,13 +105,17 @@ describe('AuthApi', () => {
       expect(request.request.method).toBe('GET');
 
       request.flush(currentSessionResponseMock);
+
+      expect(results).toEqual([currentSessionResponseMock]);
     });
   });
 
   describe('logout', () => {
     it('should send POST request to correct URL', () => {
+      const results: unknown[] = [];
+
       service.logout().subscribe((response) => {
-        expect(response).toBeNull();
+        results.push(response);
       });
 
       const request = httpTestingController.expectOne('/auth/logout');
@@ -110,6 +124,8 @@ describe('AuthApi', () => {
       expect(request.request.body).toBeNull();
 
       request.flush(null);
+
+      expect(results).toEqual([null]);
     });
   });
 });
