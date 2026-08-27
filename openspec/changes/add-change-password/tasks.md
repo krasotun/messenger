@@ -67,19 +67,19 @@
 
 ## 4. Точка входа и модалка
 
-- [ ] 4.1 Написать падающий component spec
+- [x] 4.1 Написать падающий component spec
       `src/app/domains/identity-access/presentation/change-password-modal-content/change-password-modal-content.spec.ts`:
       успех формы закрывает модалку через `ModalRef`
-- [ ] 4.2 Написать падающий component spec в
+- [x] 4.2 Написать падающий component spec в
       `src/app/domains/identity-access/presentation/current-user-avatar-menu/current-user-avatar-menu.spec.ts`:
       пункт «Change password» закрывает меню и открывает модалку смены пароля
-- [ ] 4.3 Spec: закрытие формы без отправки не меняет текущую сессию и
+- [x] 4.3 Spec: закрытие формы без отправки не меняет текущую сессию и
       сбрасывает флоу, повторное открытие показывает пустую форму без ошибки
-- [ ] 4.4 Реализовать `change-password-modal-content.ts` и `.html`, добавить
+- [x] 4.4 Реализовать `change-password-modal-content.ts` и `.html`, добавить
       пункт меню в `current-user-avatar-menu.ts` и `.html`
-- [ ] 4.5 Проверить, что `application` не импортирует `ModalRef`, overlay и
+- [x] 4.5 Проверить, что `application` не импортирует `ModalRef`, overlay и
       Angular-формы: прогон `npm run lint` с правилами границ слоев
-- [ ] 4.6 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 4.6 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 5. Мок-бэкенд и сквозной сценарий
 

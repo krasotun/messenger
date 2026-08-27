@@ -1,4 +1,4 @@
-import { Component, effect, inject, output } from '@angular/core';
+import { Component, effect, inject, OnDestroy, output } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -34,7 +34,7 @@ const repeatMatchesNewPassword = (changePasswordForm: AbstractControl): Validati
   templateUrl: './change-password-form.html',
   styleUrl: './change-password-form.scss',
 })
-export class ChangePasswordForm {
+export class ChangePasswordForm implements OnDestroy {
   readonly changePasswordForm = new FormGroup<ChangePasswordFormModel>(
     {
       oldPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -70,6 +70,10 @@ export class ChangePasswordForm {
         this.passwordChanged.emit();
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this._changePasswordService.reset();
   }
 
   protected onSubmit() {
