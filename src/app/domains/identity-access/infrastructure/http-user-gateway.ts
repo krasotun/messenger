@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
 import { ChangePasswordInput } from '../application/change-password/change-password.input';
+import { ChangePasswordResult } from '../application/change-password/change-password.result';
 import { UpdateProfileInput } from '../application/update-profile/update-profile.input';
 import { UpdateProfileResult } from '../application/update-profile/update-profile.result';
 import { UserGateway } from '../application/user.gateway';
@@ -31,11 +32,15 @@ export class HttpUserGateway implements UserGateway {
     );
   }
 
-  changePassword(changePasswordInput: ChangePasswordInput): Observable<void> {
+  changePassword(changePasswordInput: ChangePasswordInput): Observable<ChangePasswordResult> {
     const changePasswordRequest = changePasswordRequestMapper(changePasswordInput);
 
     return this._userApi.changePassword(changePasswordRequest).pipe(
-      map(() => undefined),
+      map(() => {
+        return {
+          changed: true,
+        };
+      }),
       catchError((error) => {
         return throwError(() =>
           mapAuthError(error, 'Failed to change password. Please try again.'),

@@ -148,12 +148,16 @@ describe('HttpUserGateway', () => {
       expect(userApiMock.changePassword).toHaveBeenCalledWith(changePasswordRequestMock);
     });
 
-    it('should map successful response to empty result', () => {
+    it('should map successful response to changed result', () => {
       userApiMock.changePassword.mockReturnValue(of('OK'));
 
+      const results: unknown[] = [];
+
       service.changePassword(changePasswordInputMock).subscribe((response) => {
-        expect(response).toBeUndefined();
+        results.push(response);
       });
+
+      expect(results).toEqual([{ changed: true }]);
     });
 
     it('should map error to ApplicationError with reason from response body', () => {
@@ -163,25 +167,33 @@ describe('HttpUserGateway', () => {
 
       userApiMock.changePassword.mockReturnValue(throwError(() => error));
 
+      const errors: ApplicationError[] = [];
+
       service.changePassword(changePasswordInputMock).subscribe({
-        error: (applicationError) => {
-          expect(applicationError).toBeInstanceOf(ApplicationError);
-          expect(applicationError.message).toBe('mockReason');
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
         },
       });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('mockReason');
     });
 
     it('should map generic error to ApplicationError with fallback message', () => {
-      const error = 'mockError';
+      userApiMock.changePassword.mockReturnValue(throwError(() => 'mockError'));
 
-      userApiMock.changePassword.mockReturnValue(throwError(() => error));
+      const errors: ApplicationError[] = [];
 
       service.changePassword(changePasswordInputMock).subscribe({
-        error: (applicationError) => {
-          expect(applicationError).toBeInstanceOf(ApplicationError);
-          expect(applicationError.message).toBe('Failed to change password. Please try again.');
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
         },
       });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('Failed to change password. Please try again.');
     });
   });
 });
