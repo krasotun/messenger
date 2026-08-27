@@ -5,11 +5,12 @@
 
 ## Endpoints
 
-| Use case       | Method | Path            | Credentials |
-| -------------- | ------ | --------------- | ----------- |
-| Update Profile | PUT    | `/user/profile` | требуются   |
+| Use case       | Method | Path            |
+| -------------- | ------ | --------------- |
+| Update Profile | PUT    | `/user/profile` |
 
-`Credentials` означает `withCredentials: true`: запрос должен нести cookie.
+Путь относительный: базовый URL и `withCredentials: true` проставляет
+`apiRequestInterceptor`, политика общая для всего API.
 
 ## Session Handling
 
