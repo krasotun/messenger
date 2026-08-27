@@ -83,15 +83,20 @@
 
 ## 5. Мок-бэкенд и сквозной сценарий
 
-- [ ] 5.1 Добавить `PUT /user/password` в `mock-auth-backend/src/server.ts`:
+- [x] 5.1 Добавить `PUT /user/password` в `mock-auth-backend/src/server.ts`:
       `401` без сессии, `400` с `reason` на неверный старый пароль, иначе
       `200` и новый пароль в хранилище; проверить `curl` по поднятому моку
-- [ ] 5.2 E2E `e2e/profile/change-password.spec.ts`: пользователь меняет
+- [x] 5.2 E2E `e2e/profile/change-password.spec.ts`: пользователь меняет
       пароль, модалка закрывается, он остается в приложении и входит заново с
       новым паролем
-- [ ] 5.3 E2E: неверный старый пароль оставляет модалку открытой с сообщением
+- [x] 5.3 E2E: неверный старый пароль оставляет модалку открытой с сообщением
       об ошибке
-- [ ] 5.4 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e`
+- [x] 5.4 Научить `mapAuthError` доставать `reason` из текстового тела: при
+      `responseType: 'text'` HttpClient не разбирает тело ошибки, поэтому и
+      смена пароля, и вход показывали generic-сообщение вместо `reason`;
+      обновить `auth-error.mapper.spec.ts` и ожидание в
+      `e2e/auth/sign-in.spec.ts`
+- [x] 5.5 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e`
 
 ## 6. Quality gates
 

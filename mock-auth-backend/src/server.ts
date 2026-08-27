@@ -202,6 +202,31 @@ app.put('/user/profile', (request, response) => {
   });
 });
 
+interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
+
+app.put('/user/password', (request, response) => {
+  const user = findUserBySession(request);
+
+  if (!user) {
+    response.sendStatus(401);
+    return;
+  }
+
+  const body = request.body as ChangePasswordRequest;
+
+  if (user.password !== body.oldPassword) {
+    response.status(400).json({ reason: 'Password is incorrect' });
+    return;
+  }
+
+  usersByLogin.set(user.login, { ...user, password: body.newPassword });
+
+  response.type('text/plain').send('OK');
+});
+
 app.post('/auth/logout', (request, response) => {
   const sessionId = request.cookies[sessionCookieName] as string | undefined;
 
