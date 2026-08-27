@@ -7,14 +7,19 @@
 
 ## Endpoints
 
-| Use case        | Method | Path           | Credentials |
-| --------------- | ------ | -------------- | ----------- |
-| Sign Up         | POST   | `/auth/signup` | -           |
-| Sign In         | POST   | `/auth/signin` | требуются   |
-| Current Session | GET    | `/auth/user`   | требуются   |
-| Logout          | POST   | `/auth/logout` | требуются   |
+| Use case        | Method | Path           |
+| --------------- | ------ | -------------- |
+| Sign Up         | POST   | `/auth/signup` |
+| Sign In         | POST   | `/auth/signin` |
+| Current Session | GET    | `/auth/user`   |
+| Logout          | POST   | `/auth/logout` |
 
-`Credentials` означает `withCredentials: true`: запрос должен нести cookie.
+Пути относительные: базовый URL подставляет `apiRequestInterceptor`. Он же
+ставит всем запросам `withCredentials: true`, поэтому отдельного столбца
+`Credentials` в таблице больше нет - политика общая для всего API. Sign Up
+раньше был исключением; оба бэкенда (учебный API и мок) отвечают
+`Access-Control-Allow-Credentials: true` на всех маршрутах, так что
+исключение ничего не защищало.
 
 ## Session Handling
 
