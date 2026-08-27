@@ -11,7 +11,7 @@
       `withCredentials` проставляет `apiRequestInterceptor`, в методе их нет
 - [x] 1.3 Написать падающий spec в
       `src/app/domains/identity-access/infrastructure/http-user-gateway.spec.ts`:
-      успех отдает `ChangePasswordResult` с `changed: true`, ошибка приводится
+      успех отдает `ChangePasswordResult` с `passwordChanged: true`, ошибка приводится
       к `ApplicationError` с текстом из `reason`, а без `reason` - к
       generic-сообщению
 - [x] 1.4 Реализовать `change-password/change-password.dto.ts`,

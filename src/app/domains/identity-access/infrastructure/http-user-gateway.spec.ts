@@ -160,7 +160,7 @@ describe('HttpUserGateway', () => {
       expect(userApiMock.changePassword).toHaveBeenCalledWith(changePasswordRequestMock);
     });
 
-    it('should map successful response to changed result', () => {
+    it('should map successful response to password changed result', () => {
       userApiMock.changePassword.mockReturnValue(of('OK'));
 
       const results: unknown[] = [];
@@ -169,7 +169,7 @@ describe('HttpUserGateway', () => {
         results.push(response);
       });
 
-      expect(results).toEqual([{ changed: true }]);
+      expect(results).toEqual([{ passwordChanged: true }]);
     });
 
     it('should map error to ApplicationError with reason from response body', () => {

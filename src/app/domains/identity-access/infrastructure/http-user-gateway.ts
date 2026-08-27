@@ -38,7 +38,7 @@ export class HttpUserGateway implements UserGateway {
     return this._userApi.changePassword(changePasswordRequest).pipe(
       map(() => {
         return {
-          changed: true,
+          passwordChanged: true,
         };
       }),
       catchError((error) => {

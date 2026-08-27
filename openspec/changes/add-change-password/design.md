@@ -65,7 +65,7 @@
 Use case принимает модель входа с `oldPassword` и `newPassword`. Свагер у
 `200` схемы не описывает, фактически приходит текст `OK` - транспортная
 деталь, которой в application делать нечего. Поэтому шлюз отдает
-`ChangePasswordResult` с флагом `changed`, ровно как `signIn` превращает тот
+`ChangePasswordResult` с флагом `passwordChanged`, ровно как `signIn` превращает тот
 же `OK` в `SignInResult`. Текущая сессия не трогается - это ключевое отличие
 от редактирования профиля, где `CurrentSessionService` обновлялся из ответа.
 
