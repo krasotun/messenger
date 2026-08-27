@@ -31,19 +31,19 @@
 
 ## 2. Use case смены пароля
 
-- [ ] 2.1 Написать падающий spec
+- [x] 2.1 Написать падающий spec
       `src/app/domains/identity-access/application/change-password/change-password.service.spec.ts`:
       начальное состояние флоу - `Idle` без сообщения об ошибке
-- [ ] 2.2 Spec: `changePassword` вызывает `USER_GATEWAY.changePassword` с
+- [x] 2.2 Spec: `changePassword` вызывает `USER_GATEWAY.changePassword` с
       переданными значениями и переводит флоу в `Submitting`
-- [ ] 2.3 Spec: при успехе флоу переходит в `Success`, текущая сессия и
+- [x] 2.3 Spec: при успехе флоу переходит в `Success`, текущая сессия и
       текущий пользователь не меняются, навигация не вызывается
-- [ ] 2.4 Spec: при ошибке флоу переходит в `Error` с сообщением из
+- [x] 2.4 Spec: при ошибке флоу переходит в `Error` с сообщением из
       `ApplicationError`, текущая сессия не меняется
-- [ ] 2.5 Spec: `reset` возвращает флоу в `Idle` и очищает сообщение об ошибке
-- [ ] 2.6 Реализовать `change-password.service.ts` на `createAuthFlowState`;
+- [x] 2.5 Spec: `reset` возвращает флоу в `Idle` и очищает сообщение об ошибке
+- [x] 2.6 Реализовать `change-password.service.ts` на `createAuthFlowState`;
       проверить прогоном `npm run test:ci`
-- [ ] 2.7 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 2.7 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 3. Форма смены пароля
 
