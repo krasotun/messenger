@@ -6,8 +6,9 @@
       в camelCase, повтор пароля в тело не попадает
 - [ ] 1.2 Написать падающий spec в
       `src/app/domains/identity-access/infrastructure/user.api.spec.ts`:
-      `changePassword` идет `PUT` на `/user/password` с `withCredentials` и
-      `responseType: 'text'`, ответ `OK` считается успехом
+      `changePassword` идет `PUT` на относительный `/user/password` с
+      `responseType: 'text'`, ответ `OK` считается успехом; базовый URL и
+      `withCredentials` проставляет `apiRequestInterceptor`, в методе их нет
 - [ ] 1.3 Написать падающий spec в
       `src/app/domains/identity-access/infrastructure/http-user-gateway.spec.ts`:
       успех отдает пустой результат, ошибка приводится к `ApplicationError` с
@@ -21,8 +22,9 @@
       прогоном `npm run test:ci`
 - [ ] 1.5 Дописать `PUT /user/password` в
       `src/app/domains/identity-access/infrastructure/user-api.contract.md`:
-      адрес, требование сессии, camelCase тела как аномалия относительно
-      `/user/profile`, отсутствие тела ответа и пробелы Swagger
+      относительный адрес, camelCase тела как аномалия относительно
+      `/user/profile`, отсутствие тела ответа и пробелы Swagger; строку про
+      credentials не добавлять - политика в контракте уже общая для всего API
 - [ ] 1.6 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 2. Use case смены пароля
