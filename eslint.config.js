@@ -121,6 +121,60 @@ module.exports = defineConfig([
     },
   },
   {
+    files: ['src/app/domains/*/application/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@angular/forms',
+              message: 'Application must not know about Angular forms.',
+            },
+            {
+              name: '@angular/platform-browser',
+              message: 'Application must not know about the DOM.',
+            },
+          ],
+          patterns: [
+            {
+              group: ['@angular/cdk', '@angular/cdk/*'],
+              message: 'Application must not know about Overlay and other CDK primitives.',
+            },
+            {
+              group: ['@shared/ui/*'],
+              message: 'Application must not know about UI primitives such as ModalRef.',
+            },
+            {
+              group: ['**/infrastructure/*', '@domains/*/infrastructure/*'],
+              message: 'Application reaches the outside world through a gateway token only.',
+            },
+            {
+              group: ['**/presentation/*', '@domains/*/presentation/*'],
+              message: 'Application must not depend on presentation.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/app/domains/*/presentation/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/infrastructure/*', '@domains/*/infrastructure/*'],
+              message: 'Presentation reaches infrastructure through application only.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.html'],
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
     rules: {},

@@ -39,8 +39,9 @@ context: |
 
   Aliases: `@core/*`, `@domains/*`, `@shared/*`. Границы импортов закреплены в
   ESLint через `no-restricted-imports`: `shared/ui` не импортирует домены, core
-  и pages; application не знает про DOM, Overlay, ModalRef и Angular-формы;
-  infrastructure не импортируется из presentation напрямую.
+  и pages; application не знает про DOM, Overlay, ModalRef и Angular-формы и не
+  зависит от infrastructure и presentation; infrastructure не импортируется из
+  presentation напрямую.
 
   ## Глоссарий
 
