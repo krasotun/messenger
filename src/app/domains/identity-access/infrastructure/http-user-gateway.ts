@@ -35,9 +35,7 @@ export class HttpUserGateway implements UserGateway {
     const changePasswordRequest = changePasswordRequestMapper(changePasswordInput);
 
     return this._userApi.changePassword(changePasswordRequest).pipe(
-      map(() => {
-        return undefined;
-      }),
+      map(() => undefined),
       catchError((error) => {
         return throwError(() =>
           mapAuthError(error, 'Failed to change password. Please try again.'),
