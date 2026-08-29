@@ -7,9 +7,7 @@ import { ChangePasswordInput } from './change-password.input';
 
 import { ApplicationError } from '@shared/errors';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class ChangePasswordService {
   private readonly _userGateway = inject(USER_GATEWAY);
 
