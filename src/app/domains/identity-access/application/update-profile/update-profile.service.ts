@@ -17,9 +17,7 @@ const emptyInitialValues: UpdateProfileInput = {
   phone: '',
 };
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class UpdateProfileService {
   private readonly _userGateway = inject(USER_GATEWAY);
   private readonly _currentSessionService = inject(CurrentSessionService);

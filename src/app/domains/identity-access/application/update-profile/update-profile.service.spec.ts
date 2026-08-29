@@ -87,6 +87,7 @@ describe('UpdateProfileService', () => {
           provide: Router,
           useValue: routerMock,
         },
+        UpdateProfileService,
       ],
     });
 

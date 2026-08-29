@@ -1,13 +1,16 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { throwError } from 'rxjs';
 
 import { AuthFlowStatus } from '../../application/auth-flow-status';
 import { ChangePasswordService } from '../../application/change-password/change-password.service';
+import { USER_GATEWAY } from '../../application/user.gateway';
 import { ChangePasswordForm } from '../change-password-form/change-password-form';
 
 import { ChangePasswordModalContent } from './change-password-modal-content';
 
+import { ApplicationError } from '@shared/errors';
 import { ModalRef } from '@shared/ui/modal/modal-ref';
 
 let changePasswordServiceMock: {
@@ -38,19 +41,28 @@ describe('ChangePasswordModalContent', () => {
       close: vi.fn(),
     };
 
-    await TestBed.configureTestingModule({
+    TestBed.configureTestingModule({
       imports: [ChangePasswordModalContent],
       providers: [
-        {
-          provide: ChangePasswordService,
-          useValue: changePasswordServiceMock,
-        },
         {
           provide: ModalRef,
           useValue: modalRefMock,
         },
       ],
-    }).compileComponents();
+    });
+
+    TestBed.overrideComponent(ChangePasswordModalContent, {
+      set: {
+        providers: [
+          {
+            provide: ChangePasswordService,
+            useValue: changePasswordServiceMock,
+          },
+        ],
+      },
+    });
+
+    await TestBed.compileComponents();
 
     fixture = TestBed.createComponent(ChangePasswordModalContent);
     await fixture.whenStable();
@@ -78,23 +90,26 @@ describe('ChangePasswordModalContent', () => {
 
       expect(changePasswordServiceMock.changePassword).not.toHaveBeenCalled();
     });
+  });
 
-    it('should reset the flow when the form is closed after an error', () => {
-      fixture.detectChanges();
+  describe('flow lifetime', () => {
+    let userGatewayMock: {
+      updateProfile: ReturnType<typeof vi.fn>;
+      changePassword: ReturnType<typeof vi.fn>;
+    };
 
-      changePasswordServiceMock.errorMessage.set('Mock error');
-      changePasswordServiceMock.status.set(AuthFlowStatus.Error);
-      fixture.detectChanges();
+    const openModal = async (): Promise<ComponentFixture<ChangePasswordModalContent>> => {
+      const openedFixture = TestBed.createComponent(ChangePasswordModalContent);
+      await openedFixture.whenStable();
+      openedFixture.detectChanges();
 
-      fixture.destroy();
+      return openedFixture;
+    };
 
-      expect(changePasswordServiceMock.reset).toHaveBeenCalledOnce();
-    });
-
-    it('should show an empty form without an error when reopened', async () => {
-      fixture.detectChanges();
-
-      const form: ChangePasswordForm = fixture.debugElement.query(
+    const submitWithError = async (
+      openedFixture: ComponentFixture<ChangePasswordModalContent>,
+    ): Promise<void> => {
+      const form: ChangePasswordForm = openedFixture.debugElement.query(
         By.directive(ChangePasswordForm),
       ).componentInstance;
 
@@ -104,18 +119,49 @@ describe('ChangePasswordModalContent', () => {
         repeatNewPassword: 'typedNewPassword',
       });
 
-      changePasswordServiceMock.errorMessage.set('Mock error');
-      changePasswordServiceMock.status.set(AuthFlowStatus.Error);
-      fixture.detectChanges();
+      openedFixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
 
-      fixture.destroy();
+      await openedFixture.whenStable();
+      openedFixture.detectChanges();
+    };
 
-      changePasswordServiceMock.errorMessage.set(null);
-      changePasswordServiceMock.status.set(AuthFlowStatus.Idle);
+    beforeEach(async () => {
+      TestBed.resetTestingModule();
 
-      const reopenedFixture = TestBed.createComponent(ChangePasswordModalContent);
-      await reopenedFixture.whenStable();
-      reopenedFixture.detectChanges();
+      userGatewayMock = {
+        updateProfile: vi.fn(),
+        changePassword: vi.fn(() => throwError(() => new ApplicationError('Mock error'))),
+      };
+
+      TestBed.configureTestingModule({
+        imports: [ChangePasswordModalContent],
+        providers: [
+          {
+            provide: USER_GATEWAY,
+            useValue: userGatewayMock,
+          },
+          {
+            provide: ModalRef,
+            useValue: modalRefMock,
+          },
+        ],
+      });
+
+      await TestBed.compileComponents();
+    });
+
+    it('should show an empty form without an error when reopened after a failed change', async () => {
+      const failedFixture = await openModal();
+
+      await submitWithError(failedFixture);
+
+      expect(
+        failedFixture.nativeElement.querySelector('.change-password-form__error'),
+      ).not.toBeNull();
+
+      failedFixture.destroy();
+
+      const reopenedFixture = await openModal();
 
       const reopenedInputEls: HTMLInputElement[] = Array.from(
         reopenedFixture.nativeElement.querySelectorAll('input'),
