@@ -192,12 +192,6 @@ describe('UpdateProfileService', () => {
         expect(currentSessionService.status()).toBe(CurrentSessionStatus.Authenticated);
       });
 
-      it('should expose the updated current user to the caller', () => {
-        service.updateProfile(updateProfileInputMock);
-
-        expect(service.updatedUser()).toEqual(updatedUserMock);
-      });
-
       it('should refresh initial values from the updated current user', () => {
         service.updateProfile(updateProfileInputMock);
 
@@ -232,12 +226,6 @@ describe('UpdateProfileService', () => {
         expect(currentSessionService.currentUser()).toEqual(currentUserMock);
       });
 
-      it('should not expose an updated current user', () => {
-        service.updateProfile(updateProfileInputMock);
-
-        expect(service.updatedUser()).toBeNull();
-      });
-
       it('should not navigate', () => {
         service.updateProfile(updateProfileInputMock);
 
@@ -248,7 +236,7 @@ describe('UpdateProfileService', () => {
   });
 
   describe('reset', () => {
-    it('should reset status, error message and updated user', () => {
+    it('should reset status and error message', () => {
       userGatewayMock.updateProfile.mockReturnValue(
         throwError(() => new ApplicationError('mockError')),
       );
@@ -262,7 +250,6 @@ describe('UpdateProfileService', () => {
 
       expect(service.status()).toBe(AuthFlowStatus.Idle);
       expect(service.errorMessage()).toBeNull();
-      expect(service.updatedUser()).toBeNull();
     });
   });
 });
