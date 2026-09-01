@@ -93,11 +93,11 @@ module.exports = defineConfig([
           patterns: [
             {
               group: [
-                '@domains/identity-access/application/*',
-                '@domains/identity-access/infrastructure/*',
-                '@domains/identity-access/presentation/*',
+                '@domains/*/application/*',
+                '@domains/*/infrastructure/*',
+                '@domains/*/presentation/*',
               ],
-              message: 'Use @domains/identity-access public API for static imports.',
+              message: 'Use the domain public API for static imports.',
             },
           ],
         },
