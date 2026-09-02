@@ -1,6 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
+import { ChangeAvatarInput } from '../application/change-avatar/change-avatar.input';
+import { ChangeAvatarResult } from '../application/change-avatar/change-avatar.result';
 import { ChangePasswordInput } from '../application/change-password/change-password.input';
 import { ChangePasswordResult } from '../application/change-password/change-password.result';
 import { UpdateProfileInput } from '../application/update-profile/update-profile.input';
@@ -8,14 +10,18 @@ import { UpdateProfileResult } from '../application/update-profile/update-profil
 import { UserGateway } from '../application/user.gateway';
 
 import { mapAuthError } from './auth-error.mapper';
+import { changeAvatarRequestMapper } from './change-avatar/change-avatar-request.mapper';
 import { changePasswordRequestMapper } from './change-password/change-password-request.mapper';
 import { currentUserMapper } from './current-session/current-user.mapper';
 import { updateProfileRequestMapper } from './update-profile/update-profile-request.mapper';
 import { UserApi } from './user.api';
 
+import { RESOURCES_BASE_URL } from '@core/tokens';
+
 @Injectable()
 export class HttpUserGateway implements UserGateway {
   private readonly _userApi = inject(UserApi);
+  private readonly _resourcesBaseUrl = inject(RESOURCES_BASE_URL);
 
   updateProfile(updateProfileInput: UpdateProfileInput): Observable<UpdateProfileResult> {
     const updateProfileRequest = updateProfileRequestMapper(updateProfileInput);
@@ -23,11 +29,26 @@ export class HttpUserGateway implements UserGateway {
     return this._userApi.updateProfile(updateProfileRequest).pipe(
       map((response) => {
         return {
-          user: currentUserMapper(response),
+          user: currentUserMapper(response, this._resourcesBaseUrl),
         };
       }),
       catchError((error) => {
         return throwError(() => mapAuthError(error, 'Failed to update profile. Please try again.'));
+      }),
+    );
+  }
+
+  changeAvatar(changeAvatarInput: ChangeAvatarInput): Observable<ChangeAvatarResult> {
+    const changeAvatarRequest = changeAvatarRequestMapper(changeAvatarInput);
+
+    return this._userApi.changeAvatar(changeAvatarRequest).pipe(
+      map((response) => {
+        return {
+          user: currentUserMapper(response, this._resourcesBaseUrl),
+        };
+      }),
+      catchError((error) => {
+        return throwError(() => mapAuthError(error, 'Failed to change avatar. Please try again.'));
       }),
     );
   }

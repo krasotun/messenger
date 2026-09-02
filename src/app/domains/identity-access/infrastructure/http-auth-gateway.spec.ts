@@ -13,6 +13,7 @@ import { HttpAuthGateway } from './http-auth-gateway';
 import { SignInRequestDto } from './sign-in/sign-in.dto';
 import { SignUpRequestDto } from './sign-up/sign-up.dto';
 
+import { RESOURCES_BASE_URL } from '@core/tokens';
 import { ApplicationError } from '@shared/errors';
 
 const authApiMock = {
@@ -72,6 +73,8 @@ const currentUserMock: CurrentUser = {
   phone: 'phone',
 };
 
+const resourcesBaseUrlMock = 'https://mock.host/resources';
+
 describe('HttpAuthGateway', () => {
   let service: HttpAuthGateway;
 
@@ -87,6 +90,10 @@ describe('HttpAuthGateway', () => {
         {
           provide: AuthApi,
           useValue: authApiMock,
+        },
+        {
+          provide: RESOURCES_BASE_URL,
+          useValue: resourcesBaseUrlMock,
         },
       ],
     });

@@ -3,6 +3,8 @@ import { CurrentUser } from '../../application/current-session/current-user';
 import { CurrentUserDto } from './current-user.dto';
 import { currentUserMapper } from './current-user.mapper';
 
+const resourcesBaseUrlMock = 'https://mock.host/resources';
+
 describe('currentUserMapper', () => {
   it('should map currentUser DTO to current user', () => {
     const mockCurrentUserDto: CurrentUserDto = {
@@ -26,6 +28,23 @@ describe('currentUserMapper', () => {
       login: 'login',
       phone: 'phone',
     };
-    expect(currentUserMapper(mockCurrentUserDto)).toEqual(mockCurrentUser);
+    expect(currentUserMapper(mockCurrentUserDto, resourcesBaseUrlMock)).toEqual(mockCurrentUser);
+  });
+
+  it('should resolve relative avatar path to absolute url', () => {
+    const mockCurrentUserDto: CurrentUserDto = {
+      id: 1,
+      first_name: 'first',
+      second_name: 'second',
+      display_name: null,
+      avatar: '/path/to/avatar.jpg',
+      email: 'email',
+      login: 'login',
+      phone: 'phone',
+    };
+
+    expect(currentUserMapper(mockCurrentUserDto, resourcesBaseUrlMock).avatar).toBe(
+      'https://mock.host/resources/path/to/avatar.jpg',
+    );
   });
 });

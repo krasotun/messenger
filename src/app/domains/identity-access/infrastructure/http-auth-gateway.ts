@@ -16,9 +16,12 @@ import { currentUserMapper } from './current-session/current-user.mapper';
 import { signInRequestMapper } from './sign-in/sign-in-request.mapper';
 import { signUpRequestMapper } from './sign-up/sign-up-request.mapper';
 
+import { RESOURCES_BASE_URL } from '@core/tokens';
+
 @Injectable()
 export class HttpAuthGateway implements AuthGateway {
   private readonly _authApi = inject(AuthApi);
+  private readonly _resourcesBaseUrl = inject(RESOURCES_BASE_URL);
 
   signUp(signUpInput: SignUpInput): Observable<SignUpResult> {
     const signUpRequest = signUpRequestMapper(signUpInput);
@@ -55,7 +58,7 @@ export class HttpAuthGateway implements AuthGateway {
       map((response) => {
         const result: CurrentSessionResult = {
           status: CurrentSessionStatus.Authenticated,
-          user: currentUserMapper(response),
+          user: currentUserMapper(response, this._resourcesBaseUrl),
         };
 
         return result;
