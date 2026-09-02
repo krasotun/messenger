@@ -1,0 +1,33 @@
+.change-avatar-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+
+  &__file-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  &__file-label {
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--color-text-secondary);
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+  }
+
+  &__error {
+    font-size: 12px;
+    line-height: 1.2;
+    min-height: 14px;
+    color: var(--color-danger);
+  }
+}
