@@ -1,4 +1,4 @@
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, input, linkedSignal } from '@angular/core';
 
 import { Nullable } from '@shared/types';
 
@@ -16,7 +16,13 @@ export class Avatar {
   readonly size = input<AvatarSize>('md');
   readonly fallbackText = input<string>('');
 
-  readonly imageFailed = signal(false);
+  // Сбой загрузки относится к конкретному адресу: при смене imageUrl попытка
+  // показать изображение начинается заново, иначе аватар навсегда остается
+  // заглушкой после одной неудачной картинки.
+  readonly imageFailed = linkedSignal<Nullable<string>, boolean>({
+    source: this.imageUrl,
+    computation: () => false,
+  });
 
   readonly sizeClass = computed(() => `avatar_${this.size()}`);
   readonly imageShown = computed(() => !!this.imageUrl() && !this.imageFailed());

@@ -72,6 +72,30 @@ describe('Avatar', () => {
       expect(avatarFallback).not.toBeNull();
     });
 
+    it('retries rendering an image after imageUrl changes', async () => {
+      fixture.componentRef.setInput('imageUrl', 'http://mock-image.jpg');
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      fixture.nativeElement.querySelector('.avatar__image').dispatchEvent(new Event('error'));
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(fixture.nativeElement.querySelector('.avatar__image')).toBeNull();
+
+      fixture.componentRef.setInput('imageUrl', 'http://other-mock-image.jpg');
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const retriedImg: HTMLImageElement = fixture.nativeElement.querySelector('.avatar__image');
+
+      expect(retriedImg).not.toBeNull();
+      expect(retriedImg.getAttribute('src')).toBe('http://other-mock-image.jpg');
+    });
+
     it('uses provided accessible label for fallback', () => {
       const avatarFallback: HTMLDivElement =
         fixture.nativeElement.querySelector('.avatar__fallback');

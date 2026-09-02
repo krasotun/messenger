@@ -63,7 +63,7 @@ test('shows the new avatar without page reload', async ({ page, request }) => {
   // резолва и путь из ответа бэкенда.
   await expect(headerAvatar).toHaveAttribute(
     'src',
-    /^https:\/\/ya-praktikum\.tech\/resources\/mock-avatars\/\d+\/avatar\.png$/,
+    /^https:\/\/ya-praktikum\.tech\/api\/v2\/resources\/mock-avatars\/\d+\/avatar\.png$/,
   );
 });
 
