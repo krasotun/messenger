@@ -49,19 +49,19 @@
 
 ## 3. Use case смены аватара
 
-- [ ] 3.1 Написать падающий spec
+- [x] 3.1 Написать падающий spec
       `src/app/domains/identity-access/application/change-avatar/change-avatar.service.spec.ts`:
       начальное состояние флоу - `Idle` без сообщения об ошибке
-- [ ] 3.2 Spec: `changeAvatar` вызывает `USER_GATEWAY.changeAvatar` с
+- [x] 3.2 Spec: `changeAvatar` вызывает `USER_GATEWAY.changeAvatar` с
       переданным файлом и переводит флоу в `Submitting`
-- [ ] 3.3 Spec: при успехе флоу переходит в `Success`, текущая сессия
+- [x] 3.3 Spec: при успехе флоу переходит в `Success`, текущая сессия
       обновляется новым `CurrentUser` из результата, навигация не вызывается
-- [ ] 3.4 Spec: при ошибке флоу переходит в `Error` с сообщением из
+- [x] 3.4 Spec: при ошибке флоу переходит в `Error` с сообщением из
       `ApplicationError`, текущая сессия не меняется
-- [ ] 3.5 Spec: `reset` возвращает флоу в `Idle` и очищает сообщение об ошибке
-- [ ] 3.6 Реализовать `change-avatar.service.ts` на `createAuthFlowState`;
+- [x] 3.5 Spec: `reset` возвращает флоу в `Idle` и очищает сообщение об ошибке
+- [x] 3.6 Реализовать `change-avatar.service.ts` на `createAuthFlowState`;
       проверить прогоном `npm run test:ci`
-- [ ] 3.7 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 3.7 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 4. Форма смены аватара
 
