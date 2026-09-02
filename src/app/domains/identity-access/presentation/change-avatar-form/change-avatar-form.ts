@@ -33,6 +33,10 @@ export class ChangeAvatarForm {
 
   protected readonly previewUrl = this._previewUrl.asReadonly();
 
+  protected readonly selectedFileName = computed<string>(() => {
+    return this._selectedFile()?.name ?? 'Файл не выбран';
+  });
+
   protected readonly avatarUrl = computed<Nullable<string>>(() => {
     return this._previewUrl() ?? this._currentSessionService.currentUser()?.avatar ?? null;
   });

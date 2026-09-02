@@ -10,6 +10,9 @@
 
   <label class="change-avatar-form__file-field">
     <span class="change-avatar-form__file-label">Avatar</span>
+
+    <!-- Нативный контрол скрыт, а не заменен: Chromium не дает выровнять его
+         содержимое, но выбор файла, disabled и события остаются на нем. -->
     <input
       class="change-avatar-form__file-input"
       type="file"
@@ -17,6 +20,9 @@
       [disabled]="isSubmitting()"
       (change)="onFileSelected($event)"
     />
+
+    <span class="change-avatar-form__file-trigger">Choose file</span>
+    <span class="change-avatar-form__file-name">{{ selectedFileName() }}</span>
   </label>
 
   @if (errorMessage()) {
