@@ -202,6 +202,54 @@ app.put('/user/profile', (request, response) => {
   });
 });
 
+// Файл не сохраняется: реальный бэкенд отдает путь к нему, а мок повторяет
+// только статусы и форму ответа. Тело разбирается регуляркой по заголовкам
+// части, чтобы не тащить парсер multipart ради одного эндпоинта.
+const acceptedAvatarMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+app.put(
+  '/user/profile/avatar',
+  express.raw({ type: 'multipart/form-data', limit: '10mb' }),
+  (request, response) => {
+    const user = findUserBySession(request);
+
+    if (!user) {
+      response.sendStatus(401);
+      return;
+    }
+
+    const body = Buffer.isBuffer(request.body) ? request.body.toString('latin1') : '';
+
+    const fileName = /name="avatar";\s*filename="([^"]*)"/.exec(body)?.[1];
+    const mimeType = /Content-Type:\s*([\w/+.-]+)/i.exec(body)?.[1];
+
+    if (!fileName) {
+      response.status(400).json({ reason: 'Avatar file is required' });
+      return;
+    }
+
+    if (!mimeType || !acceptedAvatarMimeTypes.includes(mimeType)) {
+      response.status(400).json({ reason: 'Unsupported avatar format' });
+      return;
+    }
+
+    const updatedUser: User = { ...user, avatar: `/mock-avatars/${user.id}/${fileName}` };
+
+    usersByLogin.set(updatedUser.login, updatedUser);
+
+    response.json({
+      id: updatedUser.id,
+      first_name: updatedUser.first_name,
+      second_name: updatedUser.second_name,
+      display_name: updatedUser.display_name,
+      login: updatedUser.login,
+      email: updatedUser.email,
+      phone: updatedUser.phone,
+      avatar: updatedUser.avatar,
+    });
+  },
+);
+
 interface ChangePasswordRequest {
   oldPassword: string;
   newPassword: string;
