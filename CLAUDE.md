@@ -108,6 +108,29 @@ Issue отвечает на «зачем и когда», change - на «что
   закрывает issue сам, без ручного шага.
 - В `proposal.md` change указывай `Issue: #N` - обратная ссылка на issue.
 
+### Формат коммитов
+
+Сообщения коммитов - по [Conventional Commits](https://www.conventionalcommits.org/):
+`<type>(<scope>): <description>`. Проверяет commitlint в хуке `commit-msg`,
+конфигурация - `commitlint.config.js`.
+
+- Типы: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci`,
+  `perf`, `style`, `revert`.
+- Скоуп необязателен, но если указан - только из списка `scope-enum`:
+  `identity`, `shared-ui`, `core`, `deployment`, `infra`, `process`.
+  Новый скоуп заводится правкой `commitlint.config.js`, а не на лету.
+- Описание - на английском, в нижнем регистре, повелительным наклонением, без
+  точки в конце: `feat(identity): add password change`.
+- Ломающее изменение - `!` после скоупа и футер `BREAKING CHANGE: ...`.
+- Заголовок PR - тоже по Conventional Commits: репозиторий мержит squash с
+  `COMMIT_OR_PR_TITLE`, и при нескольких коммитах в `main` уходит именно
+  заголовок PR. `Closes #N` остается в теле PR, в заголовок не переносится.
+- Прежний формат `[Scope] Description (#PR)` в коммитах и заголовках PR больше
+  не используется; историю до перехода не переписываем.
+- Заголовки issue остаются в формате `[Scope] Description`: issue читает
+  человек, в историю `main` заголовок не попадает, и конвенция на него
+  сознательно не распространяется.
+
 ### Ревью блоков
 
 Блок ревьюится как отдельный коммит внутри одного draft PR из ветки issue в
