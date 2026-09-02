@@ -16,6 +16,10 @@ export class UserApi {
     return this._httpClient.put<CurrentUserDto>('/user/profile', request);
   }
 
+  changeAvatar(request: FormData): Observable<CurrentUserDto> {
+    return this._httpClient.put<CurrentUserDto>('/user/profile/avatar', request);
+  }
+
   changePassword(request: ChangePasswordRequestDto): Observable<string> {
     return this._httpClient.put('/user/password', request, {
       responseType: 'text',

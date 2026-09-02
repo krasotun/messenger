@@ -19,21 +19,21 @@
 
 ## 2. Инфраструктура user API
 
-- [ ] 2.1 Написать падающий spec на маппер запроса в
+- [x] 2.1 Написать падающий spec на маппер запроса в
       `src/app/domains/identity-access/infrastructure/change-avatar/change-avatar-request.mapper.spec.ts`:
       `{ file }` превращается в `FormData` с единственным полем `avatar`,
       содержащим переданный файл
-- [ ] 2.2 Написать падающий spec в
+- [x] 2.2 Написать падающий spec в
       `src/app/domains/identity-access/infrastructure/user.api.spec.ts`:
       `changeAvatar` идет `PUT` на относительный `/user/profile/avatar` с
       телом `FormData`, без явного `Content-Type`; базовый URL и
       `withCredentials` проставляет `apiRequestInterceptor`, в методе их нет
-- [ ] 2.3 Написать падающий spec в `http-user-gateway.spec.ts`:
+- [x] 2.3 Написать падающий spec в `http-user-gateway.spec.ts`:
       успех отдает `ChangeAvatarResult` с обновленным `CurrentUser` (аватар
       резолвится через `resolveAvatarUrl`, как у `updateProfile`), ошибка
       приводится к `ApplicationError` с текстом из `reason`, а без `reason` -
       к generic-сообщению
-- [ ] 2.4 Реализовать `change-avatar/change-avatar.dto.ts` (при
+- [x] 2.4 Реализовать `change-avatar/change-avatar.dto.ts` (при
       необходимости - тело ответа переиспользует `CurrentUserDTO`),
       `change-avatar/change-avatar-request.mapper.ts`, метод
       `UserApi.changeAvatar` и `HttpUserGateway.changeAvatar`; объявить
@@ -41,11 +41,11 @@
       `application/change-avatar/change-avatar.input.ts` и
       `application/change-avatar/change-avatar.result.ts`; проверить прогоном
       `npm run test:ci`
-- [ ] 2.5 Дописать `PUT /user/profile/avatar` в
+- [x] 2.5 Дописать `PUT /user/profile/avatar` в
       `infrastructure/user-api.contract.md`: относительный адрес,
       `multipart/form-data` как аномалия относительно JSON-эндпоинтов
       `/user/*`, допустимые форматы файла, недокументированный лимит размера
-- [ ] 2.6 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 2.6 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 3. Use case смены аватара
 

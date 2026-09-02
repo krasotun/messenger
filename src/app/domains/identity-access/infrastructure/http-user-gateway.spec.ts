@@ -18,6 +18,7 @@ import { ApplicationError } from '@shared/errors';
 const userApiMock = {
   updateProfile: vi.fn(),
   changePassword: vi.fn(),
+  changeAvatar: vi.fn(),
 };
 
 const changePasswordInputMock: ChangePasswordInput = {
@@ -72,12 +73,15 @@ const currentUserMock: CurrentUser = {
 
 const resourcesBaseUrlMock = 'https://mock.host/resources';
 
+const fileMock = new File(['mockContent'], 'avatar.png', { type: 'image/png' });
+
 describe('HttpUserGateway', () => {
   let service: HttpUserGateway;
 
   beforeEach(() => {
     userApiMock.updateProfile.mockReset();
     userApiMock.changePassword.mockReset();
+    userApiMock.changeAvatar.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -157,6 +161,77 @@ describe('HttpUserGateway', () => {
       expect(errors[0].message).toBe('Failed to update profile. Please try again.');
     });
   });
+  describe('changeAvatar', () => {
+    it('should call api with form data holding the selected file', () => {
+      userApiMock.changeAvatar.mockReturnValue(of(currentUserDtoMock));
+
+      service.changeAvatar({ file: fileMock }).subscribe();
+
+      expect(userApiMock.changeAvatar).toHaveBeenCalledOnce();
+
+      const [formData] = userApiMock.changeAvatar.mock.calls[0] as [FormData];
+
+      expect(formData.getAll('avatar')).toEqual([fileMock]);
+    });
+
+    it('should map successful response to current user with resolved avatar url', () => {
+      userApiMock.changeAvatar.mockReturnValue(
+        of({ ...currentUserDtoMock, avatar: '/path/to/avatar.png' }),
+      );
+
+      const results: unknown[] = [];
+
+      service.changeAvatar({ file: fileMock }).subscribe((response) => {
+        results.push(response);
+      });
+
+      expect(results).toEqual([
+        {
+          user: {
+            ...currentUserMock,
+            avatar: `${resourcesBaseUrlMock}/path/to/avatar.png`,
+          },
+        },
+      ]);
+    });
+
+    it('should map error to ApplicationError with reason from response body', () => {
+      const error = new HttpErrorResponse({
+        error: { reason: 'mockReason' },
+      });
+
+      userApiMock.changeAvatar.mockReturnValue(throwError(() => error));
+
+      const errors: ApplicationError[] = [];
+
+      service.changeAvatar({ file: fileMock }).subscribe({
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
+        },
+      });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('mockReason');
+    });
+
+    it('should map generic error to ApplicationError with fallback message', () => {
+      userApiMock.changeAvatar.mockReturnValue(throwError(() => 'mockError'));
+
+      const errors: ApplicationError[] = [];
+
+      service.changeAvatar({ file: fileMock }).subscribe({
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
+        },
+      });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('Failed to change avatar. Please try again.');
+    });
+  });
+
   describe('changePassword', () => {
     it('should call api with mapped camelCase request', () => {
       userApiMock.changePassword.mockReturnValue(of('OK'));

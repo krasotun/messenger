@@ -5,10 +5,11 @@
 
 ## Endpoints
 
-| Use case        | Method | Path             |
-| --------------- | ------ | ---------------- |
-| Update Profile  | PUT    | `/user/profile`  |
-| Change Password | PUT    | `/user/password` |
+| Use case        | Method | Path                   |
+| --------------- | ------ | ---------------------- |
+| Update Profile  | PUT    | `/user/profile`        |
+| Change Password | PUT    | `/user/password`       |
+| Change Avatar   | PUT    | `/user/profile/avatar` |
 
 Путь относительный: базовый URL и `withCredentials: true` проставляет
 `apiRequestInterceptor`, политика общая для всего API.
@@ -18,6 +19,11 @@
 - Тело `/user/password` - в camelCase (`oldPassword`, `newPassword`), в отличие
   от snake_case у `/user/profile`. Это расхождение самого API: маппер пишется по
   Swagger, а не по аналогии с соседним endpoint'ом.
+- Тело `/user/profile/avatar` - `multipart/form-data` с полем `avatar` (файл),
+  в отличие от JSON у остальных `/user/*`. `Content-Type` вручную не задается:
+  его с корректным `boundary` выставляет браузер по телу `FormData`.
+- Допустимые форматы файла аватара перечислены в Swagger: JPEG, JPG, PNG, GIF,
+  WebP.
 - Тело успешного ответа `/user/password` в Swagger не описано - как у
   `/auth/signin`; фактически приходит текст `OK`. Поэтому ответ читается как
   текст: успех - это статус `200`, а не разобранный JSON.
@@ -25,6 +31,8 @@
 ## Session Handling
 
 - Update profile требует активной сессии бэкенда.
+- Change avatar требует активной сессии бэкенда и не меняет ее; обновленный
+  текущий пользователь приходит в ответе как `CurrentUserDTO`.
 - Change password требует активной сессии бэкенда и не меняет ее: перечитывать
   текущего пользователя после смены пароля не нужно.
 - Источник обновленного текущего пользователя - `CurrentUserDTO` из ответа.
@@ -41,5 +49,7 @@
 - Для `/user/password` не документирован отдельный статус на неверный старый
   пароль: приходит `400` с `reason`, неотличимый от прочих ошибок валидации.
 - Требования к новому паролю в Swagger не описаны.
+- Лимит размера файла аватара не документирован: превышение видно только как
+  `400` с `reason`, отличить его от прочих ошибок валидации нельзя.
 - Схема ответа `200` у `/user/password` не описана: `description: "Ok"` без
   `schema`.
