@@ -91,22 +91,22 @@
 
 ## 5. Встраивание в модалку профиля
 
-- [ ] 5.1 Обновить `update-profile-modal-content.html`: добавить
+- [x] 5.1 Обновить `update-profile-modal-content.html`: добавить
       `<app-change-avatar-form>` над `<app-update-profile-form>`
-- [ ] 5.2 Добавить `ChangeAvatarService` в `providers` компонента
+- [x] 5.2 Добавить `ChangeAvatarService` в `providers` компонента
       `update-profile-modal-content.ts`, рядом с `UpdateProfileService`
-- [ ] 5.3 Написать падающий component spec в
+- [x] 5.3 Написать падающий component spec в
       `update-profile-modal-content.spec.ts`: обе формы отображаются
       одновременно; отправка формы смены аватара не вызывает
       `UpdateProfileService` и не закрывает модалку, отправка формы
       редактирования профиля не вызывает `ChangeAvatarService`
-- [ ] 5.4 Spec: закрытие модалки без отправки формы смены аватара не меняет
+- [x] 5.4 Spec: закрытие модалки без отправки формы смены аватара не меняет
       текущую сессию; повторное открытие редактирования профиля показывает
       форму смены аватара без выбранного файла и без ошибки
-- [ ] 5.5 Проверить, что `application` не импортирует `ModalRef`, overlay,
+- [x] 5.5 Проверить, что `application` не импортирует `ModalRef`, overlay,
       Angular-формы и `File`/`FormData`-специфику транспорта: прогон
       `npm run lint` с правилами границ слоев
-- [ ] 5.6 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 5.6 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 6. Мок-бэкенд и сквозной сценарий
 
