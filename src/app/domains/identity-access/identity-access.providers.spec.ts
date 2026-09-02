@@ -8,6 +8,8 @@ import { HttpAuthGateway } from './infrastructure/http-auth-gateway';
 import { HttpUserGateway } from './infrastructure/http-user-gateway';
 import { UserApi } from './infrastructure/user.api';
 
+import { RESOURCES_BASE_URL } from '@core/tokens';
+
 const authApiMock = {
   signUp: vi.fn(),
   signIn: vi.fn(),
@@ -31,6 +33,10 @@ describe('provideIdentityAccess', () => {
         {
           provide: UserApi,
           useValue: userApiMock,
+        },
+        {
+          provide: RESOURCES_BASE_URL,
+          useValue: 'https://mock.host/resources',
         },
       ],
     });

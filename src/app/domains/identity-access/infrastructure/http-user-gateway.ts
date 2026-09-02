@@ -13,9 +13,12 @@ import { currentUserMapper } from './current-session/current-user.mapper';
 import { updateProfileRequestMapper } from './update-profile/update-profile-request.mapper';
 import { UserApi } from './user.api';
 
+import { RESOURCES_BASE_URL } from '@core/tokens';
+
 @Injectable()
 export class HttpUserGateway implements UserGateway {
   private readonly _userApi = inject(UserApi);
+  private readonly _resourcesBaseUrl = inject(RESOURCES_BASE_URL);
 
   updateProfile(updateProfileInput: UpdateProfileInput): Observable<UpdateProfileResult> {
     const updateProfileRequest = updateProfileRequestMapper(updateProfileInput);
@@ -23,7 +26,7 @@ export class HttpUserGateway implements UserGateway {
     return this._userApi.updateProfile(updateProfileRequest).pipe(
       map((response) => {
         return {
-          user: currentUserMapper(response),
+          user: currentUserMapper(response, this._resourcesBaseUrl),
         };
       }),
       catchError((error) => {

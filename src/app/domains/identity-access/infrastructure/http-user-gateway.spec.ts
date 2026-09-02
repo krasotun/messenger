@@ -12,6 +12,7 @@ import { HttpUserGateway } from './http-user-gateway';
 import { UpdateProfileRequestDto } from './update-profile/update-profile.dto';
 import { UserApi } from './user.api';
 
+import { RESOURCES_BASE_URL } from '@core/tokens';
 import { ApplicationError } from '@shared/errors';
 
 const userApiMock = {
@@ -69,6 +70,8 @@ const currentUserMock: CurrentUser = {
   phone: '+79990000000',
 };
 
+const resourcesBaseUrlMock = 'https://mock.host/resources';
+
 describe('HttpUserGateway', () => {
   let service: HttpUserGateway;
 
@@ -82,6 +85,10 @@ describe('HttpUserGateway', () => {
         {
           provide: UserApi,
           useValue: userApiMock,
+        },
+        {
+          provide: RESOURCES_BASE_URL,
+          useValue: resourcesBaseUrlMock,
         },
       ],
     });

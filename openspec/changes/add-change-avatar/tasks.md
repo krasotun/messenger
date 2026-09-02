@@ -1,21 +1,21 @@
 ## 1. Резолв URL аватара
 
-- [ ] 1.1 Написать падающий spec на чистую функцию в
+- [x] 1.1 Написать падающий spec на чистую функцию в
       `src/app/domains/identity-access/infrastructure/current-session/resolve-avatar-url.spec.ts`:
       `resolveAvatarUrl(path, baseUrl)` возвращает `${baseUrl}${path}` для
       непустого пути и `null` для `null`
-- [ ] 1.2 Реализовать `resolve-avatar-url.ts`
-- [ ] 1.3 Добавить токен `RESOURCES_BASE_URL` в `src/app/core/tokens.ts` (или
+- [x] 1.2 Реализовать `resolve-avatar-url.ts`
+- [x] 1.3 Добавить токен `RESOURCES_BASE_URL` в `src/app/core/tokens.ts` (или
       рядом с `API_BASE_URL`) и значение
       `https://ya-praktikum.tech/resources` в `src/environments/environment.ts`
       и `environment.prod.ts`; подключить провайдер в `app.config.ts`
-- [ ] 1.4 Обновить `currentUserMapper` и его spec
+- [x] 1.4 Обновить `currentUserMapper` и его spec
       (`current-user.mapper.spec.ts`): маппер принимает базовый URL ресурсов
       параметром и прогоняет `avatar` через `resolveAvatarUrl`
-- [ ] 1.5 Обновить вызывающие `currentUserMapper` места
+- [x] 1.5 Обновить вызывающие `currentUserMapper` места
       (`http-auth-gateway.ts`, `http-user-gateway.ts`) - передать
       инжектированный `RESOURCES_BASE_URL`; обновить их specs
-- [ ] 1.6 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 1.6 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 2. Инфраструктура user API
 
