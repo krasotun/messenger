@@ -9,11 +9,11 @@ import { ChatGateway } from '../application/chat.gateway';
 import { CreateChatInput } from '../application/create-chat/create-chat.input';
 import { CreateChatResult } from '../application/create-chat/create-chat.result';
 
-import { mapChatError } from './chat-error.mapper';
 import { ChatApi } from './chat.api';
 import { chatMapper, chatUserMapper } from './chat.mapper';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
+import { mapHttpError } from '@shared/errors';
 
 @Injectable()
 export class HttpChatGateway implements ChatGateway {
@@ -26,7 +26,7 @@ export class HttpChatGateway implements ChatGateway {
         return response.map((chatDto) => chatMapper(chatDto, this._resourcesBaseUrl));
       }),
       catchError((error) => {
-        return throwError(() => mapChatError(error, 'Failed to load chats. Please try again.'));
+        return throwError(() => mapHttpError(error, 'Failed to load chats. Please try again.'));
       }),
     );
   }
@@ -35,7 +35,7 @@ export class HttpChatGateway implements ChatGateway {
     return this._chatApi.createChat({ title }).pipe(
       map((response) => ({ id: response.id })),
       catchError((error) => {
-        return throwError(() => mapChatError(error, 'Failed to create chat. Please try again.'));
+        return throwError(() => mapHttpError(error, 'Failed to create chat. Please try again.'));
       }),
     );
   }
@@ -47,7 +47,7 @@ export class HttpChatGateway implements ChatGateway {
       }),
       catchError((error) => {
         return throwError(() =>
-          mapChatError(error, 'Failed to load chat members. Please try again.'),
+          mapHttpError(error, 'Failed to load chat members. Please try again.'),
         );
       }),
     );
@@ -58,7 +58,7 @@ export class HttpChatGateway implements ChatGateway {
       map(() => ({ userAdded: true })),
       catchError((error) => {
         return throwError(() =>
-          mapChatError(error, 'Failed to add chat member. Please try again.'),
+          mapHttpError(error, 'Failed to add chat member. Please try again.'),
         );
       }),
     );

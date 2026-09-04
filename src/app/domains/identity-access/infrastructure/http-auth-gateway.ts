@@ -10,13 +10,13 @@ import { SignInResult } from '../application/sign-in/sign-in.result';
 import { SignUpInput } from '../application/sign-up/sign-up.input';
 import { SignUpResult } from '../application/sign-up/sign-up.result';
 
-import { mapAuthError } from './auth-error.mapper';
 import { AuthApi } from './auth.api';
 import { currentUserMapper } from './current-session/current-user.mapper';
 import { signInRequestMapper } from './sign-in/sign-in-request.mapper';
 import { signUpRequestMapper } from './sign-up/sign-up-request.mapper';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
+import { mapHttpError } from '@shared/errors';
 
 @Injectable()
 export class HttpAuthGateway implements AuthGateway {
@@ -33,7 +33,7 @@ export class HttpAuthGateway implements AuthGateway {
         };
       }),
       catchError((error) => {
-        return throwError(() => mapAuthError(error, 'Failed to sign up. Please try again.'));
+        return throwError(() => mapHttpError(error, 'Failed to sign up. Please try again.'));
       }),
     );
   }
@@ -48,7 +48,7 @@ export class HttpAuthGateway implements AuthGateway {
         };
       }),
       catchError((error) => {
-        return throwError(() => mapAuthError(error, 'Failed to sign in. Please try again.'));
+        return throwError(() => mapHttpError(error, 'Failed to sign in. Please try again.'));
       }),
     );
   }
@@ -71,7 +71,7 @@ export class HttpAuthGateway implements AuthGateway {
           return of(result);
         }
 
-        return throwError(() => mapAuthError(error, 'Failed to load session. Please try again.'));
+        return throwError(() => mapHttpError(error, 'Failed to load session. Please try again.'));
       }),
     );
   }
@@ -81,7 +81,7 @@ export class HttpAuthGateway implements AuthGateway {
       .logout()
       .pipe(
         catchError((error) =>
-          throwError(() => mapAuthError(error, 'Failed to logout. Please try again.')),
+          throwError(() => mapHttpError(error, 'Failed to logout. Please try again.')),
         ),
       );
   }
