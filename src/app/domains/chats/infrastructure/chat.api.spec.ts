@@ -99,7 +99,7 @@ describe('ChatApi', () => {
   });
 
   describe('addChatUser', () => {
-    it('should send PUT request with the chat id and user ids', () => {
+    it('should send PUT request with the chat id and user ids as text', () => {
       const results: unknown[] = [];
 
       service.addChatUser({ chatId: 1, users: [2] }).subscribe((response) => {
@@ -110,10 +110,11 @@ describe('ChatApi', () => {
 
       expect(request.request.method).toBe('PUT');
       expect(request.request.body).toEqual({ chatId: 1, users: [2] });
+      expect(request.request.responseType).toBe('text');
 
-      request.flush(null);
+      request.flush('OK');
 
-      expect(results).toEqual([null]);
+      expect(results).toEqual(['OK']);
     });
   });
 });

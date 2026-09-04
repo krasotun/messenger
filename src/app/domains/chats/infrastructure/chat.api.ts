@@ -28,7 +28,9 @@ export class ChatApi {
     return this._httpClient.get<ChatUserDto[]>(`/chats/${chatId}/users`);
   }
 
-  addChatUser(request: AddChatUserRequestDto): Observable<void> {
-    return this._httpClient.put<void>('/chats/users', request);
+  addChatUser(request: AddChatUserRequestDto): Observable<string> {
+    return this._httpClient.put('/chats/users', request, {
+      responseType: 'text',
+    });
   }
 }

@@ -128,11 +128,11 @@
 
 ## 8. Сквозные сценарии и quality gates
 
-- [ ] Написать `e2e/chats/create-chat.spec.ts`: вход, пустой список, создание
+- [x] Написать `e2e/chats/create-chat.spec.ts`: вход, пустой список, создание
       чата, чат виден в списке.
-- [ ] Написать `e2e/chats/add-chat-user.spec.ts`: чат создается фикстурой
+- [x] Написать `e2e/chats/add-chat-user.spec.ts`: чат создается фикстурой
       прямым запросом к мок-бэкенду, затем поиск по логину, добавление и
       появление участника в шапке.
-- [ ] Написать `e2e/chats/chats.screenshot.spec.ts` с тегом `@visual`: экран
+- [x] Написать `e2e/chats/chats.screenshot.spec.ts` с тегом `@visual`: экран
       чатов по умолчанию.
 - [ ] `npm run lint`, `npm run test:ci`, `npm run e2e`, `npm run e2e:visual`.
