@@ -89,6 +89,13 @@ context: |
     `input.required()`, `output()`, `viewChild()` и `viewChildren()`,
     `contentChild()` и `contentChildren()`, `model()`. `@Input`, `@Output`,
     `@ViewChild`, `@ContentChild` в новом коде не появляются.
+  - Только Reactive Forms: значение поля живет в `FormControl`, в шаблоне -
+    `formControlName` или `[formControl]`. Template-driven формы (`FormsModule`,
+    `ngModel`) и разбор значения из нативного `(input)`/`(change)` в новом коде
+    не появляются - иначе валидация и состояние поля расползаются по компоненту
+    мимо формы. Поле, которое `FormControl` не принимает напрямую (например,
+    выбор файла), закрывается своим `ControlValueAccessor` в `shared/ui`, а не
+    ручным обработчиком события.
   - Прежде чем ввести конструкцию, которой в `src` еще нет, посмотри, как
     решена та же задача в соседнем коде. Отсутствие прецедента - сигнал, что
     конструкция проекту чужая, а не что ее просто забыли применить.
