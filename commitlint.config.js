@@ -8,7 +8,7 @@ module.exports = {
     'scope-enum': [
       2,
       'always',
-      ['identity', 'shared-ui', 'core', 'deployment', 'infra', 'process'],
+      ['identity', 'chats', 'shared-ui', 'core', 'deployment', 'infra', 'process'],
     ],
   },
 };

@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { ChangeAvatarRequestDto } from './change-avatar/change-avatar.dto';
 import { ChangePasswordRequestDto } from './change-password/change-password.dto';
 import { CurrentUserDto } from './current-session/current-user.dto';
+import { FindUserRequestDto, UserDto } from './search-users/search-users.dto';
 import { UpdateProfileRequestDto } from './update-profile/update-profile.dto';
 
 @Injectable({
@@ -19,6 +20,10 @@ export class UserApi {
 
   changeAvatar(request: ChangeAvatarRequestDto): Observable<CurrentUserDto> {
     return this._httpClient.put<CurrentUserDto>('/user/profile/avatar', request);
+  }
+
+  searchUsers(request: FindUserRequestDto): Observable<UserDto[]> {
+    return this._httpClient.post<UserDto[]>('/user/search', request);
   }
 
   changePassword(request: ChangePasswordRequestDto): Observable<string> {

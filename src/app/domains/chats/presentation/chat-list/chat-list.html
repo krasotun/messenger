@@ -1,0 +1,33 @@
+<div class="chat-list__header">
+  <div class="chat-list__title">Chats</div>
+
+  <button class="chat-list__create" type="button" appButton (click)="createChat()">Create</button>
+</div>
+
+@if (errorMessage(); as errorMessage) {
+<div class="chat-list__error">
+  <div class="chat-list__error-title">Failed to load chats</div>
+  <div class="chat-list__error-reason">{{ errorMessage }}</div>
+
+  <button class="chat-list__retry" type="button" appButton colorType="secondary" (click)="retry()">
+    Retry
+  </button>
+</div>
+} @else if (isEmpty()) {
+<div class="chat-list__empty">
+  <div class="chat-list__empty-title">No chats yet</div>
+  <div class="chat-list__empty-hint">Create your first chat and add members to it</div>
+</div>
+} @else {
+<ul class="chat-list__items">
+  @for (chat of chats(); track chat.id) {
+  <li
+    class="chat-list__item"
+    [routerLink]="['/', chat.id]"
+    routerLinkActive="chat-list__item_active"
+  >
+    <app-chat-list-item [chat]="chat"></app-chat-list-item>
+  </li>
+  }
+</ul>
+}

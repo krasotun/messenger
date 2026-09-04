@@ -1,7 +1,8 @@
 import { CurrentUser } from '../../application/current-session/current-user';
 
 import { CurrentUserDto } from './current-user.dto';
-import { resolveAvatarUrl } from './resolve-avatar-url';
+
+import { resolveAvatarUrl } from '@shared/resources';
 
 export const currentUserMapper = (
   { id, first_name, second_name, display_name, avatar, email, login, phone }: CurrentUserDto,

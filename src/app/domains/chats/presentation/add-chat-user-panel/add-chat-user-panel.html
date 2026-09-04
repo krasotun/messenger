@@ -1,0 +1,30 @@
+<input
+  class="add-chat-user-panel__input"
+  appInput
+  type="text"
+  aria-label="Поиск пользователя"
+  [formControl]="loginControl"
+/>
+
+@if (hintText(); as hintText) {
+<div class="add-chat-user-panel__hint">{{ hintText }}</div>
+} @else {
+<ul class="add-chat-user-panel__list">
+  @for (user of foundUsers(); track user.id) {
+  <li>
+    <button type="button" class="add-chat-user-panel__user" (click)="addUser(user)">
+      <app-avatar
+        [label]="'Avatar ' + user.name"
+        [imageUrl]="user.avatar"
+        [fallbackText]="avatarFallbackText(user)"
+        size="sm"
+      ></app-avatar>
+
+      <span class="add-chat-user-panel__user-name">{{ user.name }}</span>
+    </button>
+  </li>
+  }
+</ul>
+} @if (errorMessage(); as errorMessage) {
+<div class="add-chat-user-panel__error">Не удалось добавить участника: {{ errorMessage }}</div>
+}

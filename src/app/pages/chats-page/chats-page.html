@@ -1,0 +1,9 @@
+<app-chat-list></app-chat-list>
+
+<div class="chats-page__selected-chat">
+  <router-outlet #selectedChat="outlet"></router-outlet>
+
+  @if (!selectedChat.isActivated) {
+  <div class="chats-page__placeholder">Select a chat to see it here</div>
+  }
+</div>

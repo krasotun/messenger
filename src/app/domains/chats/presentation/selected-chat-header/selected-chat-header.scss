@@ -1,0 +1,42 @@
+:host {
+  min-height: 64px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--color-border-muted);
+  background: var(--color-surface);
+}
+
+.selected-chat-header {
+  &__title {
+    flex-grow: 1;
+    min-width: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  &__error {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__error-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-danger);
+  }
+
+  &__error-reason {
+    font-size: 13px;
+    color: var(--color-text-muted);
+  }
+
+  &__add-user {
+    flex-shrink: 0;
+  }
+}

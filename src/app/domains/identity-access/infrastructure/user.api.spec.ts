@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ChangePasswordRequestDto } from './change-password/change-password.dto';
 import { CurrentUserDto } from './current-session/current-user.dto';
+import { UserDto } from './search-users/search-users.dto';
 import { UserApi } from './user.api';
 
 const changePasswordRequestMock: ChangePasswordRequestDto = {
@@ -20,6 +21,17 @@ const currentUserDtoMock: CurrentUserDto = {
   email: 'john.doe@example.com',
   login: 'john.doe',
   phone: '+79990000000',
+};
+
+const userDtoMock: UserDto = {
+  id: 2,
+  first_name: 'Jane',
+  second_name: 'Roe',
+  display_name: 'Janie',
+  avatar: null,
+  email: 'jane.roe@example.com',
+  login: 'jane.roe',
+  phone: '+79990000001',
 };
 
 describe('UserApi', () => {
@@ -85,6 +97,24 @@ describe('UserApi', () => {
       request.flush(currentUserDtoMock);
 
       expect(results).toEqual([currentUserDtoMock]);
+    });
+  });
+  describe('searchUsers', () => {
+    it('should send POST request to relative url with the login to search by', () => {
+      const results: unknown[] = [];
+
+      service.searchUsers({ login: 'jane' }).subscribe((response) => {
+        results.push(response);
+      });
+
+      const request = httpTestingController.expectOne('/user/search');
+
+      expect(request.request.method).toBe('POST');
+      expect(request.request.body).toEqual({ login: 'jane' });
+
+      request.flush([userDtoMock]);
+
+      expect(results).toEqual([[userDtoMock]]);
     });
   });
 });

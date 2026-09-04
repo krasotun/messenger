@@ -1,0 +1,22 @@
+<app-avatar
+  [label]="avatarLabel()"
+  [imageUrl]="chat().avatar"
+  [fallbackText]="avatarFallbackText()"
+></app-avatar>
+
+<div class="chat-list-item__body">
+  <div class="chat-list-item__title">{{ chat().title }}</div>
+
+  <div class="chat-list-item__preview">
+    <div
+      class="chat-list-item__last-message"
+      [class.chat-list-item__last-message_empty]="!hasLastMessage()"
+    >
+      {{ lastMessageText() }}
+    </div>
+
+    @if (hasUnread()) {
+    <div class="chat-list-item__unread-count">{{ chat().unreadCount }}</div>
+    }
+  </div>
+</div>

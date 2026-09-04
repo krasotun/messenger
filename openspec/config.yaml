@@ -22,7 +22,7 @@ context: |
 
   Angular 21 (standalone, signals), TypeScript, RxJS, Angular CDK.
   Тесты: Vitest (unit/component), Playwright (e2e, визуальные).
-  Мок-бэкенд для локальной разработки и e2e: `mock-auth-backend` на :3000.
+  Мок-бэкенд для локальной разработки и e2e: `mock-backend` на :3000.
 
   Архитектура - Domain-first Angular + lightweight DDD boundaries:
 

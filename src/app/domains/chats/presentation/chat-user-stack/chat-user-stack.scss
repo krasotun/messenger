@@ -1,0 +1,22 @@
+:host {
+  display: flex;
+  align-items: center;
+}
+
+.chat-user-stack {
+  &__avatar {
+    border-radius: 50%;
+    border: 2px solid var(--color-surface);
+
+    & + & {
+      margin-left: -10px;
+    }
+  }
+
+  &__rest {
+    margin-left: 8px;
+    font-size: 13px;
+    color: var(--color-text-muted);
+    cursor: default;
+  }
+}
