@@ -16,6 +16,7 @@ const chatApiMock = {
   chats: vi.fn(),
   createChat: vi.fn(),
   chatUsers: vi.fn(),
+  addChatUser: vi.fn(),
 };
 
 const resourcesBaseUrlMock = 'https://mock.host/resources';
@@ -73,6 +74,7 @@ describe('HttpChatGateway', () => {
     chatApiMock.chats.mockReset();
     chatApiMock.createChat.mockReset();
     chatApiMock.chatUsers.mockReset();
+    chatApiMock.addChatUser.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -323,6 +325,64 @@ describe('HttpChatGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe('Failed to load chat members. Please try again.');
+    });
+  });
+
+  describe('addChatUser', () => {
+    it('should ask api to add the user to the chat', () => {
+      chatApiMock.addChatUser.mockReturnValue(of(null));
+
+      service.addChatUser({ chatId: 1, userId: 2 }).subscribe();
+
+      expect(chatApiMock.addChatUser).toHaveBeenCalledOnce();
+      expect(chatApiMock.addChatUser).toHaveBeenCalledWith({ chatId: 1, users: [2] });
+    });
+
+    it('should map response to a success result', () => {
+      chatApiMock.addChatUser.mockReturnValue(of(null));
+
+      const results: unknown[] = [];
+
+      service.addChatUser({ chatId: 1, userId: 2 }).subscribe((result) => {
+        results.push(result);
+      });
+
+      expect(results).toEqual([{ userAdded: true }]);
+    });
+
+    it('should map error to ApplicationError with reason from response body', () => {
+      const error = new HttpErrorResponse({
+        error: { reason: 'mockReason' },
+      });
+
+      chatApiMock.addChatUser.mockReturnValue(throwError(() => error));
+
+      const errors: ApplicationError[] = [];
+
+      service.addChatUser({ chatId: 1, userId: 2 }).subscribe({
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
+        },
+      });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('mockReason');
+    });
+
+    it('should map generic error to ApplicationError with fallback message', () => {
+      chatApiMock.addChatUser.mockReturnValue(throwError(() => 'mockError'));
+
+      const errors: ApplicationError[] = [];
+
+      service.addChatUser({ chatId: 1, userId: 2 }).subscribe({
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
+        },
+      });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0].message).toBe('Failed to add chat member. Please try again.');
     });
   });
 });

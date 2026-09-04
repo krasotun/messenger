@@ -2,7 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { ChatDto, ChatUserDto, CreateChatRequestDto, CreateChatResponseDto } from './chat.dto';
+import {
+  AddChatUserRequestDto,
+  ChatDto,
+  ChatUserDto,
+  CreateChatRequestDto,
+  CreateChatResponseDto,
+} from './chat.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -20,5 +26,9 @@ export class ChatApi {
 
   chatUsers(chatId: number): Observable<ChatUserDto[]> {
     return this._httpClient.get<ChatUserDto[]>(`/chats/${chatId}/users`);
+  }
+
+  addChatUser(request: AddChatUserRequestDto): Observable<void> {
+    return this._httpClient.put<void>('/chats/users', request);
   }
 }

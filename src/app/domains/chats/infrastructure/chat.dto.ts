@@ -40,3 +40,8 @@ export interface ChatUserDto {
   login: string;
   avatar: Nullable<string>;
 }
+
+export interface AddChatUserRequestDto {
+  chatId: number;
+  users: number[];
+}

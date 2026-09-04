@@ -92,25 +92,25 @@
 
 ## 6. Добавление участника
 
-- [ ] Дописать падающий тест в `infrastructure/http-chat-gateway.spec.ts` на
+- [x] Дописать падающий тест в `infrastructure/http-chat-gateway.spec.ts` на
       `PUT /chats/users`.
-- [ ] Расширить `chat.gateway.ts` методом `addChatUser`, добавить
+- [x] Расширить `chat.gateway.ts` методом `addChatUser`, добавить
       `application/add-chat-user/add-chat-user.input.ts` и `.result.ts`.
-- [ ] Написать падающий тест
+- [x] Написать падающий тест
       `application/add-chat-user/add-chat-user.service.spec.ts` на сценарии
       «участник добавлен» (с обновлением состава) и «добавление отклонено».
-- [ ] Реализовать `AddChatUserService`.
-- [ ] Написать падающий тест
+- [x] Реализовать `AddChatUserService`.
+- [x] Написать падающий тест
       `application/user-search/user-search.state.spec.ts` на сценарии «поиск не
       начат», «пользователи найдены», «никого не нашли» и «ввод продолжился до
       ответа» - последний с fake timers и проверкой отмены предыдущего запроса.
-- [ ] Реализовать состояние поиска поверх `SearchUsersService`.
-- [ ] Написать падающий тест
+- [x] Реализовать состояние поиска поверх `SearchUsersService`.
+- [x] Написать падающий тест
       `presentation/add-chat-user-panel/add-chat-user-panel.spec.ts` на пять
       состояний панели из `design.md`.
-- [ ] Реализовать `AddChatUserPanel`, открыть его из `SelectedChatHeader` через
+- [x] Реализовать `AddChatUserPanel`, открыть его из `SelectedChatHeader` через
       примитив popover.
-- [ ] `npm run lint`, `npm run test:ci`.
+- [x] `npm run lint`, `npm run test:ci`.
 
 ## 7. Мок-бэкенд под чаты
 

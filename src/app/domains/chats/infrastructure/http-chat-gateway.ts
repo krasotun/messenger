@@ -1,6 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
+import { AddChatUserInput } from '../application/add-chat-user/add-chat-user.input';
+import { AddChatUserResult } from '../application/add-chat-user/add-chat-user.result';
 import { Chat } from '../application/chat';
 import { ChatUser } from '../application/chat-user';
 import { ChatGateway } from '../application/chat.gateway';
@@ -46,6 +48,17 @@ export class HttpChatGateway implements ChatGateway {
       catchError((error) => {
         return throwError(() =>
           mapChatError(error, 'Failed to load chat members. Please try again.'),
+        );
+      }),
+    );
+  }
+
+  addChatUser({ chatId, userId }: AddChatUserInput): Observable<AddChatUserResult> {
+    return this._chatApi.addChatUser({ chatId, users: [userId] }).pipe(
+      map(() => ({ userAdded: true })),
+      catchError((error) => {
+        return throwError(() =>
+          mapChatError(error, 'Failed to add chat member. Please try again.'),
         );
       }),
     );

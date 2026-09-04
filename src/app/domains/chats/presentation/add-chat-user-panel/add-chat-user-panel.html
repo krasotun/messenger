@@ -1,0 +1,32 @@
+<input
+  class="add-chat-user-panel__input"
+  appInput
+  type="text"
+  aria-label="Поиск пользователя"
+  (input)="onQueryInput($event)"
+/>
+
+@if (isNotStarted()) {
+<div class="add-chat-user-panel__hint">Начните вводить логин</div>
+} @else if (isEmptyResult()) {
+<div class="add-chat-user-panel__hint">Никого не нашли</div>
+} @else if (foundUsers().length > 0) {
+<ul class="add-chat-user-panel__list">
+  @for (user of foundUsers(); track user.id) {
+  <li>
+    <button type="button" class="add-chat-user-panel__user" (click)="addUser(user)">
+      <app-avatar
+        [label]="'Avatar ' + user.name"
+        [imageUrl]="user.avatar"
+        [fallbackText]="avatarFallbackText(user)"
+        size="sm"
+      ></app-avatar>
+
+      <span class="add-chat-user-panel__user-name">{{ user.name }}</span>
+    </button>
+  </li>
+  }
+</ul>
+} @if (errorMessage(); as errorMessage) {
+<div class="add-chat-user-panel__error">Не удалось добавить участника: {{ errorMessage }}</div>
+}

@@ -35,4 +35,8 @@
     font-size: 13px;
     color: var(--color-text-muted);
   }
+
+  &__add-user {
+    flex-shrink: 0;
+  }
 }

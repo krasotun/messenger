@@ -97,4 +97,23 @@ describe('ChatApi', () => {
       expect(results).toEqual([[chatUserDtoMock]]);
     });
   });
+
+  describe('addChatUser', () => {
+    it('should send PUT request with the chat id and user ids', () => {
+      const results: unknown[] = [];
+
+      service.addChatUser({ chatId: 1, users: [2] }).subscribe((response) => {
+        results.push(response);
+      });
+
+      const request = httpTestingController.expectOne('/chats/users');
+
+      expect(request.request.method).toBe('PUT');
+      expect(request.request.body).toEqual({ chatId: 1, users: [2] });
+
+      request.flush(null);
+
+      expect(results).toEqual([null]);
+    });
+  });
 });

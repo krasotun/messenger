@@ -13,4 +13,21 @@
 <div class="selected-chat-header__title">{{ chat()?.title }}</div>
 
 <app-chat-user-stack [users]="chatUsers()"></app-chat-user-stack>
+
+<button
+  class="selected-chat-header__add-user"
+  type="button"
+  appButton
+  colorType="secondary"
+  [appPopover]="addUserPopover"
+>
+  + Add member
+</button>
+
+<ng-template #addUserPopover>
+  <app-add-chat-user-panel
+    [chatId]="numericChatId()"
+    (userAdded)="closeAddUserPopover()"
+  ></app-add-chat-user-panel>
+</ng-template>
 }
