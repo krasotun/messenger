@@ -14,7 +14,7 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        loadComponent: () => import('./pages/home-page/home-page').then((m) => m.HomePage),
+        loadComponent: () => import('./pages/chats-page/chats-page').then((m) => m.ChatsPage),
       },
     ],
   },

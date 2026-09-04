@@ -1,0 +1,21 @@
+:host {
+  flex-grow: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.chats-page {
+  &__selected-chat {
+    flex-grow: 1;
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    padding: 24px;
+    background: var(--color-surface-softer);
+  }
+
+  &__placeholder {
+    font-size: 14px;
+    color: var(--color-text-muted);
+  }
+}

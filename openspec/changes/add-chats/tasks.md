@@ -19,25 +19,25 @@
 
 ## 2. Список чатов на маршруте /
 
-- [ ] Написать падающий тест
+- [x] Написать падающий тест
       `src/app/domains/chats/infrastructure/http-chat-gateway.spec.ts` на
       `GET /chats` и маппинг `ChatsResponse` в модель `Chat`.
-- [ ] Завести домен: `application/chat.ts`, `application/chat.gateway.ts`
+- [x] Завести домен: `application/chat.ts`, `application/chat.gateway.ts`
       (`CHAT_GATEWAY`), `infrastructure/http-chat-gateway.ts`,
       `infrastructure/chat.mapper.ts`, `chats.providers.ts`, `index.ts`.
       Подключить `provideChats()` в `src/app/app.config.ts`.
-- [ ] Написать падающий тест
+- [x] Написать падающий тест
       `application/chat-list/chat-list.service.spec.ts` на сценарии «есть
       чаты», «чатов еще нет», «список не загрузился», «повторная загрузка
       после ошибки».
-- [ ] Реализовать `ChatListService`.
-- [ ] Написать падающие тесты `presentation/chat-list/chat-list.spec.ts` и
+- [x] Реализовать `ChatListService`.
+- [x] Написать падающие тесты `presentation/chat-list/chat-list.spec.ts` и
       `presentation/chat-list-item/chat-list-item.spec.ts`, включая сценарий
       «у чата нет последнего сообщения».
-- [ ] Реализовать `ChatList` и `ChatListItem`.
-- [ ] Создать `src/app/pages/chats-page/`, заменить в `src/app/app.routes.ts`
+- [x] Реализовать `ChatList` и `ChatListItem`.
+- [x] Создать `src/app/pages/chats-page/`, заменить в `src/app/app.routes.ts`
       маршрут `''` на него, удалить `src/app/pages/home-page/` вместе со спекой.
-- [ ] `npm run lint`, `npm run test:ci`.
+- [x] `npm run lint`, `npm run test:ci`.
 
 ## 3. Создание чата
 

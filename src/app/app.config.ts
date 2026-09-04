@@ -9,6 +9,7 @@ import { routes } from './app.routes';
 import { provideCurrentSessionRestore } from '@core/app-initializers/restore-current-session.initializer';
 import { apiRequestInterceptor } from '@core/http/api-request.interceptor';
 import { API_BASE_URL, RESOURCES_BASE_URL } from '@core/tokens';
+import { provideChats } from '@domains/chats';
 import { provideIdentityAccess } from '@domains/identity-access';
 
 export const appConfig: ApplicationConfig = {
@@ -25,6 +26,7 @@ export const appConfig: ApplicationConfig = {
       useValue: resourcesBaseUrl,
     },
     provideIdentityAccess(),
+    provideChats(),
     provideCurrentSessionRestore(),
   ],
 };
