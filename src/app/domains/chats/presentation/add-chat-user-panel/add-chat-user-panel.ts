@@ -3,6 +3,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { AddChatUserStatus } from '../../application/add-chat-user/add-chat-user-status';
 import { AddChatUserService } from '../../application/add-chat-user/add-chat-user.service';
+import { UserSearchStatus } from '../../application/user-search/user-search-status';
 import { createUserSearchState } from '../../application/user-search/user-search.state';
 
 import { SearchUsersService, User } from '@domains/identity-access';
@@ -35,16 +36,23 @@ export class AddChatUserPanel {
     this.loginControl.valueChanges,
   );
 
-  protected readonly foundUsers = this._userSearchState.users;
+  private readonly _searchResult = this._userSearchState.result;
+
+  protected readonly foundUsers = computed<User[]>(() => {
+    const result = this._searchResult();
+
+    return result.status === UserSearchStatus.Found ? result.users : [];
+  });
 
   protected readonly hintText = computed<Nullable<string>>(() => {
-    const foundUsers = this.foundUsers();
-
-    if (foundUsers === null) {
-      return notStartedHint;
+    switch (this._searchResult().status) {
+      case UserSearchStatus.NotStarted:
+        return notStartedHint;
+      case UserSearchStatus.NobodyFound:
+        return nobodyFoundHint;
+      default:
+        return null;
     }
-
-    return foundUsers.length === 0 ? nobodyFoundHint : null;
   });
 
   protected readonly errorMessage = this._addChatUserService.errorMessage;
