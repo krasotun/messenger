@@ -55,7 +55,7 @@ application и infrastructure `identity-access` (**Поиск пользоват
 
 Внешнее API: `GET /chats`, `POST /chats`, `PUT /chats/users`,
 `GET /chats/{id}/users`, `POST /user/search`. Те же endpoint'ы добавляются в
-`mock-auth-backend` и сбрасываются в `POST /test/reset`.
+`mock-backend` и сбрасываются в `POST /test/reset`.
 
 Зависимости не добавляются. Ломающих изменений нет: `home-page` - заглушка без
 поведения.
