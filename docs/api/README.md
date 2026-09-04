@@ -20,3 +20,6 @@ json.dump(doc, open("docs/api/swagger.json", "w", encoding="utf-8"), ensure_asci
 Человекочитаемая версия - https://ya-praktikum.tech/api/v2/swagger/
 
 Снято 2026-09-03: Swagger 2.0, «Chat & OAuth API» 2.0.0, 35 путей.
+
+Переписка в `swagger.json` не описана: HTTP отдает только токен, обмен идет по
+WebSocket. Разведанный протокол - `websocket.md` рядом.
