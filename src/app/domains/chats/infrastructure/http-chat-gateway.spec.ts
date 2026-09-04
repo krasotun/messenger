@@ -13,6 +13,7 @@ import { ApplicationError } from '@shared/errors';
 
 const chatApiMock = {
   chats: vi.fn(),
+  createChat: vi.fn(),
 };
 
 const resourcesBaseUrlMock = 'https://mock.host/resources';
@@ -53,6 +54,7 @@ describe('HttpChatGateway', () => {
 
   beforeEach(() => {
     chatApiMock.chats.mockReset();
+    chatApiMock.createChat.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -175,6 +177,64 @@ describe('HttpChatGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe('Failed to load chats. Please try again.');
+    });
+  });
+
+  describe('createChat', () => {
+    it('should ask api to create a chat with the given title', () => {
+      chatApiMock.createChat.mockReturnValue(of({ id: 1 }));
+
+      service.createChat({ title: 'Analytics Q3' }).subscribe();
+
+      expect(chatApiMock.createChat).toHaveBeenCalledOnce();
+      expect(chatApiMock.createChat).toHaveBeenCalledWith({ title: 'Analytics Q3' });
+    });
+
+    it('should map response to the created chat id', () => {
+      chatApiMock.createChat.mockReturnValue(of({ id: 1 }));
+
+      const results: unknown[] = [];
+
+      service.createChat({ title: 'Analytics Q3' }).subscribe((result) => {
+        results.push(result);
+      });
+
+      expect(results).toEqual([{ id: 1 }]);
+    });
+
+    it('should map error to ApplicationError with reason from response body', () => {
+      const error = new HttpErrorResponse({
+        error: { reason: 'mockReason' },
+      });
+
+      chatApiMock.createChat.mockReturnValue(throwError(() => error));
+
+      const errors: ApplicationError[] = [];
+
+      service.createChat({ title: 'Analytics Q3' }).subscribe({
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
+        },
+      });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('mockReason');
+    });
+
+    it('should map generic error to ApplicationError with fallback message', () => {
+      chatApiMock.createChat.mockReturnValue(throwError(() => 'mockError'));
+
+      const errors: ApplicationError[] = [];
+
+      service.createChat({ title: 'Analytics Q3' }).subscribe({
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
+        },
+      });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0].message).toBe('Failed to create chat. Please try again.');
     });
   });
 });

@@ -1,0 +1,13 @@
+<form class="create-chat-form" [formGroup]="createChatForm" (ngSubmit)="onSubmit()">
+  <app-form-field [label]="'Title'" [htmlFor]="'title'" [error]="getControlError()">
+    <input formControlName="title" appInput [invalid]="hasControlError()" type="text" id="title" />
+  </app-form-field>
+
+  @if (errorMessage()) {
+  <span class="create-chat-form__error">Ошибка создания чата: {{ errorMessage() }}</span>
+  }
+
+  <div class="create-chat-form__actions">
+    <button appButton [disabled]="isSubmitting()" type="submit">Create</button>
+  </div>
+</form>

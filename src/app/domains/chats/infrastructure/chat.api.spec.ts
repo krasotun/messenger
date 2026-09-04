@@ -51,4 +51,23 @@ describe('ChatApi', () => {
       expect(results).toEqual([[chatDtoMock]]);
     });
   });
+
+  describe('createChat', () => {
+    it('should send POST request with the title', () => {
+      const results: unknown[] = [];
+
+      service.createChat({ title: 'Analytics Q3' }).subscribe((response) => {
+        results.push(response);
+      });
+
+      const request = httpTestingController.expectOne('/chats');
+
+      expect(request.request.method).toBe('POST');
+      expect(request.request.body).toEqual({ title: 'Analytics Q3' });
+
+      request.flush({ id: 1 });
+
+      expect(results).toEqual([{ id: 1 }]);
+    });
+  });
 });

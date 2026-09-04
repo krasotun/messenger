@@ -3,13 +3,19 @@ import { of, Subject, throwError } from 'rxjs';
 
 import { Chat } from '../../application/chat';
 import { CHAT_GATEWAY } from '../../application/chat.gateway';
+import { CreateChatModalContent } from '../create-chat-modal-content/create-chat-modal-content';
 
 import { ChatList } from './chat-list';
 
 import { ApplicationError } from '@shared/errors';
+import { ModalService } from '@shared/ui/modal/modal-service';
 
 const chatGatewayMock = {
   chats: vi.fn(),
+};
+
+const modalServiceMock = {
+  open: vi.fn(),
 };
 
 const chatMock: Chat = {
@@ -39,6 +45,7 @@ describe('ChatList', () => {
   beforeEach(async () => {
     chatGatewayMock.chats.mockReset();
     chatGatewayMock.chats.mockReturnValue(of([chatMock]));
+    modalServiceMock.open.mockReset();
 
     await TestBed.configureTestingModule({
       imports: [ChatList],
@@ -46,6 +53,10 @@ describe('ChatList', () => {
         {
           provide: CHAT_GATEWAY,
           useValue: chatGatewayMock,
+        },
+        {
+          provide: ModalService,
+          useValue: modalServiceMock,
         },
       ],
     }).compileComponents();
@@ -114,6 +125,19 @@ describe('ChatList', () => {
       expect(chatGatewayMock.chats).toHaveBeenCalledTimes(2);
       expect(fixture.nativeElement.querySelectorAll('app-chat-list-item')).toHaveLength(1);
       expect(getText()).not.toContain('mockReason');
+    });
+  });
+
+  describe('create chat', () => {
+    it('should open the create chat modal', async () => {
+      await createComponent();
+
+      fixture.nativeElement.querySelector('.chat-list__create').click();
+
+      expect(modalServiceMock.open).toHaveBeenCalledOnce();
+      expect(modalServiceMock.open).toHaveBeenCalledWith(CreateChatModalContent, {
+        title: 'New chat',
+      });
     });
   });
 

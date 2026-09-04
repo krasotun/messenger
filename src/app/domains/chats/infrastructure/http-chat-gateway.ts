@@ -3,6 +3,8 @@ import { catchError, map, Observable, throwError } from 'rxjs';
 
 import { Chat } from '../application/chat';
 import { ChatGateway } from '../application/chat.gateway';
+import { CreateChatInput } from '../application/create-chat/create-chat.input';
+import { CreateChatResult } from '../application/create-chat/create-chat.result';
 
 import { mapChatError } from './chat-error.mapper';
 import { ChatApi } from './chat.api';
@@ -22,6 +24,15 @@ export class HttpChatGateway implements ChatGateway {
       }),
       catchError((error) => {
         return throwError(() => mapChatError(error, 'Failed to load chats. Please try again.'));
+      }),
+    );
+  }
+
+  createChat({ title }: CreateChatInput): Observable<CreateChatResult> {
+    return this._chatApi.createChat({ title }).pipe(
+      map((response) => ({ id: response.id })),
+      catchError((error) => {
+        return throwError(() => mapChatError(error, 'Failed to create chat. Please try again.'));
       }),
     );
   }

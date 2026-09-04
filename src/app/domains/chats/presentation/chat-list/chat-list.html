@@ -1,7 +1,7 @@
 <div class="chat-list__header">
   <div class="chat-list__title">Chats</div>
 
-  <button class="chat-list__create" type="button" appButton>Create</button>
+  <button class="chat-list__create" type="button" appButton (click)="createChat()">Create</button>
 </div>
 
 @if (errorMessage(); as errorMessage) {

@@ -41,19 +41,19 @@
 
 ## 3. Создание чата
 
-- [ ] Дописать падающий тест в `infrastructure/http-chat-gateway.spec.ts` на
+- [x] Дописать падающий тест в `infrastructure/http-chat-gateway.spec.ts` на
       `POST /chats`.
-- [ ] Расширить `chat.gateway.ts` методом `createChat`, добавить
+- [x] Расширить `chat.gateway.ts` методом `createChat`, добавить
       `application/create-chat/create-chat.input.ts` и `.result.ts`.
-- [ ] Написать падающий тест `application/create-chat/create-chat.service.spec.ts`
+- [x] Написать падающий тест `application/create-chat/create-chat.service.spec.ts`
       на сценарии «чат создан» (со перезапросом списка) и «создание отклонено».
-- [ ] Реализовать `CreateChatService` и метод шлюза.
-- [ ] Написать падающий тест
+- [x] Реализовать `CreateChatService` и метод шлюза.
+- [x] Написать падающий тест
       `presentation/create-chat-form/create-chat-form.spec.ts`, включая
       сценарий «название не указано».
-- [ ] Реализовать `CreateChatForm` и `CreateChatModalContent`, открыть модалку
+- [x] Реализовать `CreateChatForm` и `CreateChatModalContent`, открыть модалку
       из `ChatList`.
-- [ ] `npm run lint`, `npm run test:ci`.
+- [x] `npm run lint`, `npm run test:ci`.
 
 ## 4. Выбранный чат и его участники
 

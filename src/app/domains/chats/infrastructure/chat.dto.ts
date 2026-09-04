@@ -23,3 +23,11 @@ export interface ChatDto {
   unread_count: number;
   last_message: Nullable<ChatLastMessageDto>;
 }
+
+export interface CreateChatRequestDto {
+  title: string;
+}
+
+export interface CreateChatResponseDto {
+  id: number;
+}
