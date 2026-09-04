@@ -114,14 +114,14 @@
 
 ## 7. Мок-бэкенд под чаты
 
-- [x] Разделить `mock-auth-backend/src/server.ts` по ресурсам: вынести
-      обработчики в `mock-auth-backend/src/routes/auth.ts` и
-      `mock-auth-backend/src/routes/user.ts`, оставить в `server.ts` только
+- [x] Разделить `mock-backend/src/server.ts` по ресурсам: вынести
+      обработчики в `mock-backend/src/routes/auth.ts` и
+      `mock-backend/src/routes/user.ts`, оставить в `server.ts` только
       сборку приложения. Поведение не меняется, тестов не добавляем.
-- [x] Добавить `mock-auth-backend/src/routes/chats.ts`: `GET /chats`,
+- [x] Добавить `mock-backend/src/routes/chats.ts`: `GET /chats`,
       `POST /chats`, `PUT /chats/users`, `GET /chats/{id}/users`. Состав полей
       сверить по `docs/api/swagger.json`.
-- [x] Добавить `POST /user/search` в `mock-auth-backend/src/routes/user.ts`:
+- [x] Добавить `POST /user/search` в `mock-backend/src/routes/user.ts`:
       поиск по началу логина, не больше 10 результатов.
 - [x] Очищать чаты и их состав в `POST /test/reset`.
 - [x] `npm run lint`, `npm run test:ci`.

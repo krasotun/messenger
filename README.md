@@ -17,7 +17,7 @@
 
 ```bash
 npm install
-npm ci --prefix mock-auth-backend   # зависимости мок-бэкенда, нужны для e2e
+npm ci --prefix mock-backend   # зависимости мок-бэкенда, нужны для e2e
 ```
 
 ## Как запускается приложение

@@ -35,5 +35,5 @@ app.use(userRouter);
 app.use(chatsRouter);
 
 app.listen(port, () => {
-  console.log(`Mock auth backend listening on port ${port}`);
+  console.log(`Mock backend listening on port ${port}`);
 });

@@ -4,7 +4,7 @@
   "scripts": {
     "start": "ng serve",
     "start:e2e": "ng serve --configuration e2e",
-    "e2e:backend": "npm --prefix mock-auth-backend run serve",
+    "e2e:backend": "npm --prefix mock-backend run serve",
     "build": "ng build",
     "test": "ng test",
     "test:ci": "ng test --watch=false",
