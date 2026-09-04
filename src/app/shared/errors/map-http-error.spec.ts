@@ -1,14 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { mapAuthError } from './auth-error.mapper';
+import { ApplicationError } from './application.error';
+import { mapHttpError } from './map-http-error';
 
-import { ApplicationError } from '@shared/errors';
-
-describe('mapAuthError', () => {
+describe('mapHttpError', () => {
   it('should return ApplicationError with backend reason', () => {
     const mockHttpError = new HttpErrorResponse({ error: { reason: 'mockReason' } });
 
-    const applicationError = mapAuthError(mockHttpError, 'fallbackMessage');
+    const applicationError = mapHttpError(mockHttpError, 'fallbackMessage');
 
     expect(applicationError).toBeInstanceOf(ApplicationError);
     expect(applicationError.message).toBe('mockReason');
@@ -19,7 +18,7 @@ describe('mapAuthError', () => {
       error: JSON.stringify({ reason: 'mockReason' }),
     });
 
-    const applicationError = mapAuthError(mockHttpError, 'fallbackMessage');
+    const applicationError = mapHttpError(mockHttpError, 'fallbackMessage');
 
     expect(applicationError).toBeInstanceOf(ApplicationError);
     expect(applicationError.message).toBe('mockReason');
@@ -28,7 +27,7 @@ describe('mapAuthError', () => {
   it('should return ApplicationError with fallback message when a text body is not json', () => {
     const mockHttpError = new HttpErrorResponse({ error: 'Internal Server Error' });
 
-    const applicationError = mapAuthError(mockHttpError, 'fallbackMessage');
+    const applicationError = mapHttpError(mockHttpError, 'fallbackMessage');
 
     expect(applicationError).toBeInstanceOf(ApplicationError);
     expect(applicationError.message).toBe('fallbackMessage');
@@ -37,7 +36,7 @@ describe('mapAuthError', () => {
   it('should return ApplicationError with fallback message when a text body has no reason', () => {
     const mockHttpError = new HttpErrorResponse({ error: JSON.stringify({ other: 'value' }) });
 
-    const applicationError = mapAuthError(mockHttpError, 'fallbackMessage');
+    const applicationError = mapHttpError(mockHttpError, 'fallbackMessage');
 
     expect(applicationError).toBeInstanceOf(ApplicationError);
     expect(applicationError.message).toBe('fallbackMessage');
@@ -46,7 +45,7 @@ describe('mapAuthError', () => {
   it('should return ApplicationError with fallback message when reason is missing', () => {
     const mockError = 'mockError';
 
-    const applicationError = mapAuthError(mockError, 'fallbackMessage');
+    const applicationError = mapHttpError(mockError, 'fallbackMessage');
 
     expect(applicationError).toBeInstanceOf(ApplicationError);
     expect(applicationError.message).toBe('fallbackMessage');

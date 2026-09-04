@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { ApplicationError } from '@shared/errors';
+import { ApplicationError } from './application.error';
 
 const parseErrorBody = (errorBody: string): { reason?: string } | undefined => {
   try {
@@ -22,6 +22,6 @@ const getReason = (error: unknown): string | undefined => {
   return errorBody?.reason;
 };
 
-export const mapAuthError = (error: unknown, fallbackMessage: string): ApplicationError => {
+export const mapHttpError = (error: unknown, fallbackMessage: string): ApplicationError => {
   return new ApplicationError(getReason(error) ?? fallbackMessage, error);
 };
