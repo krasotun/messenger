@@ -135,4 +135,4 @@
       появление участника в шапке.
 - [x] Написать `e2e/chats/chats.screenshot.spec.ts` с тегом `@visual`: экран
       чатов по умолчанию.
-- [ ] `npm run lint`, `npm run test:ci`, `npm run e2e`, `npm run e2e:visual`.
+- [x] `npm run lint`, `npm run test:ci`, `npm run e2e`, `npm run e2e:visual`.
