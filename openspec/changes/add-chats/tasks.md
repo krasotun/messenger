@@ -2,21 +2,12 @@
 
 Секция - единица ревью: один коммит в ветку issue #83.
 
-## 1. Мок-бэкенд под чаты
+Порядок секций - по домену: создание чата, затем поиск пользователя, затем
+добавление участника. Мок-бэкенд идет предпоследней секцией, перед сквозными
+сценариями: до них он никому не нужен - unit- и component-тесты работают на
+подмененном HTTP.
 
-- [ ] Разделить `mock-auth-backend/src/server.ts` по ресурсам: вынести
-      обработчики в `mock-auth-backend/src/routes/auth.ts` и
-      `mock-auth-backend/src/routes/user.ts`, оставить в `server.ts` только
-      сборку приложения. Поведение не меняется, тестов не добавляем.
-- [ ] Добавить `mock-auth-backend/src/routes/chats.ts`: `GET /chats`,
-      `POST /chats`, `PUT /chats/users`, `GET /chats/{id}/users`. Состав полей
-      сверить по `docs/api/swagger.json`.
-- [ ] Добавить `POST /user/search` в `mock-auth-backend/src/routes/user.ts`:
-      поиск по началу логина, не больше 10 результатов.
-- [ ] Очищать чаты и их состав в `POST /test/reset`.
-- [ ] `npm run lint`, `npm run test:ci`.
-
-## 2. Переезд resolveAvatarUrl в shared
+## 1. Переезд resolveAvatarUrl в shared
 
 - [ ] Перенести `resolve-avatar-url.ts` и его спеку из
       `src/app/domains/identity-access/infrastructure/current-session/` в
@@ -26,24 +17,7 @@
 - [ ] Убедиться, что тесты проходят без правок: поведение не меняется.
 - [ ] `npm run lint`, `npm run test:ci`.
 
-## 3. Поиск пользователей в identity-access
-
-- [ ] Написать падающий тест
-      `src/app/domains/identity-access/infrastructure/http-user-gateway.spec.ts`
-      на `POST /user/search` и маппинг ответа в модель `User`.
-- [ ] Добавить `src/app/domains/identity-access/application/user.ts` (модель
-      `User`), `search-users/search-users.input.ts` и `.result.ts`, расширить
-      `application/user.gateway.ts` методом `searchUsers`.
-- [ ] Написать падающий тест
-      `application/search-users/search-users.service.spec.ts` на сценарии
-      «совпадения найдены», «совпадений нет», «поиск не удался».
-- [ ] Реализовать `SearchUsersService`, реализовать `searchUsers` в
-      `infrastructure/http-user-gateway.ts` и `infrastructure/user.api.ts`.
-- [ ] Экспортировать `SearchUsersService` и `User` из
-      `src/app/domains/identity-access/index.ts`.
-- [ ] `npm run lint`, `npm run test:ci`.
-
-## 4. Список чатов на маршруте /
+## 2. Список чатов на маршруте /
 
 - [ ] Написать падающий тест
       `src/app/domains/chats/infrastructure/http-chat-gateway.spec.ts` на
@@ -65,7 +39,7 @@
       маршрут `''` на него, удалить `src/app/pages/home-page/` вместе со спекой.
 - [ ] `npm run lint`, `npm run test:ci`.
 
-## 5. Создание чата
+## 3. Создание чата
 
 - [ ] Дописать падающий тест в `infrastructure/http-chat-gateway.spec.ts` на
       `POST /chats`.
@@ -81,7 +55,7 @@
       из `ChatList`.
 - [ ] `npm run lint`, `npm run test:ci`.
 
-## 6. Выбранный чат и его участники
+## 4. Выбранный чат и его участники
 
 - [ ] Дописать падающий тест в `infrastructure/http-chat-gateway.spec.ts` на
       `GET /chats/{id}/users` и маппинг в модель `ChatUser`.
@@ -99,7 +73,24 @@
       выбран», «выбранного чата не существует».
 - [ ] `npm run lint`, `npm run test:ci`.
 
-## 7. Добавление участника
+## 5. Поиск пользователей в identity-access
+
+- [ ] Написать падающий тест
+      `src/app/domains/identity-access/infrastructure/http-user-gateway.spec.ts`
+      на `POST /user/search` и маппинг ответа в модель `User`.
+- [ ] Добавить `src/app/domains/identity-access/application/user.ts` (модель
+      `User`), `search-users/search-users.input.ts` и `.result.ts`, расширить
+      `application/user.gateway.ts` методом `searchUsers`.
+- [ ] Написать падающий тест
+      `application/search-users/search-users.service.spec.ts` на сценарии
+      «совпадения найдены», «совпадений нет», «поиск не удался».
+- [ ] Реализовать `SearchUsersService`, реализовать `searchUsers` в
+      `infrastructure/http-user-gateway.ts` и `infrastructure/user.api.ts`.
+- [ ] Экспортировать `SearchUsersService` и `User` из
+      `src/app/domains/identity-access/index.ts`.
+- [ ] `npm run lint`, `npm run test:ci`.
+
+## 6. Добавление участника
 
 - [ ] Дописать падающий тест в `infrastructure/http-chat-gateway.spec.ts` на
       `PUT /chats/users`.
@@ -119,6 +110,20 @@
       состояний панели из `design.md`.
 - [ ] Реализовать `AddChatUserPanel`, открыть его из `SelectedChatHeader` через
       примитив popover.
+- [ ] `npm run lint`, `npm run test:ci`.
+
+## 7. Мок-бэкенд под чаты
+
+- [ ] Разделить `mock-auth-backend/src/server.ts` по ресурсам: вынести
+      обработчики в `mock-auth-backend/src/routes/auth.ts` и
+      `mock-auth-backend/src/routes/user.ts`, оставить в `server.ts` только
+      сборку приложения. Поведение не меняется, тестов не добавляем.
+- [ ] Добавить `mock-auth-backend/src/routes/chats.ts`: `GET /chats`,
+      `POST /chats`, `PUT /chats/users`, `GET /chats/{id}/users`. Состав полей
+      сверить по `docs/api/swagger.json`.
+- [ ] Добавить `POST /user/search` в `mock-auth-backend/src/routes/user.ts`:
+      поиск по началу логина, не больше 10 результатов.
+- [ ] Очищать чаты и их состав в `POST /test/reset`.
 - [ ] `npm run lint`, `npm run test:ci`.
 
 ## 8. Сквозные сценарии и quality gates
