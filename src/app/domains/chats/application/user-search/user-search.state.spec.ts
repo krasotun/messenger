@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
 
+import { UserSearchStatus } from './user-search-status';
 import { createUserSearchState, UserSearchState } from './user-search.state';
 
 import { SearchUsersResult, SearchUsersService, User } from '@domains/identity-access';
@@ -47,7 +48,7 @@ describe('createUserSearchState', () => {
 
   describe('поиск не начат', () => {
     it('should expose no users and send no request', () => {
-      expect(state.users()).toBeNull();
+      expect(state.result()).toEqual({ status: UserSearchStatus.NotStarted });
       expect(searchUsersServiceMock.searchUsers).not.toHaveBeenCalled();
     });
 
@@ -56,11 +57,11 @@ describe('createUserSearchState', () => {
 
       search('jane');
 
-      expect(state.users()).toEqual([userMock]);
+      expect(state.result()).toEqual({ status: UserSearchStatus.Found, users: [userMock] });
 
       search('');
 
-      expect(state.users()).toBeNull();
+      expect(state.result()).toEqual({ status: UserSearchStatus.NotStarted });
     });
   });
 
@@ -79,18 +80,17 @@ describe('createUserSearchState', () => {
       vi.advanceTimersByTime(debounceMs);
 
       expect(searchUsersServiceMock.searchUsers).toHaveBeenCalledWith({ login: 'jane' });
-      expect(state.users()).toEqual([userMock]);
+      expect(state.result()).toEqual({ status: UserSearchStatus.Found, users: [userMock] });
     });
   });
 
   describe('никого не нашли', () => {
-    it('should expose an empty list, distinct from not started', () => {
+    it('should expose a nobody found result, distinct from not started', () => {
       vi.mocked(searchUsersServiceMock.searchUsers).mockReturnValue(of({ users: [] }));
 
       search('nobody');
 
-      expect(state.users()).toEqual([]);
-      expect(state.users()).not.toBeNull();
+      expect(state.result()).toEqual({ status: UserSearchStatus.NobodyFound });
     });
   });
 
@@ -109,7 +109,7 @@ describe('createUserSearchState', () => {
       secondResponse$.next({ users: [userMock] });
       firstResponse$.next({ users: [] });
 
-      expect(state.users()).toEqual([userMock]);
+      expect(state.result()).toEqual({ status: UserSearchStatus.Found, users: [userMock] });
     });
   });
 });
