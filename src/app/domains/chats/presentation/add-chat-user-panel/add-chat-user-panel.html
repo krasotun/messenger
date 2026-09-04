@@ -3,16 +3,14 @@
   appInput
   type="text"
   aria-label="Поиск пользователя"
-  (input)="onQueryInput($event)"
+  [formControl]="loginControl"
 />
 
-@if (isNotStarted()) {
-<div class="add-chat-user-panel__hint">Начните вводить логин</div>
-} @else if (isEmptyResult()) {
-<div class="add-chat-user-panel__hint">Никого не нашли</div>
-} @else if (foundUsers().length > 0) {
+@if (hintText(); as hintText) {
+<div class="add-chat-user-panel__hint">{{ hintText }}</div>
+} @else {
 <ul class="add-chat-user-panel__list">
-  @for (user of foundUsers(); track user.id) {
+  @for (user of foundUsers() ?? []; track user.id) {
   <li>
     <button type="button" class="add-chat-user-panel__user" (click)="addUser(user)">
       <app-avatar

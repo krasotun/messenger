@@ -1,7 +1,7 @@
+import { TestBed } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
 
-import { UserSearchStatus } from './user-search-status';
-import { createUserSearchState } from './user-search.state';
+import { createUserSearchState, UserSearchState } from './user-search.state';
 
 import { SearchUsersResult, SearchUsersService, User } from '@domains/identity-access';
 
@@ -16,40 +16,51 @@ const userMock: User = {
   avatar: null,
 };
 
+const debounceMs = 300;
+
 describe('createUserSearchState', () => {
-  let state: ReturnType<typeof createUserSearchState>;
+  let login$: Subject<string>;
+  let state: UserSearchState;
+
+  const search = (login: string): void => {
+    login$.next(login);
+    vi.advanceTimersByTime(debounceMs);
+  };
 
   beforeEach(() => {
     vi.useFakeTimers();
     vi.mocked(searchUsersServiceMock.searchUsers).mockReset();
 
-    state = createUserSearchState(searchUsersServiceMock);
+    login$ = new Subject<string>();
+
+    TestBed.configureTestingModule({});
+
+    state = TestBed.runInInjectionContext(() =>
+      createUserSearchState(searchUsersServiceMock, login$),
+    );
   });
 
   afterEach(() => {
-    state.destroy();
     vi.useRealTimers();
+    TestBed.resetTestingModule();
   });
 
   describe('поиск не начат', () => {
-    it('should start with an empty query and no request', () => {
-      expect(state.status()).toBe(UserSearchStatus.NotStarted);
-      expect(state.users()).toEqual([]);
+    it('should expose no users and send no request', () => {
+      expect(state.users()).toBeNull();
       expect(searchUsersServiceMock.searchUsers).not.toHaveBeenCalled();
     });
 
     it('should go back to not started when the query is cleared', () => {
-      vi.mocked(searchUsersServiceMock.searchUsers).mockReturnValue(
-        new Subject<SearchUsersResult>(),
-      );
+      vi.mocked(searchUsersServiceMock.searchUsers).mockReturnValue(of({ users: [userMock] }));
 
-      state.search('jane');
-      vi.advanceTimersByTime(1000);
+      search('jane');
 
-      state.search('');
+      expect(state.users()).toEqual([userMock]);
 
-      expect(state.status()).toBe(UserSearchStatus.NotStarted);
-      expect(state.users()).toEqual([]);
+      search('');
+
+      expect(state.users()).toBeNull();
     });
   });
 
@@ -59,30 +70,27 @@ describe('createUserSearchState', () => {
         new Subject<SearchUsersResult>(),
       );
 
-      state.search('jane');
+      login$.next('jane');
 
       expect(searchUsersServiceMock.searchUsers).not.toHaveBeenCalled();
 
       vi.mocked(searchUsersServiceMock.searchUsers).mockReturnValue(of({ users: [userMock] }));
 
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(debounceMs);
 
       expect(searchUsersServiceMock.searchUsers).toHaveBeenCalledWith({ login: 'jane' });
-      expect(state.status()).toBe(UserSearchStatus.Found);
       expect(state.users()).toEqual([userMock]);
     });
   });
 
   describe('никого не нашли', () => {
-    it('should expose the empty status, distinct from not started', () => {
+    it('should expose an empty list, distinct from not started', () => {
       vi.mocked(searchUsersServiceMock.searchUsers).mockReturnValue(of({ users: [] }));
 
-      state.search('nobody');
-      vi.advanceTimersByTime(1000);
+      search('nobody');
 
-      expect(state.status()).toBe(UserSearchStatus.Empty);
-      expect(state.status()).not.toBe(UserSearchStatus.NotStarted);
       expect(state.users()).toEqual([]);
+      expect(state.users()).not.toBeNull();
     });
   });
 
@@ -95,16 +103,12 @@ describe('createUserSearchState', () => {
         .mockReturnValueOnce(firstResponse$)
         .mockReturnValueOnce(secondResponse$);
 
-      state.search('ja');
-      vi.advanceTimersByTime(1000);
-
-      state.search('jane');
-      vi.advanceTimersByTime(1000);
+      search('ja');
+      search('jane');
 
       secondResponse$.next({ users: [userMock] });
       firstResponse$.next({ users: [] });
 
-      expect(state.status()).toBe(UserSearchStatus.Found);
       expect(state.users()).toEqual([userMock]);
     });
   });

@@ -33,12 +33,8 @@ describe('AddChatUserPanel', () => {
   let component: AddChatUserPanel;
 
   const search = (login: string): void => {
-    const input: HTMLInputElement = fixture.nativeElement.querySelector(
-      '.add-chat-user-panel__input',
-    );
-
-    input.value = login;
-    input.dispatchEvent(new Event('input'));
+    component.loginControl.setValue(login);
+    vi.advanceTimersByTime(debounceMs);
   };
 
   const getText = (): string => fixture.nativeElement.textContent;
@@ -105,7 +101,6 @@ describe('AddChatUserPanel', () => {
       searchUsersServiceMock.searchUsers.mockReturnValueOnce(of({ users: [userMock] }));
 
       search('ja');
-      vi.advanceTimersByTime(debounceMs);
       fixture.detectChanges();
 
       expect(getText()).toContain('Janie');
@@ -113,7 +108,6 @@ describe('AddChatUserPanel', () => {
       searchUsersServiceMock.searchUsers.mockReturnValueOnce(new Subject<SearchUsersResult>());
 
       search('jane');
-      vi.advanceTimersByTime(debounceMs);
       fixture.detectChanges();
 
       expect(getText()).toContain('Janie');
@@ -128,7 +122,6 @@ describe('AddChatUserPanel', () => {
       searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       search('jane');
-      vi.advanceTimersByTime(debounceMs);
       fixture.detectChanges();
 
       expect(getText()).toContain('Janie');
@@ -140,7 +133,6 @@ describe('AddChatUserPanel', () => {
       searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       search('jane');
-      vi.advanceTimersByTime(debounceMs);
       fixture.detectChanges();
 
       const userButton: HTMLButtonElement = fixture.nativeElement.querySelector(
@@ -160,7 +152,6 @@ describe('AddChatUserPanel', () => {
       searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [] }));
 
       search('nobody');
-      vi.advanceTimersByTime(debounceMs);
       fixture.detectChanges();
 
       expect(getText()).toContain('Никого не нашли');
@@ -175,7 +166,6 @@ describe('AddChatUserPanel', () => {
       searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       search('jane');
-      vi.advanceTimersByTime(debounceMs);
 
       addChatUserServiceMock.errorMessage.set('mockReason');
       fixture.detectChanges();

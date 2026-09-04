@@ -1,55 +1,44 @@
-import { signal } from '@angular/core';
-import { catchError, debounceTime, filter, of, Subject, switchMap, tap } from 'rxjs';
+import { signal, Signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, map, Observable, of, switchMap } from 'rxjs';
 
-import { UserSearchStatus } from './user-search-status';
-
-import { SearchUsersResult, SearchUsersService, User } from '@domains/identity-access';
+import { SearchUsersService, User } from '@domains/identity-access';
+import { Nullable } from '@shared/types';
 
 const searchDebounceMs = 300;
 
-export const createUserSearchState = (searchUsersService: SearchUsersService) => {
-  const status = signal<UserSearchStatus>(UserSearchStatus.NotStarted);
-  const users = signal<User[]>([]);
+export interface UserSearchState {
+  // null - поиск еще не начат; пустой массив - искали и никого не нашли.
+  users: Signal<Nullable<User[]>>;
+}
 
-  const login$ = new Subject<string>();
+export const createUserSearchState = (
+  searchUsersService: SearchUsersService,
+  login$: Observable<string>,
+): UserSearchState => {
+  const users = signal<Nullable<User[]>>(null);
 
-  const subscription = login$
+  login$
     .pipe(
-      tap((login) => {
-        if (!login) {
-          status.set(UserSearchStatus.NotStarted);
-          users.set([]);
-        }
-      }),
-      filter((login) => login.length > 0),
       debounceTime(searchDebounceMs),
-      tap(() => status.set(UserSearchStatus.Searching)),
-      switchMap((login) =>
-        searchUsersService.searchUsers({ login }).pipe(
+      switchMap((login) => {
+        if (!login) {
+          return of(null);
+        }
+
+        return searchUsersService.searchUsers({ login }).pipe(
+          map((result) => result.users),
           // Отказ поиска здесь не показывается отдельно: chats-спека не
           // описывает такое состояние панели, поэтому он схлопывается в
           // «Никого не нашли», не ломая последующий ввод.
-          catchError(() => of<SearchUsersResult>({ users: [] })),
-        ),
-      ),
+          catchError(() => of([])),
+        );
+      }),
+      takeUntilDestroyed(),
     )
-    .subscribe(({ users: foundUsers }) => {
+    .subscribe((foundUsers) => {
       users.set(foundUsers);
-      status.set(foundUsers.length > 0 ? UserSearchStatus.Found : UserSearchStatus.Empty);
     });
 
-  const search = (login: string): void => {
-    login$.next(login);
-  };
-
-  const destroy = (): void => {
-    subscription.unsubscribe();
-  };
-
-  return {
-    status: status.asReadonly(),
-    users: users.asReadonly(),
-    search,
-    destroy,
-  };
+  return { users: users.asReadonly() };
 };

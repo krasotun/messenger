@@ -1,17 +1,21 @@
-import { Component, computed, DestroyRef, effect, inject, input, output } from '@angular/core';
+import { Component, computed, effect, inject, input, output } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { AddChatUserStatus } from '../../application/add-chat-user/add-chat-user-status';
 import { AddChatUserService } from '../../application/add-chat-user/add-chat-user.service';
-import { UserSearchStatus } from '../../application/user-search/user-search-status';
 import { createUserSearchState } from '../../application/user-search/user-search.state';
 
 import { SearchUsersService, User } from '@domains/identity-access';
+import { Nullable } from '@shared/types';
 import { Avatar } from '@shared/ui/avatar/avatar';
 import { Input } from '@shared/ui/input/input';
 
+const notStartedHint = 'Начните вводить логин';
+const nobodyFoundHint = 'Никого не нашли';
+
 @Component({
   selector: 'app-add-chat-user-panel',
-  imports: [Avatar, Input],
+  imports: [Avatar, Input, ReactiveFormsModule],
   templateUrl: './add-chat-user-panel.html',
   styleUrl: './add-chat-user-panel.scss',
   providers: [AddChatUserService],
@@ -21,24 +25,31 @@ export class AddChatUserPanel {
 
   readonly userAdded = output<void>();
 
+  readonly loginControl = new FormControl('', { nonNullable: true });
+
   private readonly _searchUsersService = inject(SearchUsersService);
   private readonly _addChatUserService = inject(AddChatUserService);
 
-  private readonly _userSearchState = createUserSearchState(this._searchUsersService);
+  private readonly _userSearchState = createUserSearchState(
+    this._searchUsersService,
+    this.loginControl.valueChanges,
+  );
 
   protected readonly foundUsers = this._userSearchState.users;
-  protected readonly isNotStarted = computed(
-    () => this._userSearchState.status() === UserSearchStatus.NotStarted,
-  );
-  protected readonly isEmptyResult = computed(
-    () => this._userSearchState.status() === UserSearchStatus.Empty,
-  );
+
+  protected readonly hintText = computed<Nullable<string>>(() => {
+    const foundUsers = this.foundUsers();
+
+    if (foundUsers === null) {
+      return notStartedHint;
+    }
+
+    return foundUsers.length === 0 ? nobodyFoundHint : null;
+  });
 
   protected readonly errorMessage = this._addChatUserService.errorMessage;
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this._userSearchState.destroy());
-
     // Успешное добавление закрывает всю панель, а не только очищает список:
     // добавленный участник виден в шапке, отдельного сообщения об успехе нет.
     effect(() => {
@@ -46,12 +57,6 @@ export class AddChatUserPanel {
         this.userAdded.emit();
       }
     });
-  }
-
-  protected onQueryInput(event: Event): void {
-    const login = (event.target as HTMLInputElement).value;
-
-    this._userSearchState.search(login);
   }
 
   protected addUser(user: User): void {
