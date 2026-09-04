@@ -75,20 +75,20 @@
 
 ## 5. Поиск пользователей в identity-access
 
-- [ ] Написать падающий тест
+- [x] Написать падающий тест
       `src/app/domains/identity-access/infrastructure/http-user-gateway.spec.ts`
       на `POST /user/search` и маппинг ответа в модель `User`.
-- [ ] Добавить `src/app/domains/identity-access/application/user.ts` (модель
+- [x] Добавить `src/app/domains/identity-access/application/user.ts` (модель
       `User`), `search-users/search-users.input.ts` и `.result.ts`, расширить
       `application/user.gateway.ts` методом `searchUsers`.
-- [ ] Написать падающий тест
+- [x] Написать падающий тест
       `application/search-users/search-users.service.spec.ts` на сценарии
       «совпадения найдены», «совпадений нет», «поиск не удался».
-- [ ] Реализовать `SearchUsersService`, реализовать `searchUsers` в
+- [x] Реализовать `SearchUsersService`, реализовать `searchUsers` в
       `infrastructure/http-user-gateway.ts` и `infrastructure/user.api.ts`.
-- [ ] Экспортировать `SearchUsersService` и `User` из
+- [x] Экспортировать `SearchUsersService` и `User` из
       `src/app/domains/identity-access/index.ts`.
-- [ ] `npm run lint`, `npm run test:ci`.
+- [x] `npm run lint`, `npm run test:ci`.
 
 ## 6. Добавление участника
 

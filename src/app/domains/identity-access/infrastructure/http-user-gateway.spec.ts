@@ -5,10 +5,12 @@ import { of, throwError } from 'rxjs';
 import { ChangePasswordInput } from '../application/change-password/change-password.input';
 import { CurrentUser } from '../application/current-session/current-user';
 import { UpdateProfileInput } from '../application/update-profile/update-profile.input';
+import { User } from '../application/user';
 
 import { ChangePasswordRequestDto } from './change-password/change-password.dto';
 import { CurrentUserDto } from './current-session/current-user.dto';
 import { HttpUserGateway } from './http-user-gateway';
+import { UserDto } from './search-users/search-users.dto';
 import { UpdateProfileRequestDto } from './update-profile/update-profile.dto';
 import { UserApi } from './user.api';
 
@@ -19,6 +21,7 @@ const userApiMock = {
   updateProfile: vi.fn(),
   changePassword: vi.fn(),
   changeAvatar: vi.fn(),
+  searchUsers: vi.fn(),
 };
 
 const changePasswordInputMock: ChangePasswordInput = {
@@ -71,6 +74,24 @@ const currentUserMock: CurrentUser = {
   phone: '+79990000000',
 };
 
+const userDtoMock: UserDto = {
+  id: 2,
+  first_name: 'Jane',
+  second_name: 'Roe',
+  display_name: 'Janie',
+  avatar: '/path/to/avatar.png',
+  email: 'jane.roe@example.com',
+  login: 'jane.roe',
+  phone: '+79990000001',
+};
+
+const userMock: User = {
+  id: 2,
+  login: 'jane.roe',
+  name: 'Janie',
+  avatar: 'https://mock.host/resources/path/to/avatar.png',
+};
+
 const resourcesBaseUrlMock = 'https://mock.host/resources';
 
 const fileMock = new File(['mockContent'], 'avatar.png', { type: 'image/png' });
@@ -82,6 +103,7 @@ describe('HttpUserGateway', () => {
     userApiMock.updateProfile.mockReset();
     userApiMock.changePassword.mockReset();
     userApiMock.changeAvatar.mockReset();
+    userApiMock.searchUsers.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -288,6 +310,90 @@ describe('HttpUserGateway', () => {
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
       expect(errors[0].message).toBe('Failed to change password. Please try again.');
+    });
+  });
+  describe('searchUsers', () => {
+    it('should call api with the login to search by', () => {
+      userApiMock.searchUsers.mockReturnValue(of([userDtoMock]));
+
+      service.searchUsers({ login: 'jane' }).subscribe();
+
+      expect(userApiMock.searchUsers).toHaveBeenCalledOnce();
+      expect(userApiMock.searchUsers).toHaveBeenCalledWith({ login: 'jane' });
+    });
+
+    it('should map found users with resolved avatar url', () => {
+      userApiMock.searchUsers.mockReturnValue(of([userDtoMock]));
+
+      const results: unknown[] = [];
+
+      service.searchUsers({ login: 'jane' }).subscribe((response) => {
+        results.push(response);
+      });
+
+      expect(results).toEqual([{ users: [userMock] }]);
+    });
+
+    it('should fall back to first name when display name is missing', () => {
+      userApiMock.searchUsers.mockReturnValue(
+        of([{ ...userDtoMock, display_name: null, avatar: null }]),
+      );
+
+      const results: unknown[] = [];
+
+      service.searchUsers({ login: 'jane' }).subscribe((response) => {
+        results.push(response);
+      });
+
+      expect(results).toEqual([{ users: [{ ...userMock, name: 'Jane', avatar: null }] }]);
+    });
+
+    it('should map an empty response to an empty result', () => {
+      userApiMock.searchUsers.mockReturnValue(of([]));
+
+      const results: unknown[] = [];
+
+      service.searchUsers({ login: 'jane' }).subscribe((response) => {
+        results.push(response);
+      });
+
+      expect(results).toEqual([{ users: [] }]);
+    });
+
+    it('should map error to ApplicationError with reason from response body', () => {
+      const error = new HttpErrorResponse({
+        error: { reason: 'mockReason' },
+      });
+
+      userApiMock.searchUsers.mockReturnValue(throwError(() => error));
+
+      const errors: ApplicationError[] = [];
+
+      service.searchUsers({ login: 'jane' }).subscribe({
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
+        },
+      });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('mockReason');
+    });
+
+    it('should map generic error to ApplicationError with fallback message', () => {
+      userApiMock.searchUsers.mockReturnValue(throwError(() => 'mockError'));
+
+      const errors: ApplicationError[] = [];
+
+      service.searchUsers({ login: 'jane' }).subscribe({
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
+        },
+      });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('Failed to search users. Please try again.');
     });
   });
 });
