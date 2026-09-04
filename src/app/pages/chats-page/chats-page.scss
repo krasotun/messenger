@@ -12,4 +12,12 @@
     min-width: 0;
     background: var(--color-surface-softer);
   }
+
+  &__placeholder {
+    flex-grow: 1;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    color: var(--color-text-muted);
+  }
 }

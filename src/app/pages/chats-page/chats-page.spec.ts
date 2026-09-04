@@ -34,8 +34,6 @@ describe('chats routing', () => {
       await import('@domains/chats/application/chat-list/chat-list.service');
     const { ChatUsersService } =
       await import('@domains/chats/application/chat-users/chat-users.service');
-    const { NoChatSelected } =
-      await import('@domains/chats/presentation/no-chat-selected/no-chat-selected');
     const { SelectedChatHeader } =
       await import('@domains/chats/presentation/selected-chat-header/selected-chat-header');
 
@@ -43,10 +41,7 @@ describe('chats routing', () => {
       {
         path: '',
         component: ChatsPage,
-        children: [
-          { path: '', pathMatch: 'full', component: NoChatSelected },
-          { path: ':chatId', component: SelectedChatHeader },
-        ],
+        children: [{ path: ':chatId', component: SelectedChatHeader }],
       },
     ];
 
