@@ -54,7 +54,8 @@
       Подключить `provideChats()` в `src/app/app.config.ts`.
 - [ ] Написать падающий тест
       `application/chat-list/chat-list.service.spec.ts` на сценарии «есть
-      чаты», «чатов еще нет», «список не загрузился».
+      чаты», «чатов еще нет», «список не загрузился», «повторная загрузка
+      после ошибки».
 - [ ] Реализовать `ChatListService`.
 - [ ] Написать падающие тесты `presentation/chat-list/chat-list.spec.ts` и
       `presentation/chat-list-item/chat-list-item.spec.ts`, включая сценарий
