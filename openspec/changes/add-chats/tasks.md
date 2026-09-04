@@ -9,13 +9,13 @@
 
 ## 1. Переезд resolveAvatarUrl в shared
 
-- [ ] Перенести `resolve-avatar-url.ts` и его спеку из
+- [x] Перенести `resolve-avatar-url.ts` и его спеку из
       `src/app/domains/identity-access/infrastructure/current-session/` в
       `src/app/shared/resources/`, добавить `src/app/shared/resources/index.ts`.
-- [ ] Обновить импорт в
+- [x] Обновить импорт в
       `src/app/domains/identity-access/infrastructure/current-session/current-user.mapper.ts`.
-- [ ] Убедиться, что тесты проходят без правок: поведение не меняется.
-- [ ] `npm run lint`, `npm run test:ci`.
+- [x] Убедиться, что тесты проходят без правок: поведение не меняется.
+- [x] `npm run lint`, `npm run test:ci`.
 
 ## 2. Список чатов на маршруте /
 
