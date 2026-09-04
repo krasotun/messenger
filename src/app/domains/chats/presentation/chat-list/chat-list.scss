@@ -30,6 +30,15 @@
     overflow-y: auto;
   }
 
+  &__item {
+    cursor: pointer;
+
+    &_active {
+      background: var(--color-surface-selected);
+      border-left: 3px solid var(--color-surface-selected-border);
+    }
+  }
+
   &__empty,
   &__error {
     flex-grow: 1;

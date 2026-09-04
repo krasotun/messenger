@@ -1,6 +1,7 @@
 import { Chat, ChatLastMessage } from '../application/chat';
+import { ChatUser } from '../application/chat-user';
 
-import { ChatDto, ChatLastMessageDto } from './chat.dto';
+import { ChatDto, ChatLastMessageDto, ChatUserDto } from './chat.dto';
 
 import { resolveAvatarUrl } from '@shared/resources';
 import { Nullable } from '@shared/types';
@@ -26,5 +27,16 @@ export const chatMapper = (
     avatar: resolveAvatarUrl(avatar, resourcesBaseUrl),
     unreadCount: unread_count,
     lastMessage,
+  };
+};
+
+export const chatUserMapper = (
+  { id, first_name, display_name, login, avatar }: ChatUserDto,
+  resourcesBaseUrl: string,
+): ChatUser => {
+  return {
+    id,
+    name: (display_name || first_name || login).trim(),
+    avatar: resolveAvatarUrl(avatar, resourcesBaseUrl),
   };
 };

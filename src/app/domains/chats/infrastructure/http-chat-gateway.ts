@@ -2,13 +2,14 @@ import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
 import { Chat } from '../application/chat';
+import { ChatUser } from '../application/chat-user';
 import { ChatGateway } from '../application/chat.gateway';
 import { CreateChatInput } from '../application/create-chat/create-chat.input';
 import { CreateChatResult } from '../application/create-chat/create-chat.result';
 
 import { mapChatError } from './chat-error.mapper';
 import { ChatApi } from './chat.api';
-import { chatMapper } from './chat.mapper';
+import { chatMapper, chatUserMapper } from './chat.mapper';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
 
@@ -33,6 +34,19 @@ export class HttpChatGateway implements ChatGateway {
       map((response) => ({ id: response.id })),
       catchError((error) => {
         return throwError(() => mapChatError(error, 'Failed to create chat. Please try again.'));
+      }),
+    );
+  }
+
+  chatUsers(chatId: number): Observable<ChatUser[]> {
+    return this._chatApi.chatUsers(chatId).pipe(
+      map((response) => {
+        return response.map((chatUserDto) => chatUserMapper(chatUserDto, this._resourcesBaseUrl));
+      }),
+      catchError((error) => {
+        return throwError(() =>
+          mapChatError(error, 'Failed to load chat members. Please try again.'),
+        );
       }),
     );
   }

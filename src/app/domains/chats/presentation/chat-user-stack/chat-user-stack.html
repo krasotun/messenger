@@ -1,0 +1,12 @@
+@for (user of visibleUsers(); track user.id) {
+<div class="chat-user-stack__avatar">
+  <app-avatar
+    [label]="'Avatar ' + user.name"
+    [imageUrl]="user.avatar"
+    [fallbackText]="avatarFallbackText(user)"
+    size="sm"
+  ></app-avatar>
+</div>
+} @if (restCount() > 0) {
+<span class="chat-user-stack__rest">+{{ restCount() }}</span>
+}

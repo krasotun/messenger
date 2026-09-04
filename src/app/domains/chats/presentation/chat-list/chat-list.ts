@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { ChatListService } from '../../application/chat-list/chat-list.service';
 import { ChatListItem } from '../chat-list-item/chat-list-item';
@@ -9,7 +10,7 @@ import { ModalService } from '@shared/ui/modal/modal-service';
 
 @Component({
   selector: 'app-chat-list',
-  imports: [ChatListItem, Button],
+  imports: [ChatListItem, Button, RouterLink, RouterLinkActive],
   templateUrl: './chat-list.html',
   styleUrl: './chat-list.scss',
 })

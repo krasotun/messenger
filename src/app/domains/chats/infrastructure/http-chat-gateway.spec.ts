@@ -3,9 +3,10 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
 import { Chat } from '../application/chat';
+import { ChatUser } from '../application/chat-user';
 
 import { ChatApi } from './chat.api';
-import { ChatDto } from './chat.dto';
+import { ChatDto, ChatUserDto } from './chat.dto';
 import { HttpChatGateway } from './http-chat-gateway';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
@@ -14,6 +15,7 @@ import { ApplicationError } from '@shared/errors';
 const chatApiMock = {
   chats: vi.fn(),
   createChat: vi.fn(),
+  chatUsers: vi.fn(),
 };
 
 const resourcesBaseUrlMock = 'https://mock.host/resources';
@@ -49,12 +51,28 @@ const chatMock: Chat = {
   },
 };
 
+const chatUserDtoMock: ChatUserDto = {
+  id: 2,
+  first_name: 'John',
+  second_name: 'Doe',
+  display_name: 'Johnny',
+  login: 'john.doe',
+  avatar: '/path/to/user-avatar.png',
+};
+
+const chatUserMock: ChatUser = {
+  id: 2,
+  name: 'Johnny',
+  avatar: `${resourcesBaseUrlMock}/path/to/user-avatar.png`,
+};
+
 describe('HttpChatGateway', () => {
   let service: HttpChatGateway;
 
   beforeEach(() => {
     chatApiMock.chats.mockReset();
     chatApiMock.createChat.mockReset();
+    chatApiMock.chatUsers.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -235,6 +253,76 @@ describe('HttpChatGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe('Failed to create chat. Please try again.');
+    });
+  });
+
+  describe('chatUsers', () => {
+    it('should ask api for chat users by chat id', () => {
+      chatApiMock.chatUsers.mockReturnValue(of([chatUserDtoMock]));
+
+      service.chatUsers(1).subscribe();
+
+      expect(chatApiMock.chatUsers).toHaveBeenCalledOnce();
+      expect(chatApiMock.chatUsers).toHaveBeenCalledWith(1);
+    });
+
+    it('should map response to chat users with resolved avatar url', () => {
+      chatApiMock.chatUsers.mockReturnValue(of([chatUserDtoMock]));
+
+      const results: unknown[] = [];
+
+      service.chatUsers(1).subscribe((chatUsers) => {
+        results.push(chatUsers);
+      });
+
+      expect(results).toEqual([[chatUserMock]]);
+    });
+
+    it('should name a chat user by first name when display name is missing', () => {
+      chatApiMock.chatUsers.mockReturnValue(of([{ ...chatUserDtoMock, display_name: null }]));
+
+      const results: ChatUser[][] = [];
+
+      service.chatUsers(1).subscribe((chatUsers) => {
+        results.push(chatUsers);
+      });
+
+      expect(results[0][0].name).toBe('John');
+    });
+
+    it('should map error to ApplicationError with reason from response body', () => {
+      const error = new HttpErrorResponse({
+        error: { reason: 'mockReason' },
+      });
+
+      chatApiMock.chatUsers.mockReturnValue(throwError(() => error));
+
+      const errors: ApplicationError[] = [];
+
+      service.chatUsers(1).subscribe({
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
+        },
+      });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('mockReason');
+    });
+
+    it('should map generic error to ApplicationError with fallback message', () => {
+      chatApiMock.chatUsers.mockReturnValue(throwError(() => 'mockError'));
+
+      const errors: ApplicationError[] = [];
+
+      service.chatUsers(1).subscribe({
+        error: (applicationError: ApplicationError) => {
+          errors.push(applicationError);
+        },
+      });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0].message).toBe('Failed to load chat members. Please try again.');
     });
   });
 });

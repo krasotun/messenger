@@ -57,21 +57,21 @@
 
 ## 4. Выбранный чат и его участники
 
-- [ ] Дописать падающий тест в `infrastructure/http-chat-gateway.spec.ts` на
+- [x] Дописать падающий тест в `infrastructure/http-chat-gateway.spec.ts` на
       `GET /chats/{id}/users` и маппинг в модель `ChatUser`.
-- [ ] Добавить `application/chat-user.ts`, расширить `chat.gateway.ts` методом
+- [x] Добавить `application/chat-user.ts`, расширить `chat.gateway.ts` методом
       `chatUsers`.
-- [ ] Написать падающий тест `application/chat-users/chat-users.service.spec.ts`.
-- [ ] Реализовать `ChatUsersService`.
-- [ ] Написать падающий тест
+- [x] Написать падающий тест `application/chat-users/chat-users.service.spec.ts`.
+- [x] Реализовать `ChatUsersService`.
+- [x] Написать падающий тест
       `presentation/chat-user-stack/chat-user-stack.spec.ts` на сценарии
       «участники помещаются», «участников больше, чем помещается» и на то, что
       число остальных не реагирует на нажатие.
-- [ ] Реализовать `ChatUserStack` и `SelectedChatHeader`.
-- [ ] Добавить дочерний маршрут `:chatId` в `src/app/app.routes.ts`, написать
+- [x] Реализовать `ChatUserStack` и `SelectedChatHeader`.
+- [x] Добавить дочерний маршрут `:chatId` в `src/app/app.routes.ts`, написать
       падающий тест на сценарии «чат выбран», «возврат по адресу», «чат не
       выбран», «выбранного чата не существует».
-- [ ] `npm run lint`, `npm run test:ci`.
+- [x] `npm run lint`, `npm run test:ci`.
 
 ## 5. Поиск пользователей в identity-access
 

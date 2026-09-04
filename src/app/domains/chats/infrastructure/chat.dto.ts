@@ -31,3 +31,12 @@ export interface CreateChatRequestDto {
 export interface CreateChatResponseDto {
   id: number;
 }
+
+export interface ChatUserDto {
+  id: number;
+  first_name: string;
+  second_name: string;
+  display_name: Nullable<string>;
+  login: string;
+  avatar: Nullable<string>;
+}

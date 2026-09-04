@@ -1,0 +1,16 @@
+@if (errorMessage(); as errorMessage) {
+<div class="selected-chat-header__error">
+  <div class="selected-chat-header__error-title">Failed to load chat</div>
+  <div class="selected-chat-header__error-reason">{{ errorMessage }}</div>
+</div>
+} @else {
+<app-avatar
+  [label]="avatarLabel()"
+  [imageUrl]="chat()?.avatar ?? null"
+  [fallbackText]="avatarFallbackText()"
+></app-avatar>
+
+<div class="selected-chat-header__title">{{ chat()?.title }}</div>
+
+<app-chat-user-stack [users]="chatUsers()"></app-chat-user-stack>
+}

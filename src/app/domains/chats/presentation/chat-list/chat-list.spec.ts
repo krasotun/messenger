@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
 import { Chat } from '../../application/chat';
@@ -50,6 +51,7 @@ describe('ChatList', () => {
     await TestBed.configureTestingModule({
       imports: [ChatList],
       providers: [
+        provideRouter([]),
         {
           provide: CHAT_GATEWAY,
           useValue: chatGatewayMock,

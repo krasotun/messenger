@@ -13,8 +13,24 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        pathMatch: 'full',
         loadComponent: () => import('./pages/chats-page/chats-page').then((m) => m.ChatsPage),
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () =>
+              import('@domains/chats/presentation/no-chat-selected/no-chat-selected').then(
+                (m) => m.NoChatSelected,
+              ),
+          },
+          {
+            path: ':chatId',
+            loadComponent: () =>
+              import('@domains/chats/presentation/selected-chat-header/selected-chat-header').then(
+                (m) => m.SelectedChatHeader,
+              ),
+          },
+        ],
       },
     ],
   },

@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { ChatApi } from './chat.api';
-import { ChatDto } from './chat.dto';
+import { ChatDto, ChatUserDto } from './chat.dto';
 
 const chatDtoMock: ChatDto = {
   id: 1,
@@ -11,6 +11,15 @@ const chatDtoMock: ChatDto = {
   avatar: null,
   unread_count: 0,
   last_message: null,
+};
+
+const chatUserDtoMock: ChatUserDto = {
+  id: 2,
+  first_name: 'John',
+  second_name: 'Doe',
+  display_name: 'Johnny',
+  login: 'john.doe',
+  avatar: null,
 };
 
 describe('ChatApi', () => {
@@ -68,6 +77,24 @@ describe('ChatApi', () => {
       request.flush({ id: 1 });
 
       expect(results).toEqual([{ id: 1 }]);
+    });
+  });
+
+  describe('chatUsers', () => {
+    it('should send GET request to the chat users url', () => {
+      const results: unknown[] = [];
+
+      service.chatUsers(1).subscribe((response) => {
+        results.push(response);
+      });
+
+      const request = httpTestingController.expectOne('/chats/1/users');
+
+      expect(request.request.method).toBe('GET');
+
+      request.flush([chatUserDtoMock]);
+
+      expect(results).toEqual([[chatUserDtoMock]]);
     });
   });
 });

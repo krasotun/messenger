@@ -21,7 +21,11 @@
 } @else {
 <ul class="chat-list__items">
   @for (chat of chats(); track chat.id) {
-  <li class="chat-list__item">
+  <li
+    class="chat-list__item"
+    [routerLink]="['/', chat.id]"
+    routerLinkActive="chat-list__item_active"
+  >
     <app-chat-list-item [chat]="chat"></app-chat-list-item>
   </li>
   }
