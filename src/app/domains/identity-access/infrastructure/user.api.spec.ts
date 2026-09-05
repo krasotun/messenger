@@ -69,6 +69,7 @@ describe('UserApi', () => {
       expect(request.request.body).toEqual(changePasswordRequestMock);
       expect(request.request.responseType).toBe('text');
       expect(request.request.withCredentials).toBe(false);
+      expect(request.request.timeout).toBeUndefined();
 
       request.flush('OK');
 
@@ -93,6 +94,7 @@ describe('UserApi', () => {
       expect(request.request.body).toBe(formData);
       expect(request.request.headers.has('Content-Type')).toBe(false);
       expect(request.request.withCredentials).toBe(false);
+      expect(request.request.timeout).toBe(60_000);
 
       request.flush(currentUserDtoMock);
 
@@ -111,6 +113,7 @@ describe('UserApi', () => {
 
       expect(request.request.method).toBe('POST');
       expect(request.request.body).toEqual({ login: 'jane' });
+      expect(request.request.timeout).toBeUndefined();
 
       request.flush([userDtoMock]);
 
