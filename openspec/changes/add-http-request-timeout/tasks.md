@@ -18,24 +18,24 @@
 
 ## 2. Общий предел времени на запрос
 
-- [ ] 2.1 Написать падающий тест
+- [x] 2.1 Написать падающий тест
       `src/app/core/http/http-timeout.interceptor.spec.ts` на
       `HttpTestingController`: запрос без собственного предела уходит с
       `timeout`, равным значению из токена, и ответ доезжает до вызывающей
       стороны
-- [ ] 2.2 Тест: запрос с уже проставленным `timeout` уходит со своим
+- [x] 2.2 Тест: запрос с уже проставленным `timeout` уходит со своим
       значением - интерцептор его не перебивает
-- [ ] 2.3 Создать `src/app/core/tokens/http-request-timeout.token.ts` с
+- [x] 2.3 Создать `src/app/core/tokens/http-request-timeout.token.ts` с
       `HTTP_REQUEST_TIMEOUT_MS` (10 с) и экспортировать его из
       `src/app/core/tokens/index.ts`
-- [ ] 2.4 Создать `src/app/core/http/http-timeout.interceptor.ts`: если
+- [x] 2.4 Создать `src/app/core/http/http-timeout.interceptor.ts`: если
       `request.timeout` не задан - `request.clone({ timeout })` со значением из
       токена; тесты 2.1-2.2 зеленые
-- [ ] 2.5 Подключить интерцептор в `src/app/app.config.ts` вторым в
+- [x] 2.5 Подключить интерцептор в `src/app/app.config.ts` вторым в
       `withInterceptors` после `apiRequestInterceptor`; тест в
       `src/app/core/http/api-request.interceptor.spec.ts` на цепочку целиком:
       запрос уходит и с базовым адресом, и с пределом времени
-- [ ] 2.6 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 2.6 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 3. Собственный предел для Смены аватара
 
