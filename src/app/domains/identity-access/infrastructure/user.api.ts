@@ -8,6 +8,8 @@ import { CurrentUserDto } from './current-session/current-user.dto';
 import { FindUserRequestDto, UserDto } from './search-users/search-users.dto';
 import { UpdateProfileRequestDto } from './update-profile/update-profile.dto';
 
+const avatarUploadTimeoutMs = 60_000;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -19,7 +21,9 @@ export class UserApi {
   }
 
   changeAvatar(request: ChangeAvatarRequestDto): Observable<CurrentUserDto> {
-    return this._httpClient.put<CurrentUserDto>('/user/profile/avatar', request);
+    return this._httpClient.put<CurrentUserDto>('/user/profile/avatar', request, {
+      timeout: avatarUploadTimeoutMs,
+    });
   }
 
   searchUsers(request: FindUserRequestDto): Observable<UserDto[]> {

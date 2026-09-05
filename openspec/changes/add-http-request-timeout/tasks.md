@@ -40,14 +40,14 @@
 
 ## 3. Собственный предел для Смены аватара
 
-- [ ] 3.1 Написать падающий тест
+- [x] 3.1 Написать падающий тест
       `src/app/domains/identity-access/infrastructure/user.api.spec.ts`:
       запрос **Смены аватара** уходит с собственным пределом времени, а
       остальные запросы `UserApi` - без проставленного `timeout`
-- [ ] 3.2 Проставить `timeout: 60_000` в `changeAvatar` в
+- [x] 3.2 Проставить `timeout: 60_000` в `changeAvatar` в
       `src/app/domains/identity-access/infrastructure/user.api.ts`; тест 3.1
       зеленый
-- [ ] 3.3 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 3.3 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 4. Quality gates
 
