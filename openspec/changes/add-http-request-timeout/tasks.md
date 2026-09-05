@@ -32,9 +32,10 @@
       `request.timeout` не задан - `request.clone({ timeout })` со значением из
       токена; тесты 2.1-2.2 зеленые
 - [x] 2.5 Подключить интерцептор в `src/app/app.config.ts` вторым в
-      `withInterceptors` после `apiRequestInterceptor`; тест в
-      `src/app/core/http/api-request.interceptor.spec.ts` на цепочку целиком:
-      запрос уходит и с базовым адресом, и с пределом времени
+      `withInterceptors` после `apiRequestInterceptor`. Теста на цепочку
+      целиком не заводим: каждый интерцептор закрыт своим спеком, а тест
+      цепочки либо селится в чужом спеке, либо дублирует состав
+      `withInterceptors` руками
 - [x] 2.6 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 3. Собственный предел для Смены аватара
