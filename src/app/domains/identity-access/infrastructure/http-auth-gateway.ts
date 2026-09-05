@@ -16,7 +16,7 @@ import { signInRequestMapper } from './sign-in/sign-in-request.mapper';
 import { signUpRequestMapper } from './sign-up/sign-up-request.mapper';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
-import { mapHttpError } from '@shared/errors';
+import { toApplicationError } from '@shared/errors';
 
 @Injectable()
 export class HttpAuthGateway implements AuthGateway {
@@ -32,9 +32,7 @@ export class HttpAuthGateway implements AuthGateway {
           userId: id,
         };
       }),
-      catchError((error) => {
-        return throwError(() => mapHttpError(error, 'Failed to sign up. Please try again.'));
-      }),
+      toApplicationError('Failed to sign up. Please try again.'),
     );
   }
 
@@ -47,9 +45,7 @@ export class HttpAuthGateway implements AuthGateway {
           authenticated: true,
         };
       }),
-      catchError((error) => {
-        return throwError(() => mapHttpError(error, 'Failed to sign in. Please try again.'));
-      }),
+      toApplicationError('Failed to sign in. Please try again.'),
     );
   }
 
@@ -71,18 +67,13 @@ export class HttpAuthGateway implements AuthGateway {
           return of(result);
         }
 
-        return throwError(() => mapHttpError(error, 'Failed to load session. Please try again.'));
+        return throwError(() => error);
       }),
+      toApplicationError('Failed to load session. Please try again.'),
     );
   }
 
   logout(): Observable<void> {
-    return this._authApi
-      .logout()
-      .pipe(
-        catchError((error) =>
-          throwError(() => mapHttpError(error, 'Failed to logout. Please try again.')),
-        ),
-      );
+    return this._authApi.logout().pipe(toApplicationError('Failed to logout. Please try again.'));
   }
 }
