@@ -9,6 +9,7 @@ import { User } from '../application/user';
 
 import { ChangePasswordRequestDto } from './change-password/change-password.dto';
 import { CurrentUserDto } from './current-session/current-user.dto';
+import { USER_ERROR_MESSAGES } from './error-messages';
 import { HttpUserGateway } from './http-user-gateway';
 import { UserDto } from './search-users/search-users.dto';
 import { UpdateProfileRequestDto } from './update-profile/update-profile.dto';
@@ -180,7 +181,7 @@ describe('HttpUserGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
-      expect(errors[0].message).toBe('Failed to update profile. Please try again.');
+      expect(errors[0].message).toBe(USER_ERROR_MESSAGES.updateProfile);
     });
   });
   describe('changeAvatar', () => {
@@ -250,7 +251,7 @@ describe('HttpUserGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
-      expect(errors[0].message).toBe('Failed to change avatar. Please try again.');
+      expect(errors[0].message).toBe(USER_ERROR_MESSAGES.changeAvatar);
     });
   });
 
@@ -309,7 +310,7 @@ describe('HttpUserGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
-      expect(errors[0].message).toBe('Failed to change password. Please try again.');
+      expect(errors[0].message).toBe(USER_ERROR_MESSAGES.changePassword);
     });
   });
   describe('searchUsers', () => {
@@ -393,7 +394,7 @@ describe('HttpUserGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
-      expect(errors[0].message).toBe('Failed to search users. Please try again.');
+      expect(errors[0].message).toBe(USER_ERROR_MESSAGES.searchUsers);
     });
   });
 });

@@ -9,6 +9,7 @@ import { SignUpInput } from '../application/sign-up/sign-up.input';
 
 import { AuthApi } from './auth.api';
 import { CurrentUserDto } from './current-session/current-user.dto';
+import { AUTH_ERROR_MESSAGES } from './error-messages';
 import { HttpAuthGateway } from './http-auth-gateway';
 import { SignInRequestDto } from './sign-in/sign-in.dto';
 import { SignUpRequestDto } from './sign-up/sign-up.dto';
@@ -141,7 +142,7 @@ describe('HttpAuthGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
-      expect(errors[0].message).toBe('Failed to sign up. Please try again.');
+      expect(errors[0].message).toBe(AUTH_ERROR_MESSAGES.signUp);
     });
   });
 
@@ -182,7 +183,7 @@ describe('HttpAuthGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
-      expect(errors[0].message).toBe('Failed to sign in. Please try again.');
+      expect(errors[0].message).toBe(AUTH_ERROR_MESSAGES.signIn);
     });
   });
 
@@ -247,7 +248,7 @@ describe('HttpAuthGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
-      expect(errors[0].message).toBe('Failed to load session. Please try again.');
+      expect(errors[0].message).toBe(AUTH_ERROR_MESSAGES.currentSession);
     });
   });
 
@@ -275,7 +276,7 @@ describe('HttpAuthGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
-      expect(errors[0].message).toBe('Failed to logout. Please try again.');
+      expect(errors[0].message).toBe(AUTH_ERROR_MESSAGES.logout);
     });
   });
 });

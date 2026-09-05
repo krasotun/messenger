@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 import { AddChatUserInput } from '../application/add-chat-user/add-chat-user.input';
 import { AddChatUserResult } from '../application/add-chat-user/add-chat-user.result';
@@ -11,9 +11,10 @@ import { CreateChatResult } from '../application/create-chat/create-chat.result'
 
 import { ChatApi } from './chat.api';
 import { chatMapper, chatUserMapper } from './chat.mapper';
+import { CHAT_ERROR_MESSAGES } from './error-messages';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
-import { mapHttpError } from '@shared/errors';
+import { toApplicationError } from '@shared/errors';
 
 @Injectable()
 export class HttpChatGateway implements ChatGateway {
@@ -25,18 +26,14 @@ export class HttpChatGateway implements ChatGateway {
       map((response) => {
         return response.map((chatDto) => chatMapper(chatDto, this._resourcesBaseUrl));
       }),
-      catchError((error) => {
-        return throwError(() => mapHttpError(error, 'Failed to load chats. Please try again.'));
-      }),
+      toApplicationError(CHAT_ERROR_MESSAGES.chats),
     );
   }
 
   createChat({ title }: CreateChatInput): Observable<CreateChatResult> {
     return this._chatApi.createChat({ title }).pipe(
       map((response) => ({ id: response.id })),
-      catchError((error) => {
-        return throwError(() => mapHttpError(error, 'Failed to create chat. Please try again.'));
-      }),
+      toApplicationError(CHAT_ERROR_MESSAGES.createChat),
     );
   }
 
@@ -45,22 +42,14 @@ export class HttpChatGateway implements ChatGateway {
       map((response) => {
         return response.map((chatUserDto) => chatUserMapper(chatUserDto, this._resourcesBaseUrl));
       }),
-      catchError((error) => {
-        return throwError(() =>
-          mapHttpError(error, 'Failed to load chat members. Please try again.'),
-        );
-      }),
+      toApplicationError(CHAT_ERROR_MESSAGES.chatUsers),
     );
   }
 
   addChatUser({ chatId, userId }: AddChatUserInput): Observable<AddChatUserResult> {
     return this._chatApi.addChatUser({ chatId, users: [userId] }).pipe(
       map(() => ({ userAdded: true })),
-      catchError((error) => {
-        return throwError(() =>
-          mapHttpError(error, 'Failed to add chat member. Please try again.'),
-        );
-      }),
+      toApplicationError(CHAT_ERROR_MESSAGES.addChatUser),
     );
   }
 }
