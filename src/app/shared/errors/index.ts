@@ -1,2 +1,2 @@
 export { ApplicationError } from './application.error';
-export { mapHttpError } from './map-http-error';
+export { mapHttpError, REQUEST_TIMED_OUT_MESSAGE } from './map-http-error';

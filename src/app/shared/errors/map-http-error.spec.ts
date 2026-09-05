@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { ApplicationError } from './application.error';
-import { mapHttpError } from './map-http-error';
+import { mapHttpError, REQUEST_TIMED_OUT_MESSAGE } from './map-http-error';
 
 describe('mapHttpError', () => {
   it('should return ApplicationError with backend reason', () => {
@@ -48,6 +48,30 @@ describe('mapHttpError', () => {
     const applicationError = mapHttpError(mockError, 'fallbackMessage');
 
     expect(applicationError).toBeInstanceOf(ApplicationError);
+    expect(applicationError.message).toBe('fallbackMessage');
+  });
+  it('should return ApplicationError with a timeout message when the request timed out', () => {
+    const mockHttpError = new HttpErrorResponse({
+      error: new DOMException('Request timed out', 'TimeoutError'),
+      status: 0,
+      statusText: 'Request timeout',
+    });
+
+    const applicationError = mapHttpError(mockHttpError, 'fallbackMessage');
+
+    expect(applicationError).toBeInstanceOf(ApplicationError);
+    expect(applicationError.message).toBe(REQUEST_TIMED_OUT_MESSAGE);
+  });
+
+  it('should keep the fallback message for a network failure without a timeout', () => {
+    const mockHttpError = new HttpErrorResponse({
+      error: new ProgressEvent('error'),
+      status: 0,
+      statusText: 'Unknown Error',
+    });
+
+    const applicationError = mapHttpError(mockHttpError, 'fallbackMessage');
+
     expect(applicationError.message).toBe('fallbackMessage');
   });
 });
