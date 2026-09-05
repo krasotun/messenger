@@ -51,5 +51,5 @@
 
 ## 4. Quality gates
 
-- [ ] 4.1 Прогнать `npm run lint` и `npm run test:ci` целиком
-- [ ] 4.2 Прогнать `npx openspec validate --changes --strict`
+- [x] 4.1 Прогнать `npm run lint` и `npm run test:ci` целиком
+- [x] 4.2 Прогнать `npx openspec validate --changes --strict`
