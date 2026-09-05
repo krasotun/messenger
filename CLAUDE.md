@@ -129,7 +129,9 @@ Issue отвечает на «зачем и когда», change - на «что
 - Типы: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci`,
   `perf`, `style`, `revert`.
 - Скоуп необязателен, но если указан - только из списка `scope-enum`:
-  `identity`, `shared-ui`, `core`, `deployment`, `infra`, `process`.
+  `identity-access`, `chats`, `shared-ui`, `core`, `deployment`, `infra`,
+  `process`. Скоуп домена совпадает с именем его каталога в
+  `src/app/domains/`.
   Новый скоуп заводится правкой `commitlint.config.js`, а не на лету.
 - Описание - на английском, в нижнем регистре, повелительным наклонением, без
   точки в конце: `feat(identity): add password change`.
