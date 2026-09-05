@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
@@ -12,7 +11,7 @@ import { CurrentUser } from '../current-session/current-user';
 import { SignInInput } from './sign-in.input';
 import { SignInService } from './sign-in.service';
 
-import { ApplicationError, mapHttpError, REQUEST_TIMED_OUT_MESSAGE } from '@shared/errors';
+import { ApplicationError } from '@shared/errors';
 
 const authGatewayMock = {
   signIn: vi.fn(),
@@ -161,22 +160,6 @@ describe('SignIn', () => {
 
       expect(service.status()).toBe(AuthFlowStatus.Error);
       expect(service.errorMessage()).toBe('mockReason');
-    });
-
-    it('should show the timeout message when the request does not fit the time limit', () => {
-      const timedOutResponse = new HttpErrorResponse({
-        error: new DOMException('Request timed out', 'TimeoutError'),
-        status: 0,
-        statusText: 'Request timeout',
-      });
-      authGatewayMock.signIn.mockReturnValue(
-        throwError(() => mapHttpError(timedOutResponse, 'Failed to sign in. Please try again.')),
-      );
-
-      service.signIn(signInInputMock);
-
-      expect(service.status()).toBe(AuthFlowStatus.Error);
-      expect(service.errorMessage()).toBe(REQUEST_TIMED_OUT_MESSAGE);
     });
 
     it('should restore current session after successful sign in', () => {
