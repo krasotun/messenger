@@ -7,6 +7,7 @@ import { ChatUser } from '../application/chat-user';
 
 import { ChatApi } from './chat.api';
 import { ChatDto, ChatUserDto } from './chat.dto';
+import { CHAT_ERROR_MESSAGES } from './error-messages';
 import { HttpChatGateway } from './http-chat-gateway';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
@@ -196,7 +197,7 @@ describe('HttpChatGateway', () => {
       });
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].message).toBe('Failed to load chats. Please try again.');
+      expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.chats);
     });
   });
 
@@ -254,7 +255,7 @@ describe('HttpChatGateway', () => {
       });
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].message).toBe('Failed to create chat. Please try again.');
+      expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.createChat);
     });
   });
 
@@ -324,7 +325,7 @@ describe('HttpChatGateway', () => {
       });
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].message).toBe('Failed to load chat members. Please try again.');
+      expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.chatUsers);
     });
   });
 
@@ -382,7 +383,7 @@ describe('HttpChatGateway', () => {
       });
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].message).toBe('Failed to add chat member. Please try again.');
+      expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.addChatUser);
     });
   });
 });

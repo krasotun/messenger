@@ -12,6 +12,7 @@ import { SignUpResult } from '../application/sign-up/sign-up.result';
 
 import { AuthApi } from './auth.api';
 import { currentUserMapper } from './current-session/current-user.mapper';
+import { AUTH_ERROR_MESSAGES } from './error-messages';
 import { signInRequestMapper } from './sign-in/sign-in-request.mapper';
 import { signUpRequestMapper } from './sign-up/sign-up-request.mapper';
 
@@ -32,7 +33,7 @@ export class HttpAuthGateway implements AuthGateway {
           userId: id,
         };
       }),
-      toApplicationError('Failed to sign up. Please try again.'),
+      toApplicationError(AUTH_ERROR_MESSAGES.signUp),
     );
   }
 
@@ -45,7 +46,7 @@ export class HttpAuthGateway implements AuthGateway {
           authenticated: true,
         };
       }),
-      toApplicationError('Failed to sign in. Please try again.'),
+      toApplicationError(AUTH_ERROR_MESSAGES.signIn),
     );
   }
 
@@ -69,11 +70,11 @@ export class HttpAuthGateway implements AuthGateway {
 
         return throwError(() => error);
       }),
-      toApplicationError('Failed to load session. Please try again.'),
+      toApplicationError(AUTH_ERROR_MESSAGES.currentSession),
     );
   }
 
   logout(): Observable<void> {
-    return this._authApi.logout().pipe(toApplicationError('Failed to logout. Please try again.'));
+    return this._authApi.logout().pipe(toApplicationError(AUTH_ERROR_MESSAGES.logout));
   }
 }

@@ -11,6 +11,7 @@ import { CreateChatResult } from '../application/create-chat/create-chat.result'
 
 import { ChatApi } from './chat.api';
 import { chatMapper, chatUserMapper } from './chat.mapper';
+import { CHAT_ERROR_MESSAGES } from './error-messages';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
 import { toApplicationError } from '@shared/errors';
@@ -25,14 +26,14 @@ export class HttpChatGateway implements ChatGateway {
       map((response) => {
         return response.map((chatDto) => chatMapper(chatDto, this._resourcesBaseUrl));
       }),
-      toApplicationError('Failed to load chats. Please try again.'),
+      toApplicationError(CHAT_ERROR_MESSAGES.chats),
     );
   }
 
   createChat({ title }: CreateChatInput): Observable<CreateChatResult> {
     return this._chatApi.createChat({ title }).pipe(
       map((response) => ({ id: response.id })),
-      toApplicationError('Failed to create chat. Please try again.'),
+      toApplicationError(CHAT_ERROR_MESSAGES.createChat),
     );
   }
 
@@ -41,14 +42,14 @@ export class HttpChatGateway implements ChatGateway {
       map((response) => {
         return response.map((chatUserDto) => chatUserMapper(chatUserDto, this._resourcesBaseUrl));
       }),
-      toApplicationError('Failed to load chat members. Please try again.'),
+      toApplicationError(CHAT_ERROR_MESSAGES.chatUsers),
     );
   }
 
   addChatUser({ chatId, userId }: AddChatUserInput): Observable<AddChatUserResult> {
     return this._chatApi.addChatUser({ chatId, users: [userId] }).pipe(
       map(() => ({ userAdded: true })),
-      toApplicationError('Failed to add chat member. Please try again.'),
+      toApplicationError(CHAT_ERROR_MESSAGES.addChatUser),
     );
   }
 }

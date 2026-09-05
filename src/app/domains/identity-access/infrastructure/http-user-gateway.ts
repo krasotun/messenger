@@ -14,6 +14,7 @@ import { UserGateway } from '../application/user.gateway';
 import { changeAvatarRequestMapper } from './change-avatar/change-avatar-request.mapper';
 import { changePasswordRequestMapper } from './change-password/change-password-request.mapper';
 import { currentUserMapper } from './current-session/current-user.mapper';
+import { USER_ERROR_MESSAGES } from './error-messages';
 import { userMapper } from './search-users/user.mapper';
 import { updateProfileRequestMapper } from './update-profile/update-profile-request.mapper';
 import { UserApi } from './user.api';
@@ -35,7 +36,7 @@ export class HttpUserGateway implements UserGateway {
           user: currentUserMapper(response, this._resourcesBaseUrl),
         };
       }),
-      toApplicationError('Failed to update profile. Please try again.'),
+      toApplicationError(USER_ERROR_MESSAGES.updateProfile),
     );
   }
 
@@ -48,7 +49,7 @@ export class HttpUserGateway implements UserGateway {
           user: currentUserMapper(response, this._resourcesBaseUrl),
         };
       }),
-      toApplicationError('Failed to change avatar. Please try again.'),
+      toApplicationError(USER_ERROR_MESSAGES.changeAvatar),
     );
   }
 
@@ -59,7 +60,7 @@ export class HttpUserGateway implements UserGateway {
           users: response.map((userDto) => userMapper(userDto, this._resourcesBaseUrl)),
         };
       }),
-      toApplicationError('Failed to search users. Please try again.'),
+      toApplicationError(USER_ERROR_MESSAGES.searchUsers),
     );
   }
 
@@ -72,7 +73,7 @@ export class HttpUserGateway implements UserGateway {
           passwordChanged: true,
         };
       }),
-      toApplicationError('Failed to change password. Please try again.'),
+      toApplicationError(USER_ERROR_MESSAGES.changePassword),
     );
   }
 }
