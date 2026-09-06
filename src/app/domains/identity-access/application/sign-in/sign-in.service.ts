@@ -3,10 +3,10 @@ import { switchMap } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
 import { createAuthFlowState } from '../create-auth-flow-state';
-import { CurrentSessionStatus } from '../current-session/current-session-status';
+import { CurrentSessionStatus } from '../current-session/current-session-status.type';
 import { CurrentSessionService } from '../current-session/current-session.service';
 
-import { SignInInput } from './sign-in.input';
+import { SignInInput } from './sign-in-input.type';
 
 import { ApplicationError } from '@shared/errors';
 

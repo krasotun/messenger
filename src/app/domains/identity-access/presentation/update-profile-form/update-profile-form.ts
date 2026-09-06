@@ -7,7 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status';
+import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 import { emailPattern, phonePattern } from '../sign-up-form/sign-up-form.constants';
 

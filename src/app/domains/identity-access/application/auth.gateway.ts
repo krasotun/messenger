@@ -1,11 +1,11 @@
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { CurrentSessionResult } from './current-session/current-session-result';
-import { SignInInput } from './sign-in/sign-in.input';
-import { SignInResult } from './sign-in/sign-in.result';
-import { SignUpInput } from './sign-up/sign-up.input';
-import { SignUpResult } from './sign-up/sign-up.result';
+import { CurrentSessionResult } from './current-session/current-session-result.type';
+import { SignInInput } from './sign-in/sign-in-input.type';
+import { SignInResult } from './sign-in/sign-in-result.type';
+import { SignUpInput } from './sign-up/sign-up-input.type';
+import { SignUpResult } from './sign-up/sign-up-result.type';
 
 export interface AuthGateway {
   signUp(input: SignUpInput): Observable<SignUpResult>;

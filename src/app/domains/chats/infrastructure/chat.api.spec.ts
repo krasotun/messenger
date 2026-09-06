@@ -2,8 +2,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
+import { ChatDto, ChatUserDto } from './chat-dto.type';
 import { ChatApi } from './chat.api';
-import { ChatDto, ChatUserDto } from './chat.dto';
 
 const chatDtoMock: ChatDto = {
   id: 1,

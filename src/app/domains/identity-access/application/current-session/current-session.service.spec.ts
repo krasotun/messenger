@@ -3,10 +3,10 @@ import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
 
-import { CurrentSessionResult } from './current-session-result';
-import { CurrentSessionStatus } from './current-session-status';
+import { CurrentSessionResult } from './current-session-result.type';
+import { CurrentSessionStatus } from './current-session-status.type';
 import { CurrentSessionService } from './current-session.service';
-import { CurrentUser } from './current-user';
+import { CurrentUser } from './current-user.type';
 
 const authGatewayMock = {
   currentSession: vi.fn(),

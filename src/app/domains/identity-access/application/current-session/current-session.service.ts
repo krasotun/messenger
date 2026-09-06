@@ -3,9 +3,9 @@ import { catchError, Observable, tap, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
 
-import { CurrentSessionResult } from './current-session-result';
-import { CurrentSessionStatus } from './current-session-status';
-import { CurrentUser } from './current-user';
+import { CurrentSessionResult } from './current-session-result.type';
+import { CurrentSessionStatus } from './current-session-status.type';
+import { CurrentUser } from './current-user.type';
 
 import { Nullable } from '@shared/types';
 

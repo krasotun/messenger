@@ -2,7 +2,7 @@ import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
 
-import { AddChatUserStatus } from '../../application/add-chat-user/add-chat-user-status';
+import { AddChatUserStatus } from '../../application/add-chat-user/add-chat-user-status.type';
 import { AddChatUserService } from '../../application/add-chat-user/add-chat-user.service';
 
 import { AddChatUserPanel } from './add-chat-user-panel';

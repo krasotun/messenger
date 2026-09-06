@@ -3,8 +3,8 @@ import { Observable } from 'rxjs';
 
 import { USER_GATEWAY } from '../user.gateway';
 
-import { SearchUsersInput } from './search-users.input';
-import { SearchUsersResult } from './search-users.result';
+import { SearchUsersInput } from './search-users-input.type';
+import { SearchUsersResult } from './search-users-result.type';
 
 @Injectable({
   providedIn: 'root',

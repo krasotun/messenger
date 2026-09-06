@@ -1,7 +1,7 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status';
+import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { SignInService } from '../../application/sign-in/sign-in.service';
 
 import { SignInForm } from './sign-in-form';

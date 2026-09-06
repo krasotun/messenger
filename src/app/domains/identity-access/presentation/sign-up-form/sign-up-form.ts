@@ -7,7 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status';
+import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 
 import { SignUpService } from '@domains/identity-access/application/sign-up/sign-up.service';
 import {

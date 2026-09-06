@@ -1,17 +1,17 @@
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-import { AddChatUserInput } from '../application/add-chat-user/add-chat-user.input';
-import { AddChatUserResult } from '../application/add-chat-user/add-chat-user.result';
-import { Chat } from '../application/chat';
-import { ChatUser } from '../application/chat-user';
+import { AddChatUserInput } from '../application/add-chat-user/add-chat-user-input.type';
+import { AddChatUserResult } from '../application/add-chat-user/add-chat-user-result.type';
+import { ChatUser } from '../application/chat-user.type';
 import { ChatGateway } from '../application/chat.gateway';
-import { CreateChatInput } from '../application/create-chat/create-chat.input';
-import { CreateChatResult } from '../application/create-chat/create-chat.result';
+import { Chat } from '../application/chat.type';
+import { CreateChatInput } from '../application/create-chat/create-chat-input.type';
+import { CreateChatResult } from '../application/create-chat/create-chat-result.type';
 
 import { ChatApi } from './chat.api';
 import { chatMapper, chatUserMapper } from './chat.mapper';
-import { CHAT_ERROR_MESSAGES } from './error-messages';
+import { CHAT_ERROR_MESSAGES } from './error-messages.constants';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
 import { toApplicationError } from '@shared/errors';

@@ -1,7 +1,7 @@
-import { Chat, ChatLastMessage } from '../application/chat';
-import { ChatUser } from '../application/chat-user';
+import { ChatUser } from '../application/chat-user.type';
+import { Chat, ChatLastMessage } from '../application/chat.type';
 
-import { ChatDto, ChatLastMessageDto, ChatUserDto } from './chat.dto';
+import { ChatDto, ChatLastMessageDto, ChatUserDto } from './chat-dto.type';
 
 import { resolveAvatarUrl } from '@shared/resources';
 import { Nullable } from '@shared/types';

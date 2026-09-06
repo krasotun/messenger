@@ -3,13 +3,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { of, throwError } from 'rxjs';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status';
+import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { AUTH_GATEWAY } from '../../application/auth.gateway';
 import { ChangeAvatarService } from '../../application/change-avatar/change-avatar.service';
-import { CurrentSessionStatus } from '../../application/current-session/current-session-status';
+import { CurrentSessionStatus } from '../../application/current-session/current-session-status.type';
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
-import { CurrentUser } from '../../application/current-session/current-user';
-import { UpdateProfileInput } from '../../application/update-profile/update-profile.input';
+import { CurrentUser } from '../../application/current-session/current-user.type';
+import { UpdateProfileInput } from '../../application/update-profile/update-profile-input.type';
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 import { USER_GATEWAY } from '../../application/user.gateway';
 import { ChangeAvatarForm } from '../change-avatar-form/change-avatar-form';

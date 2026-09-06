@@ -1,4 +1,4 @@
-import { AuthFlowStatus } from './auth-flow-status';
+import { AuthFlowStatus } from './auth-flow-status.type';
 import { createAuthFlowState } from './create-auth-flow-state';
 
 const mockError = 'mockError';

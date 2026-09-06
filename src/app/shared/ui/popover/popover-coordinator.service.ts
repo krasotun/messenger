@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { PopoverHandle } from './popover-handle';
+import { PopoverHandle } from './popover-handle.type';
 
 import { Nullable } from '@shared/types';
 
