@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { AUTH_GATEWAY } from '../auth.gateway';
 import { createAuthFlowState } from '../create-auth-flow-state';
 
-import { SignUpInput } from '@domains/identity-access/application/sign-up/sign-up.input';
+import { SignUpInput } from '@domains/identity-access/application/sign-up/sign-up-input.type';
 import { ApplicationError } from '@shared/errors';
 
 @Injectable({

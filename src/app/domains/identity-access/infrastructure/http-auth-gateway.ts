@@ -3,16 +3,16 @@ import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
 
 import { AuthGateway } from '../application/auth.gateway';
-import { CurrentSessionResult } from '../application/current-session/current-session-result';
-import { CurrentSessionStatus } from '../application/current-session/current-session-status';
-import { SignInInput } from '../application/sign-in/sign-in.input';
-import { SignInResult } from '../application/sign-in/sign-in.result';
-import { SignUpInput } from '../application/sign-up/sign-up.input';
-import { SignUpResult } from '../application/sign-up/sign-up.result';
+import { CurrentSessionResult } from '../application/current-session/current-session-result.type';
+import { CurrentSessionStatus } from '../application/current-session/current-session-status.type';
+import { SignInInput } from '../application/sign-in/sign-in-input.type';
+import { SignInResult } from '../application/sign-in/sign-in-result.type';
+import { SignUpInput } from '../application/sign-up/sign-up-input.type';
+import { SignUpResult } from '../application/sign-up/sign-up-result.type';
 
 import { AuthApi } from './auth.api';
 import { currentUserMapper } from './current-session/current-user.mapper';
-import { AUTH_ERROR_MESSAGES } from './error-messages';
+import { AUTH_ERROR_MESSAGES } from './error-messages.constants';
 import { signInRequestMapper } from './sign-in/sign-in-request.mapper';
 import { signUpRequestMapper } from './sign-up/sign-up-request.mapper';
 

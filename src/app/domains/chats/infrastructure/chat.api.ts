@@ -8,7 +8,7 @@ import {
   ChatUserDto,
   CreateChatRequestDto,
   CreateChatResponseDto,
-} from './chat.dto';
+} from './chat-dto.type';
 
 @Injectable({
   providedIn: 'root',

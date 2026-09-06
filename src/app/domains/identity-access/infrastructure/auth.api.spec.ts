@@ -3,9 +3,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { AuthApi } from './auth.api';
-import { CurrentUserDto } from './current-session/current-user.dto';
-import { SignInRequestDto } from './sign-in/sign-in.dto';
-import { SignUpRequestDto } from './sign-up/sign-up.dto';
+import { CurrentUserDto } from './current-session/current-user-dto.type';
+import { SignInRequestDto } from './sign-in/sign-in-dto.type';
+import { SignUpRequestDto } from './sign-up/sign-up-dto.type';
 
 const signUpRequestMock: SignUpRequestDto = {
   first_name: 'mockFirstName',

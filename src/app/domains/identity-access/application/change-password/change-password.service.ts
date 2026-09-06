@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { createAuthFlowState } from '../create-auth-flow-state';
 import { USER_GATEWAY } from '../user.gateway';
 
-import { ChangePasswordInput } from './change-password.input';
+import { ChangePasswordInput } from './change-password-input.type';
 
 import { ApplicationError } from '@shared/errors';
 

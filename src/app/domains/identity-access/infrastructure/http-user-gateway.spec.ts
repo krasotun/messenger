@@ -2,17 +2,17 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
-import { ChangePasswordInput } from '../application/change-password/change-password.input';
-import { CurrentUser } from '../application/current-session/current-user';
-import { UpdateProfileInput } from '../application/update-profile/update-profile.input';
-import { User } from '../application/user';
+import { ChangePasswordInput } from '../application/change-password/change-password-input.type';
+import { CurrentUser } from '../application/current-session/current-user.type';
+import { UpdateProfileInput } from '../application/update-profile/update-profile-input.type';
+import { User } from '../application/user.type';
 
-import { ChangePasswordRequestDto } from './change-password/change-password.dto';
-import { CurrentUserDto } from './current-session/current-user.dto';
-import { USER_ERROR_MESSAGES } from './error-messages';
+import { ChangePasswordRequestDto } from './change-password/change-password-dto.type';
+import { CurrentUserDto } from './current-session/current-user-dto.type';
+import { USER_ERROR_MESSAGES } from './error-messages.constants';
 import { HttpUserGateway } from './http-user-gateway';
-import { UserDto } from './search-users/search-users.dto';
-import { UpdateProfileRequestDto } from './update-profile/update-profile.dto';
+import { UserDto } from './search-users/search-users-dto.type';
+import { UpdateProfileRequestDto } from './update-profile/update-profile-dto.type';
 import { UserApi } from './user.api';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';

@@ -1,5 +1,5 @@
-import { CurrentSessionStatus } from './current-session-status';
-import { CurrentUser } from './current-user';
+import { CurrentSessionStatus } from './current-session-status.type';
+import { CurrentUser } from './current-user.type';
 
 export type CurrentSessionResult =
   | {

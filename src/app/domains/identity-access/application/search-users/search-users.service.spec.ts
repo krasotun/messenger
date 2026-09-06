@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
-import { User } from '../user';
 import { USER_GATEWAY } from '../user.gateway';
+import { User } from '../user.type';
 
-import { SearchUsersResult } from './search-users.result';
+import { SearchUsersResult } from './search-users-result.type';
 import { SearchUsersService } from './search-users.service';
 
 import { ApplicationError } from '@shared/errors';

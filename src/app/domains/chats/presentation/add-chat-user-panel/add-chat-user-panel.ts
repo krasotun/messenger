@@ -1,9 +1,9 @@
 import { Component, computed, effect, inject, input, output } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
-import { AddChatUserStatus } from '../../application/add-chat-user/add-chat-user-status';
+import { AddChatUserStatus } from '../../application/add-chat-user/add-chat-user-status.type';
 import { AddChatUserService } from '../../application/add-chat-user/add-chat-user.service';
-import { UserSearchStatus } from '../../application/user-search/user-search-status';
+import { UserSearchStatus } from '../../application/user-search/user-search-status.type';
 import { createUserSearchState } from '../../application/user-search/user-search.state';
 
 import { SearchUsersService, User } from '@domains/identity-access';

@@ -2,17 +2,17 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
-import { CurrentSessionStatus } from '../application/current-session/current-session-status';
-import { CurrentUser } from '../application/current-session/current-user';
-import { SignInInput } from '../application/sign-in/sign-in.input';
-import { SignUpInput } from '../application/sign-up/sign-up.input';
+import { CurrentSessionStatus } from '../application/current-session/current-session-status.type';
+import { CurrentUser } from '../application/current-session/current-user.type';
+import { SignInInput } from '../application/sign-in/sign-in-input.type';
+import { SignUpInput } from '../application/sign-up/sign-up-input.type';
 
 import { AuthApi } from './auth.api';
-import { CurrentUserDto } from './current-session/current-user.dto';
-import { AUTH_ERROR_MESSAGES } from './error-messages';
+import { CurrentUserDto } from './current-session/current-user-dto.type';
+import { AUTH_ERROR_MESSAGES } from './error-messages.constants';
 import { HttpAuthGateway } from './http-auth-gateway';
-import { SignInRequestDto } from './sign-in/sign-in.dto';
-import { SignUpRequestDto } from './sign-up/sign-up.dto';
+import { SignInRequestDto } from './sign-in/sign-in-dto.type';
+import { SignUpRequestDto } from './sign-up/sign-up-dto.type';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
 import { ApplicationError } from '@shared/errors';

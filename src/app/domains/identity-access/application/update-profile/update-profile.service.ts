@@ -4,7 +4,7 @@ import { createAuthFlowState } from '../create-auth-flow-state';
 import { CurrentSessionService } from '../current-session/current-session.service';
 import { USER_GATEWAY } from '../user.gateway';
 
-import { UpdateProfileInput } from './update-profile.input';
+import { UpdateProfileInput } from './update-profile-input.type';
 
 import { ApplicationError } from '@shared/errors';
 

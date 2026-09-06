@@ -5,7 +5,8 @@ import { filter, merge, takeUntil } from 'rxjs';
 
 import { ModalRef } from './modal-ref';
 import { ModalShell } from './modal-shell/modal-shell';
-import { DEFAULT_MODAL_SIZE, ModalSize } from './modal-size';
+import { DEFAULT_MODAL_SIZE } from './modal-size.constants';
+import { ModalSize } from './modal-size.type';
 
 const ESCAPE_KEY = 'Escape';
 

@@ -2,12 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
-import { Chat } from '../application/chat';
-import { ChatUser } from '../application/chat-user';
+import { ChatUser } from '../application/chat-user.type';
+import { Chat } from '../application/chat.type';
 
+import { ChatDto, ChatUserDto } from './chat-dto.type';
 import { ChatApi } from './chat.api';
-import { ChatDto, ChatUserDto } from './chat.dto';
-import { CHAT_ERROR_MESSAGES } from './error-messages';
+import { CHAT_ERROR_MESSAGES } from './error-messages.constants';
 import { HttpChatGateway } from './http-chat-gateway';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';

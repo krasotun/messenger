@@ -1,5 +1,5 @@
-import { ChangeAvatarInput } from '@domains/identity-access/application/change-avatar/change-avatar.input';
-import { ChangeAvatarRequestDto } from '@domains/identity-access/infrastructure/change-avatar/change-avatar.dto';
+import { ChangeAvatarInput } from '@domains/identity-access/application/change-avatar/change-avatar-input.type';
+import { ChangeAvatarRequestDto } from '@domains/identity-access/infrastructure/change-avatar/change-avatar-dto.type';
 
 export const changeAvatarRequestMapper = ({ file }: ChangeAvatarInput): ChangeAvatarRequestDto => {
   const formData = new FormData();

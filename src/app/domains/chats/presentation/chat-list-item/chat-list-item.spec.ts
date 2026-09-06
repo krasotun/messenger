@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Chat } from '../../application/chat';
+import { Chat } from '../../application/chat.type';
 
 import { ChatListItem } from './chat-list-item';
 

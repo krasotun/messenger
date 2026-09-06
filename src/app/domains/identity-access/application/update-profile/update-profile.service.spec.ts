@@ -2,16 +2,16 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
-import { AuthFlowStatus } from '../auth-flow-status';
+import { AuthFlowStatus } from '../auth-flow-status.type';
 import { AUTH_GATEWAY } from '../auth.gateway';
-import { CurrentSessionResult } from '../current-session/current-session-result';
-import { CurrentSessionStatus } from '../current-session/current-session-status';
+import { CurrentSessionResult } from '../current-session/current-session-result.type';
+import { CurrentSessionStatus } from '../current-session/current-session-status.type';
 import { CurrentSessionService } from '../current-session/current-session.service';
-import { CurrentUser } from '../current-session/current-user';
+import { CurrentUser } from '../current-session/current-user.type';
 import { USER_GATEWAY } from '../user.gateway';
 
-import { UpdateProfileInput } from './update-profile.input';
-import { UpdateProfileResult } from './update-profile.result';
+import { UpdateProfileInput } from './update-profile-input.type';
+import { UpdateProfileResult } from './update-profile-result.type';
 import { UpdateProfileService } from './update-profile.service';
 
 import { ApplicationError } from '@shared/errors';

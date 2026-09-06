@@ -2,11 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { ChangeAvatarRequestDto } from './change-avatar/change-avatar.dto';
-import { ChangePasswordRequestDto } from './change-password/change-password.dto';
-import { CurrentUserDto } from './current-session/current-user.dto';
-import { FindUserRequestDto, UserDto } from './search-users/search-users.dto';
-import { UpdateProfileRequestDto } from './update-profile/update-profile.dto';
+import { ChangeAvatarRequestDto } from './change-avatar/change-avatar-dto.type';
+import { ChangePasswordRequestDto } from './change-password/change-password-dto.type';
+import { CurrentUserDto } from './current-session/current-user-dto.type';
+import { FindUserRequestDto, UserDto } from './search-users/search-users-dto.type';
+import { UpdateProfileRequestDto } from './update-profile/update-profile-dto.type';
 
 const avatarUploadTimeoutMs = 60_000;
 

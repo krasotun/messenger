@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
-import { Chat } from '../../application/chat';
 import { ChatListService } from '../../application/chat-list/chat-list.service';
-import { ChatUser } from '../../application/chat-user';
+import { ChatUser } from '../../application/chat-user.type';
 import { CHAT_GATEWAY } from '../../application/chat.gateway';
+import { Chat } from '../../application/chat.type';
 
 import { SelectedChatHeader } from './selected-chat-header';
 
