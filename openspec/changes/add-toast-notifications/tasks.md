@@ -1,8 +1,8 @@
 ## 1. Порт уведомлений
 
-- [ ] 1.1 Создать `src/app/shared/notifications/notification-kind.ts` и `notification.ts` - вид **Уведомления**, его состав (вид, заголовок, текст) и константу `DEFAULT_NOTIFICATION_DELAY_MS = 5000`; проверка: `npx tsc -p tsconfig.app.json --noEmit` проходит
-- [ ] 1.2 Создать `src/app/shared/notifications/notifier.ts` и `notifier.token.ts` - контракт показа с необязательным интервалом угасания и токен `NOTIFIER`; проверка: токен импортируется из слоя use case без срабатывания `no-restricted-imports` (`npm run lint`)
-- [ ] 1.3 Создать баррель `src/app/shared/notifications/index.ts`; проверка: `npm run lint` зеленый
+- [x] 1.1 Создать `src/app/shared/notifications/notification-kind.ts` и `notification.ts` - вид **Уведомления**, его состав (вид, заголовок, текст) и константу `DEFAULT_NOTIFICATION_DELAY_MS = 5000`; проверка: `npx tsc -p tsconfig.app.json --noEmit` проходит
+- [x] 1.2 Создать `src/app/shared/notifications/notifier.ts` и `notifier.token.ts` - контракт показа с необязательным интервалом угасания и токен `NOTIFIER`; проверка: токен импортируется из слоя use case без срабатывания `no-restricted-imports` (`npm run lint`)
+- [x] 1.3 Создать баррель `src/app/shared/notifications/index.ts`; проверка: `npm run lint` зеленый
 
 ## 2. Примитив одного уведомления
 
