@@ -4,8 +4,8 @@ import { of, Subject, throwError } from 'rxjs';
 import { ChatListService } from '../chat-list/chat-list.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
-import { CreateChatStatus } from './create-chat-status';
-import { CreateChatResult } from './create-chat.result';
+import { CreateChatResult } from './create-chat-result.type';
+import { CreateChatStatus } from './create-chat-status.type';
 import { CreateChatService } from './create-chat.service';
 
 import { ApplicationError } from '@shared/errors';

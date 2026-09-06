@@ -1,3 +1,3 @@
-export type ModalSize = 'small' | 'medium' | 'large';
+import { ModalSize } from './modal-size.type';
 
 export const DEFAULT_MODAL_SIZE: ModalSize = 'medium';

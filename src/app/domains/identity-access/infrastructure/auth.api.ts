@@ -2,9 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { CurrentUserDto } from './current-session/current-user.dto';
-import { SignInRequestDto } from './sign-in/sign-in.dto';
-import { SignUpRequestDto, SignUpResponseDto } from './sign-up/sign-up.dto';
+import { CurrentUserDto } from './current-session/current-user-dto.type';
+import { SignInRequestDto } from './sign-in/sign-in-dto.type';
+import { SignUpRequestDto, SignUpResponseDto } from './sign-up/sign-up-dto.type';
 
 @Injectable({
   providedIn: 'root',

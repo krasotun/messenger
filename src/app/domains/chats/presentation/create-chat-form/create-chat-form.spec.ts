@@ -1,7 +1,7 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CreateChatStatus } from '../../application/create-chat/create-chat-status';
+import { CreateChatStatus } from '../../application/create-chat/create-chat-status.type';
 import { CreateChatService } from '../../application/create-chat/create-chat.service';
 
 import { CreateChatForm } from './create-chat-form';

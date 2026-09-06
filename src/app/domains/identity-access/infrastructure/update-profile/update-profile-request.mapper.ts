@@ -1,5 +1,5 @@
-import { UpdateProfileInput } from '@domains/identity-access/application/update-profile/update-profile.input';
-import { UpdateProfileRequestDto } from '@domains/identity-access/infrastructure/update-profile/update-profile.dto';
+import { UpdateProfileInput } from '@domains/identity-access/application/update-profile/update-profile-input.type';
+import { UpdateProfileRequestDto } from '@domains/identity-access/infrastructure/update-profile/update-profile-dto.type';
 
 export const updateProfileRequestMapper = (
   updateProfileInput: UpdateProfileInput,

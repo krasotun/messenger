@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
 
-import { UserSearchStatus } from './user-search-status';
+import { UserSearchStatus } from './user-search-status.type';
 import { createUserSearchState, UserSearchState } from './user-search.state';
 
 import { SearchUsersResult, SearchUsersService, User } from '@domains/identity-access';

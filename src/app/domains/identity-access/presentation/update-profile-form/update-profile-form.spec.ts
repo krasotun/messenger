@@ -1,8 +1,8 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status';
-import { UpdateProfileInput } from '../../application/update-profile/update-profile.input';
+import { AuthFlowStatus } from '../../application/auth-flow-status.type';
+import { UpdateProfileInput } from '../../application/update-profile/update-profile-input.type';
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 
 import { UpdateProfileForm } from './update-profile-form';

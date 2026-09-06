@@ -12,7 +12,8 @@ import {
 } from '@angular/core';
 
 import { ModalRef } from '../modal-ref';
-import { DEFAULT_MODAL_SIZE, ModalSize } from '../modal-size';
+import { DEFAULT_MODAL_SIZE } from '../modal-size.constants';
+import { ModalSize } from '../modal-size.type';
 
 @Component({
   selector: 'app-modal-shell',

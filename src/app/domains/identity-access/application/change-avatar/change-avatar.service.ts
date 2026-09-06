@@ -4,7 +4,7 @@ import { createAuthFlowState } from '../create-auth-flow-state';
 import { CurrentSessionService } from '../current-session/current-session.service';
 import { USER_GATEWAY } from '../user.gateway';
 
-import { ChangeAvatarInput } from './change-avatar.input';
+import { ChangeAvatarInput } from './change-avatar-input.type';
 
 import { ApplicationError } from '@shared/errors';
 

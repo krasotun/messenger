@@ -1,10 +1,10 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status';
+import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { ChangeAvatarService } from '../../application/change-avatar/change-avatar.service';
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
-import { CurrentUser } from '../../application/current-session/current-user';
+import { CurrentUser } from '../../application/current-session/current-user.type';
 
 import { ChangeAvatarForm } from './change-avatar-form';
 

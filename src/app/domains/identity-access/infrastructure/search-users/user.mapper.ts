@@ -1,6 +1,6 @@
-import { User } from '../../application/user';
+import { User } from '../../application/user.type';
 
-import { UserDto } from './search-users.dto';
+import { UserDto } from './search-users-dto.type';
 
 import { resolveAvatarUrl } from '@shared/resources';
 

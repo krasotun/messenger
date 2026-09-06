@@ -2,7 +2,7 @@ import { Component, computed, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
-import { CurrentUser } from '../../application/current-session/current-user';
+import { CurrentUser } from '../../application/current-session/current-user.type';
 import { ChangePasswordModalContent } from '../change-password-modal-content/change-password-modal-content';
 import { UpdateProfileModalContent } from '../update-profile-modal-content/update-profile-modal-content';
 

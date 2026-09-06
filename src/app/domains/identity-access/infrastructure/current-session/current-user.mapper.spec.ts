@@ -1,6 +1,6 @@
-import { CurrentUser } from '../../application/current-session/current-user';
+import { CurrentUser } from '../../application/current-session/current-user.type';
 
-import { CurrentUserDto } from './current-user.dto';
+import { CurrentUserDto } from './current-user-dto.type';
 import { currentUserMapper } from './current-user.mapper';
 
 const resourcesBaseUrlMock = 'https://mock.host/resources';
