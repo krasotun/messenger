@@ -1,0 +1,1 @@
+export const DEFAULT_NOTIFICATION_DELAY_MS = 5000;
