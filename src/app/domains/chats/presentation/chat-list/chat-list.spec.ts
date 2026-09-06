@@ -2,8 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
-import { Chat } from '../../application/chat';
 import { CHAT_GATEWAY } from '../../application/chat.gateway';
+import { Chat } from '../../application/chat.type';
 import { CreateChatModalContent } from '../create-chat-modal-content/create-chat-modal-content';
 
 import { ChatList } from './chat-list';

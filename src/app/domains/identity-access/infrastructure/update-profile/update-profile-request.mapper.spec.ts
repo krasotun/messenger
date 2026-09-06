@@ -1,7 +1,7 @@
+import { UpdateProfileRequestDto } from './update-profile-dto.type';
 import { updateProfileRequestMapper } from './update-profile-request.mapper';
-import { UpdateProfileRequestDto } from './update-profile.dto';
 
-import { UpdateProfileInput } from '@domains/identity-access/application/update-profile/update-profile.input';
+import { UpdateProfileInput } from '@domains/identity-access/application/update-profile/update-profile-input.type';
 
 describe('updateProfileRequestMapper', () => {
   it('should map update profile input to snake_case request DTO', () => {

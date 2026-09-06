@@ -4,8 +4,8 @@ import { of, Subject, throwError } from 'rxjs';
 import { ChatUsersService } from '../chat-users/chat-users.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
-import { AddChatUserStatus } from './add-chat-user-status';
-import { AddChatUserResult } from './add-chat-user.result';
+import { AddChatUserResult } from './add-chat-user-result.type';
+import { AddChatUserStatus } from './add-chat-user-status.type';
 import { AddChatUserService } from './add-chat-user.service';
 
 import { ApplicationError } from '@shared/errors';

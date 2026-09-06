@@ -3,8 +3,8 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { ChatListService } from '../chat-list/chat-list.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
-import { CreateChatStatus } from './create-chat-status';
-import { CreateChatInput } from './create-chat.input';
+import { CreateChatInput } from './create-chat-input.type';
+import { CreateChatStatus } from './create-chat-status.type';
 
 import { ApplicationError } from '@shared/errors';
 import { Nullable } from '@shared/types';

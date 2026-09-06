@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 
-import { Chat } from '../../application/chat';
+import { Chat } from '../../application/chat.type';
 
 import { Avatar } from '@shared/ui/avatar/avatar';
 

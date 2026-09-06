@@ -1,14 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
-import { AuthFlowStatus } from '../auth-flow-status';
+import { AuthFlowStatus } from '../auth-flow-status.type';
 import { AUTH_GATEWAY } from '../auth.gateway';
-import { CurrentSessionResult } from '../current-session/current-session-result';
-import { CurrentSessionStatus } from '../current-session/current-session-status';
+import { CurrentSessionResult } from '../current-session/current-session-result.type';
+import { CurrentSessionStatus } from '../current-session/current-session-status.type';
 import { CurrentSessionService } from '../current-session/current-session.service';
-import { CurrentUser } from '../current-session/current-user';
+import { CurrentUser } from '../current-session/current-user.type';
 
-import { SignInInput } from './sign-in.input';
+import { SignInInput } from './sign-in-input.type';
 import { SignInService } from './sign-in.service';
 
 import { ApplicationError } from '@shared/errors';

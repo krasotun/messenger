@@ -7,7 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status';
+import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { SignInService } from '../../application/sign-in/sign-in.service';
 
 import { Button } from '@shared/ui/button/button';

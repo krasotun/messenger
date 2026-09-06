@@ -1,7 +1,7 @@
+import { ChangePasswordRequestDto } from './change-password-dto.type';
 import { changePasswordRequestMapper } from './change-password-request.mapper';
-import { ChangePasswordRequestDto } from './change-password.dto';
 
-import { ChangePasswordInput } from '@domains/identity-access/application/change-password/change-password.input';
+import { ChangePasswordInput } from '@domains/identity-access/application/change-password/change-password-input.type';
 
 describe('changePasswordRequestMapper', () => {
   it('should map change password input to camelCase request DTO', () => {

@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
-import { ChatUser } from '../chat-user';
+import { ChatUser } from '../chat-user.type';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
-import { ChatUsersStatus } from './chat-users-status';
+import { ChatUsersStatus } from './chat-users-status.type';
 import { ChatUsersService } from './chat-users.service';
 
 import { ApplicationError } from '@shared/errors';

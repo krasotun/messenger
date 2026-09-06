@@ -1,6 +1,6 @@
 import { computed, signal } from '@angular/core';
 
-import { AuthFlowStatus } from './auth-flow-status';
+import { AuthFlowStatus } from './auth-flow-status.type';
 
 import { Nullable } from '@shared/types';
 

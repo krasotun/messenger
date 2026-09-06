@@ -4,7 +4,7 @@ import { By } from '@angular/platform-browser';
 import { throwError } from 'rxjs';
 
 import { CHAT_GATEWAY } from '../../application/chat.gateway';
-import { CreateChatStatus } from '../../application/create-chat/create-chat-status';
+import { CreateChatStatus } from '../../application/create-chat/create-chat-status.type';
 import { CreateChatService } from '../../application/create-chat/create-chat.service';
 import { CreateChatForm } from '../create-chat-form/create-chat-form';
 

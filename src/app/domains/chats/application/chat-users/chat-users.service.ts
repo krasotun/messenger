@@ -1,9 +1,9 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 
-import { ChatUser } from '../chat-user';
+import { ChatUser } from '../chat-user.type';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
-import { ChatUsersStatus } from './chat-users-status';
+import { ChatUsersStatus } from './chat-users-status.type';
 
 import { ApplicationError } from '@shared/errors';
 import { Nullable } from '@shared/types';

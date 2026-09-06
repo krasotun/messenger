@@ -1,20 +1,20 @@
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-import { ChangeAvatarInput } from '../application/change-avatar/change-avatar.input';
-import { ChangeAvatarResult } from '../application/change-avatar/change-avatar.result';
-import { ChangePasswordInput } from '../application/change-password/change-password.input';
-import { ChangePasswordResult } from '../application/change-password/change-password.result';
-import { SearchUsersInput } from '../application/search-users/search-users.input';
-import { SearchUsersResult } from '../application/search-users/search-users.result';
-import { UpdateProfileInput } from '../application/update-profile/update-profile.input';
-import { UpdateProfileResult } from '../application/update-profile/update-profile.result';
+import { ChangeAvatarInput } from '../application/change-avatar/change-avatar-input.type';
+import { ChangeAvatarResult } from '../application/change-avatar/change-avatar-result.type';
+import { ChangePasswordInput } from '../application/change-password/change-password-input.type';
+import { ChangePasswordResult } from '../application/change-password/change-password-result.type';
+import { SearchUsersInput } from '../application/search-users/search-users-input.type';
+import { SearchUsersResult } from '../application/search-users/search-users-result.type';
+import { UpdateProfileInput } from '../application/update-profile/update-profile-input.type';
+import { UpdateProfileResult } from '../application/update-profile/update-profile-result.type';
 import { UserGateway } from '../application/user.gateway';
 
 import { changeAvatarRequestMapper } from './change-avatar/change-avatar-request.mapper';
 import { changePasswordRequestMapper } from './change-password/change-password-request.mapper';
 import { currentUserMapper } from './current-session/current-user.mapper';
-import { USER_ERROR_MESSAGES } from './error-messages';
+import { USER_ERROR_MESSAGES } from './error-messages.constants';
 import { userMapper } from './search-users/user.mapper';
 import { updateProfileRequestMapper } from './update-profile/update-profile-request.mapper';
 import { UserApi } from './user.api';

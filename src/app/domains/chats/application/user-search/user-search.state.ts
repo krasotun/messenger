@@ -2,7 +2,7 @@ import { signal, Signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, map, Observable, of, switchMap } from 'rxjs';
 
-import { UserSearchStatus } from './user-search-status';
+import { UserSearchStatus } from './user-search-status.type';
 
 import { SearchUsersService, User } from '@domains/identity-access';
 

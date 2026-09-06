@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
-import { Chat } from '../chat';
 import { CHAT_GATEWAY } from '../chat.gateway';
+import { Chat } from '../chat.type';
 
-import { ChatListStatus } from './chat-list-status';
+import { ChatListStatus } from './chat-list-status.type';
 import { ChatListService } from './chat-list.service';
 
 import { ApplicationError } from '@shared/errors';

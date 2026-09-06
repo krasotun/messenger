@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ChatUser } from '../../application/chat-user';
+import { ChatUser } from '../../application/chat-user.type';
 
 import { ChatUserStack } from './chat-user-stack';
 
