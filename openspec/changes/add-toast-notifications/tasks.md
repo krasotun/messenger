@@ -1,22 +1,23 @@
 ## 1. Порт уведомлений
 
-- [ ] 1.1 Создать `src/app/shared/notifications/notification-kind.ts` и `notification.ts` - вид **Уведомления** и его состав (вид, заголовок, текст); проверка: `npx tsc -p tsconfig.app.json --noEmit` проходит
-- [ ] 1.2 Создать `src/app/shared/notifications/notifier.ts` и `notifier.token.ts` - контракт показа и токен `NOTIFIER`; проверка: токен импортируется из слоя use case без срабатывания `no-restricted-imports` (`npm run lint`)
+- [ ] 1.1 Создать `src/app/shared/notifications/notification-kind.ts` и `notification.ts` - вид **Уведомления**, его состав (вид, заголовок, текст) и константу `DEFAULT_NOTIFICATION_DELAY_MS = 5000`; проверка: `npx tsc -p tsconfig.app.json --noEmit` проходит
+- [ ] 1.2 Создать `src/app/shared/notifications/notifier.ts` и `notifier.token.ts` - контракт показа с необязательным интервалом угасания и токен `NOTIFIER`; проверка: токен импортируется из слоя use case без срабатывания `no-restricted-imports` (`npm run lint`)
 - [ ] 1.3 Создать баррель `src/app/shared/notifications/index.ts`; проверка: `npm run lint` зеленый
 
 ## 2. Примитив одного уведомления
 
-- [ ] 2.1 Написать падающий `src/app/shared/ui/toast/toast/toast.spec.ts` на состав: заголовок и текст видны, вид меняет модификатор класса
+- [ ] 2.1 Написать падающий `src/app/shared/ui/toast/toast/toast.spec.ts` на состав: заголовок и текст видны, вид меняет модификатор класса (успех - `--color-success`, ошибка - `--color-danger`)
 - [ ] 2.2 Реализовать `toast.ts`, `toast.html`, `toast.scss`; проверка: спека из 2.1 зеленая
-- [ ] 2.3 Написать падающий тест на закрытие кнопкой и на угасание по истечении интервала (таймеры Vitest), включая независимость соседних **Уведомлений**
-- [ ] 2.4 Реализовать таймер и кнопку закрытия в `toast.ts`; проверка: спека из 2.3 зеленая
-- [ ] 2.5 Прогнать `npm run lint` и `npm run test:ci`
+- [ ] 2.3 Написать падающий тест на закрытие кнопкой и на угасание (таймеры Vitest): без интервала - 5 секунд, с заданным интервалом - он, соседние **Уведомления** гаснут независимо
+- [ ] 2.4 Реализовать таймер на входном интервале с дефолтом `DEFAULT_NOTIFICATION_DELAY_MS` и кнопку закрытия в `toast.ts`; проверка: спека из 2.3 зеленая
+- [ ] 2.5 Реализовать оформление видов в `toast.scss` на токенах `--color-success` и `--color-danger` по макету из `design.md`; проверка: спека из 2.1 зеленая
+- [ ] 2.6 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 3. Стек уведомлений и реализация порта
 
 - [ ] 3.1 Написать падающий `src/app/shared/ui/toast/toast-stack/toast-stack.spec.ts`: порядок (новое сверху), предел в три, вытеснение самого старого, два одинаковых не схлопываются, контейнер объявлен как live region
 - [ ] 3.2 Реализовать `toast-stack.ts`, `toast-stack.html`, `toast-stack.scss`; проверка: спека из 3.1 зеленая
-- [ ] 3.3 Написать падающий `src/app/shared/ui/toast/toast-service.spec.ts`: показ создает overlay, стек опустел - overlay уничтожен, **Уведомление** видно поверх открытой модалки, фокус не переносится
+- [ ] 3.3 Написать падающий `src/app/shared/ui/toast/toast-service.spec.ts`: показ создает overlay, интервал из вызова доходит до `Toast`, стек опустел - overlay уничтожен, **Уведомление** видно поверх открытой модалки, фокус не переносится
 - [ ] 3.4 Реализовать `toast-service.ts` как реализацию `Notifier` на CDK Overlay с `global().top().right()`; проверка: спека из 3.3 зеленая
 - [ ] 3.5 Подключить `NOTIFIER` к `ToastService` в `src/app/app.config.ts`; проверка: спека, поднимающая приложение, получает `Notifier` из инжектора
 - [ ] 3.6 Прогнать `npm run lint` и `npm run test:ci`
@@ -47,7 +48,7 @@
 
 ## 7. Визуальный тест и quality gates
 
-- [ ] 7.1 Написать `e2e/toast.screenshot.spec.ts` с тегом `@visual`: стек из **Уведомления** об успехе и **Уведомления** об ошибке на детерминированных ответах `mock-backend`
-- [ ] 7.2 Снять эталоны и просмотреть их глазами; проверка: `npm run e2e:visual` зеленый
+- [ ] 7.1 Написать `e2e/toast.screenshot.spec.ts` с тегом `@visual`: стек из **Уведомления** об успехе и **Уведомления** об ошибке на детерминированных ответах `mock-backend`; интервал угасания в тесте задается явно, чтобы снимок не зависел от дефолта
+- [ ] 7.2 Снять эталоны и сверить их с макетом из `design.md`; проверка: `npm run e2e:visual` зеленый
 - [ ] 7.3 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e` - сквозные сценарии форм затронуты
 - [ ] 7.4 Прогнать `npx openspec validate --strict add-toast-notifications`
