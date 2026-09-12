@@ -1,10 +1,10 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { Subject } from 'rxjs';
 
 import { ChatListService } from '../chat-list/chat-list.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
 import { CreateChatInput } from './create-chat-input.type';
-import { CreateChatStatus } from './create-chat-status.type';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
@@ -15,27 +15,26 @@ export class CreateChatService {
   private readonly _chatListService = inject(ChatListService);
   private readonly _notifier = inject(NOTIFIER);
 
-  private readonly _status = signal<CreateChatStatus>(CreateChatStatus.Idle);
-  readonly status = this._status.asReadonly();
+  private readonly _isSubmitting = signal(false);
+  private readonly _succeeded = new Subject<void>();
 
-  readonly isSubmitting = computed(() => this._status() === CreateChatStatus.Submitting);
+  readonly isSubmitting = this._isSubmitting.asReadonly();
+
+  readonly succeeded$ = this._succeeded.asObservable();
 
   createChat(createChatInput: CreateChatInput): void {
-    this._status.set(CreateChatStatus.Submitting);
+    this._isSubmitting.set(true);
 
     this._chatGateway.createChat(createChatInput).subscribe({
       next: () => {
         this._chatListService.loadChats();
-        this._status.set(CreateChatStatus.Success);
+        this._isSubmitting.set(false);
+        this._succeeded.next();
       },
       error: ({ message }: ApplicationError) => {
-        this._status.set(CreateChatStatus.Error);
+        this._isSubmitting.set(false);
         this._notifier.error('Failed to create chat', message);
       },
     });
-  }
-
-  reset(): void {
-    this._status.set(CreateChatStatus.Idle);
   }
 }

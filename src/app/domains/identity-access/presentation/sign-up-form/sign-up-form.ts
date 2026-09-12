@@ -1,4 +1,5 @@
 import { Component, effect, inject, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
@@ -6,8 +7,6 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-
-import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 
 import { SignUpService } from '@domains/identity-access/application/sign-up/sign-up.service';
 import {
@@ -69,12 +68,8 @@ export class SignUpForm {
       }
     });
 
-    effect(() => {
-      if (this._signUpService.status() === AuthFlowStatus.Success) {
-        this._signUpService.reset();
-
-        this.signUpSucceeded.emit();
-      }
+    this._signUpService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.signUpSucceeded.emit();
     });
   }
 

@@ -1,9 +1,8 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { AUTH_GATEWAY } from '../../application/auth.gateway';
 import { ChangeAvatarService } from '../../application/change-avatar/change-avatar.service';
 import { CurrentSessionStatus } from '../../application/current-session/current-session-status.type';
@@ -44,16 +43,14 @@ const initialValuesMock: UpdateProfileInput = {
 let updateProfileServiceMock: {
   initialValues: WritableSignal<UpdateProfileInput>;
   isSubmitting: WritableSignal<boolean>;
-  status: WritableSignal<AuthFlowStatus>;
+  succeeded$: Subject<void>;
   updateProfile: ReturnType<typeof vi.fn>;
-  reset: ReturnType<typeof vi.fn>;
 };
 
 let changeAvatarServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  status: WritableSignal<AuthFlowStatus>;
+  succeeded$: Subject<void>;
   changeAvatar: ReturnType<typeof vi.fn>;
-  reset: ReturnType<typeof vi.fn>;
 };
 
 let modalRefMock: {
@@ -105,16 +102,14 @@ describe('UpdateProfileModalContent', () => {
     updateProfileServiceMock = {
       initialValues: signal(initialValuesMock),
       isSubmitting: signal(false),
-      status: signal(AuthFlowStatus.Idle),
+      succeeded$: new Subject<void>(),
       updateProfile: vi.fn(),
-      reset: vi.fn(),
     };
 
     changeAvatarServiceMock = {
       isSubmitting: signal(false),
-      status: signal(AuthFlowStatus.Idle),
+      succeeded$: new Subject<void>(),
       changeAvatar: vi.fn(),
-      reset: vi.fn(),
     };
 
     modalRefMock = {
@@ -168,12 +163,10 @@ describe('UpdateProfileModalContent', () => {
   });
 
   describe('successful save', () => {
-    it('should close the modal', () => {
+    it('should close the modal without a manual application tick', () => {
       fixture.detectChanges();
 
-      updateProfileServiceMock.status.set(AuthFlowStatus.Success);
-
-      fixture.detectChanges();
+      updateProfileServiceMock.succeeded$.next();
 
       expect(modalRefMock.close).toHaveBeenCalledOnce();
     });

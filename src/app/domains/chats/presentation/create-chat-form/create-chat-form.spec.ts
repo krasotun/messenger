@@ -1,16 +1,15 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Subject } from 'rxjs';
 
-import { CreateChatStatus } from '../../application/create-chat/create-chat-status.type';
 import { CreateChatService } from '../../application/create-chat/create-chat.service';
 
 import { CreateChatForm } from './create-chat-form';
 
 let createChatServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  status: WritableSignal<CreateChatStatus>;
+  succeeded$: Subject<void>;
   createChat: ReturnType<typeof vi.fn>;
-  reset: ReturnType<typeof vi.fn>;
 };
 
 describe('CreateChatForm', () => {
@@ -29,9 +28,8 @@ describe('CreateChatForm', () => {
   beforeEach(async () => {
     createChatServiceMock = {
       isSubmitting: signal(false),
-      status: signal(CreateChatStatus.Idle),
+      succeeded$: new Subject<void>(),
       createChat: vi.fn(),
-      reset: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -126,23 +124,13 @@ describe('CreateChatForm', () => {
   });
 
   describe('success state', () => {
-    it('should emit chatCreated', () => {
+    it('should emit chatCreated when the service reports success, without a manual application tick', () => {
       const chatCreatedSpy = vi.fn();
       component.chatCreated.subscribe(chatCreatedSpy);
 
-      createChatServiceMock.status.set(CreateChatStatus.Success);
-
-      fixture.detectChanges();
+      createChatServiceMock.succeeded$.next();
 
       expect(chatCreatedSpy).toHaveBeenCalledOnce();
-    });
-
-    it('should reset the service status', () => {
-      createChatServiceMock.status.set(CreateChatStatus.Success);
-
-      fixture.detectChanges();
-
-      expect(createChatServiceMock.reset).toHaveBeenCalledOnce();
     });
   });
 });

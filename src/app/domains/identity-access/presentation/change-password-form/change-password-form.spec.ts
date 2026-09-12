@@ -1,16 +1,15 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Subject } from 'rxjs';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { ChangePasswordService } from '../../application/change-password/change-password.service';
 
 import { ChangePasswordForm } from './change-password-form';
 
 let changePasswordServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  status: WritableSignal<AuthFlowStatus>;
+  succeeded$: Subject<void>;
   changePassword: ReturnType<typeof vi.fn>;
-  reset: ReturnType<typeof vi.fn>;
 };
 
 describe('ChangePasswordForm', () => {
@@ -33,9 +32,8 @@ describe('ChangePasswordForm', () => {
   beforeEach(async () => {
     changePasswordServiceMock = {
       isSubmitting: signal(false),
-      status: signal(AuthFlowStatus.Idle),
+      succeeded$: new Subject<void>(),
       changePassword: vi.fn(),
-      reset: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -192,23 +190,13 @@ describe('ChangePasswordForm', () => {
   });
 
   describe('success state', () => {
-    it('should emit passwordChanged', () => {
+    it('should emit passwordChanged when the service reports success, without a manual application tick', () => {
       const passwordChangedSpy = vi.fn();
       component.passwordChanged.subscribe(passwordChangedSpy);
 
-      changePasswordServiceMock.status.set(AuthFlowStatus.Success);
-
-      fixture.detectChanges();
+      changePasswordServiceMock.succeeded$.next();
 
       expect(passwordChangedSpy).toHaveBeenCalledOnce();
-    });
-
-    it('should reset submitting status', () => {
-      changePasswordServiceMock.status.set(AuthFlowStatus.Success);
-
-      fixture.detectChanges();
-
-      expect(changePasswordServiceMock.reset).toHaveBeenCalledOnce();
     });
   });
 });

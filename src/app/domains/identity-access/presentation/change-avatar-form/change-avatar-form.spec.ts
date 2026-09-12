@@ -1,7 +1,7 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Subject } from 'rxjs';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { ChangeAvatarService } from '../../application/change-avatar/change-avatar.service';
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
 import { CurrentUser } from '../../application/current-session/current-user.type';
@@ -12,9 +12,8 @@ import { Nullable } from '@shared/types';
 
 let changeAvatarServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  status: WritableSignal<AuthFlowStatus>;
+  succeeded$: Subject<void>;
   changeAvatar: ReturnType<typeof vi.fn>;
-  reset: ReturnType<typeof vi.fn>;
 };
 
 let currentSessionServiceMock: {
@@ -80,9 +79,8 @@ describe('ChangeAvatarForm', () => {
 
     changeAvatarServiceMock = {
       isSubmitting: signal(false),
-      status: signal(AuthFlowStatus.Idle),
+      succeeded$: new Subject<void>(),
       changeAvatar: vi.fn(),
-      reset: vi.fn(),
     };
 
     currentSessionServiceMock = {
@@ -218,15 +216,14 @@ describe('ChangeAvatarForm', () => {
   });
 
   describe('success state', () => {
-    it('should reset the form to the state without a selected file and preview', () => {
+    it('should reset the form to the state without a selected file and preview, without a manual application tick', () => {
       fixture.detectChanges();
 
       selectFile(pngFileMock);
 
-      changeAvatarServiceMock.status.set(AuthFlowStatus.Success);
+      changeAvatarServiceMock.succeeded$.next();
       fixture.detectChanges();
 
-      expect(changeAvatarServiceMock.reset).toHaveBeenCalledOnce();
       expect(getAvatarImage()?.getAttribute('src')).toBe(currentUserMock.avatar);
 
       submitForm();

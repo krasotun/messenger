@@ -21,9 +21,9 @@ export class SignInService {
 
   private readonly _flow = createAuthFlowState();
 
-  readonly status = this._flow.status;
-
   readonly isSubmitting = this._flow.isSubmitting;
+
+  readonly succeeded$ = this._flow.succeeded$;
 
   signIn(signInInput: SignInInput): void {
     this._flow.startSubmitting();
@@ -46,9 +46,5 @@ export class SignInService {
           this._notifier.error('Sign-in failed', message);
         },
       });
-  }
-
-  reset(): void {
-    this._flow.reset();
   }
 }
