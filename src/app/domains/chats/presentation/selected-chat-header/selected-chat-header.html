@@ -24,6 +24,20 @@
   + Add member
 </button>
 
+@if (canDeleteChat()) {
+<button
+  class="selected-chat-header__delete-button"
+  type="button"
+  appButton
+  colorType="secondary"
+  aria-label="Delete chat"
+  (click)="deleteChat()"
+>
+  <!-- TODO(#49): заменить глиф на иконку, когда появится примитив иконок -->
+  🗑
+</button>
+}
+
 <ng-template #addUserPopover>
   <app-add-chat-user-panel
     [chatId]="numericChatId()"

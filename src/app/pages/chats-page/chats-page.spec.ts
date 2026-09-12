@@ -1,8 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Routes, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { of, Subject } from 'rxjs';
 
 import { ChatsPage } from './chats-page';
+
+import { CurrentSessionService } from '@domains/identity-access';
+import { ConfirmationService } from '@shared/ui/confirmation';
 
 const chatMock = {
   id: 1,
@@ -37,6 +41,8 @@ describe('chats routing', () => {
       await import('@domains/chats/application/chat-users/chat-users.service');
     const { SelectedChatHeader } =
       await import('@domains/chats/presentation/selected-chat-header/selected-chat-header');
+    const { DeleteChatService } =
+      await import('@domains/chats/application/delete-chat/delete-chat.service');
 
     routes = [
       {
@@ -74,7 +80,26 @@ describe('chats routing', () => {
           provide: ChatUsersService,
           useValue: chatUsersServiceMock,
         },
+        {
+          provide: CurrentSessionService,
+          useValue: { currentUser: () => ({ id: chatMock.createdBy }) },
+        },
+        {
+          provide: ConfirmationService,
+          useValue: { confirm: () => of(false) },
+        },
       ],
+    });
+
+    TestBed.overrideComponent(SelectedChatHeader, {
+      set: {
+        providers: [
+          {
+            provide: DeleteChatService,
+            useValue: { deleteChat: vi.fn(), succeeded$: new Subject<void>() },
+          },
+        ],
+      },
     });
   });
 

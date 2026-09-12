@@ -2,6 +2,7 @@ export { provideIdentityAccess } from './identity-access.providers';
 
 export { CurrentSessionService } from './application/current-session/current-session.service';
 export { CurrentSessionStatus } from './application/current-session/current-session-status.type';
+export type { CurrentUser } from './application/current-session/current-user.type';
 export { CurrentUserAvatarMenu } from './presentation/current-user-avatar-menu/current-user-avatar-menu';
 
 export { SearchUsersService } from './application/search-users/search-users.service';
