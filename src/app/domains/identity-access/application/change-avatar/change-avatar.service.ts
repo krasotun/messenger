@@ -17,9 +17,9 @@ export class ChangeAvatarService {
 
   private readonly _flow = createAuthFlowState();
 
-  readonly status = this._flow.status;
-
   readonly isSubmitting = this._flow.isSubmitting;
+
+  readonly succeeded$ = this._flow.succeeded$;
 
   changeAvatar(changeAvatarInput: ChangeAvatarInput): void {
     this._flow.startSubmitting();
@@ -35,9 +35,5 @@ export class ChangeAvatarService {
         this._notifier.error('Failed to change avatar', message);
       },
     });
-  }
-
-  reset(): void {
-    this._flow.reset();
   }
 }

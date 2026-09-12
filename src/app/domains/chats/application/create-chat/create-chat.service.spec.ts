@@ -5,7 +5,6 @@ import { ChatListService } from '../chat-list/chat-list.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
 import { CreateChatResult } from './create-chat-result.type';
-import { CreateChatStatus } from './create-chat-status.type';
 import { CreateChatService } from './create-chat.service';
 
 import { ApplicationError } from '@shared/errors';
@@ -66,7 +65,6 @@ describe('CreateChatService', () => {
 
   describe('initial state', () => {
     it('should be idle', () => {
-      expect(service.status()).toBe(CreateChatStatus.Idle);
       expect(service.isSubmitting()).toBe(false);
     });
   });
@@ -86,7 +84,6 @@ describe('CreateChatService', () => {
 
       service.createChat({ title: 'Analytics Q3' });
 
-      expect(service.status()).toBe(CreateChatStatus.Submitting);
       expect(service.isSubmitting()).toBe(true);
     });
 
@@ -95,10 +92,14 @@ describe('CreateChatService', () => {
         chatGatewayMock.createChat.mockReturnValue(of(createChatResultMock));
       });
 
-      it('should set success state', () => {
+      it('should emit succeeded$ once', () => {
+        const succeededSpy = vi.fn();
+        service.succeeded$.subscribe(succeededSpy);
+
         service.createChat({ title: 'Analytics Q3' });
 
-        expect(service.status()).toBe(CreateChatStatus.Success);
+        expect(succeededSpy).toHaveBeenCalledOnce();
+        expect(service.isSubmitting()).toBe(false);
       });
 
       it('should reload the chat list', () => {
@@ -122,10 +123,14 @@ describe('CreateChatService', () => {
         );
       });
 
-      it('should set error state and notify with the reason', () => {
+      it('should notify with the reason and not emit succeeded$', () => {
+        const succeededSpy = vi.fn();
+        service.succeeded$.subscribe(succeededSpy);
+
         service.createChat({ title: 'Analytics Q3' });
 
-        expect(service.status()).toBe(CreateChatStatus.Error);
+        expect(succeededSpy).not.toHaveBeenCalled();
+        expect(service.isSubmitting()).toBe(false);
         expect(notifierMock.error).toHaveBeenCalledWith('Failed to create chat', 'mockReason');
       });
 
@@ -134,22 +139,6 @@ describe('CreateChatService', () => {
 
         expect(chatListServiceMock.loadChats).not.toHaveBeenCalled();
       });
-    });
-  });
-
-  describe('reset', () => {
-    it('should reset status', () => {
-      chatGatewayMock.createChat.mockReturnValue(
-        throwError(() => new ApplicationError('mockReason')),
-      );
-
-      service.createChat({ title: 'Analytics Q3' });
-
-      expect(service.status()).toBe(CreateChatStatus.Error);
-
-      service.reset();
-
-      expect(service.status()).toBe(CreateChatStatus.Idle);
     });
   });
 });

@@ -1,4 +1,5 @@
 import { Component, effect, inject, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormControl,
@@ -8,7 +9,6 @@ import {
   Validators,
 } from '@angular/forms';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { ChangePasswordService } from '../../application/change-password/change-password.service';
 
 import { Button } from '@shared/ui/button/button';
@@ -62,12 +62,8 @@ export class ChangePasswordForm {
       }
     });
 
-    effect(() => {
-      if (this._changePasswordService.status() === AuthFlowStatus.Success) {
-        this._changePasswordService.reset();
-
-        this.passwordChanged.emit();
-      }
+    this._changePasswordService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.passwordChanged.emit();
     });
   }
 

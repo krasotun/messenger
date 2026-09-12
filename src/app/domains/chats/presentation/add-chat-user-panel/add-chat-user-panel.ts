@@ -1,7 +1,7 @@
-import { Component, computed, effect, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
-import { AddChatUserStatus } from '../../application/add-chat-user/add-chat-user-status.type';
 import { AddChatUserService } from '../../application/add-chat-user/add-chat-user.service';
 import { UserSearchStatus } from '../../application/user-search/user-search-status.type';
 import { createUserSearchState } from '../../application/user-search/user-search.state';
@@ -58,10 +58,8 @@ export class AddChatUserPanel {
   constructor() {
     // Успешное добавление закрывает всю панель, а не только очищает список:
     // добавленный участник виден в шапке, отдельного сообщения об успехе нет.
-    effect(() => {
-      if (this._addChatUserService.status() === AddChatUserStatus.Success) {
-        this.userAdded.emit();
-      }
+    this._addChatUserService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.userAdded.emit();
     });
   }
 

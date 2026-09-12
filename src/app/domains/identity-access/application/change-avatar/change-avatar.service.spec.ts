@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
-import { AuthFlowStatus } from '../auth-flow-status.type';
 import { AUTH_GATEWAY } from '../auth.gateway';
 import { CurrentSessionResult } from '../current-session/current-session-result.type';
 import { CurrentSessionStatus } from '../current-session/current-session-status.type';
@@ -108,10 +107,6 @@ describe('ChangeAvatarService', () => {
   });
 
   describe('initial state', () => {
-    it('status should be idle', () => {
-      expect(service.status()).toBe(AuthFlowStatus.Idle);
-    });
-
     it('isSubmitting should be false', () => {
       expect(service.isSubmitting()).toBe(false);
     });
@@ -133,7 +128,6 @@ describe('ChangeAvatarService', () => {
 
       service.changeAvatar(changeAvatarInputMock);
 
-      expect(service.status()).toBe(AuthFlowStatus.Submitting);
       expect(service.isSubmitting()).toBe(true);
     });
 
@@ -142,10 +136,14 @@ describe('ChangeAvatarService', () => {
         userGatewayMock.changeAvatar.mockReturnValue(of({ user: updatedUserMock }));
       });
 
-      it('should set success state', () => {
+      it('should emit succeeded$ once', () => {
+        const succeededSpy = vi.fn();
+        service.succeeded$.subscribe(succeededSpy);
+
         service.changeAvatar(changeAvatarInputMock);
 
-        expect(service.status()).toBe(AuthFlowStatus.Success);
+        expect(succeededSpy).toHaveBeenCalledOnce();
+        expect(service.isSubmitting()).toBe(false);
       });
 
       it('should notify about success', () => {
@@ -184,10 +182,14 @@ describe('ChangeAvatarService', () => {
         );
       });
 
-      it('should set error state and notify with the reason', () => {
+      it('should notify with the reason and not emit succeeded$', () => {
+        const succeededSpy = vi.fn();
+        service.succeeded$.subscribe(succeededSpy);
+
         service.changeAvatar(changeAvatarInputMock);
 
-        expect(service.status()).toBe(AuthFlowStatus.Error);
+        expect(succeededSpy).not.toHaveBeenCalled();
+        expect(service.isSubmitting()).toBe(false);
         expect(notifierMock.error).toHaveBeenCalledWith('Failed to change avatar', 'mockReason');
       });
 
@@ -203,22 +205,6 @@ describe('ChangeAvatarService', () => {
         expect(routerMock.navigate).not.toHaveBeenCalled();
         expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
       });
-    });
-  });
-
-  describe('reset', () => {
-    it('should reset status', () => {
-      userGatewayMock.changeAvatar.mockReturnValue(
-        throwError(() => new ApplicationError('mockError')),
-      );
-
-      service.changeAvatar(changeAvatarInputMock);
-
-      expect(service.status()).toBe(AuthFlowStatus.Error);
-
-      service.reset();
-
-      expect(service.status()).toBe(AuthFlowStatus.Idle);
     });
   });
 });

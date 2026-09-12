@@ -1,8 +1,6 @@
-import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
 
-import { AddChatUserStatus } from '../../application/add-chat-user/add-chat-user-status.type';
 import { AddChatUserService } from '../../application/add-chat-user/add-chat-user.service';
 
 import { AddChatUserPanel } from './add-chat-user-panel';
@@ -10,7 +8,7 @@ import { AddChatUserPanel } from './add-chat-user-panel';
 import { SearchUsersResult, SearchUsersService, User } from '@domains/identity-access';
 
 let addChatUserServiceMock: {
-  status: WritableSignal<AddChatUserStatus>;
+  succeeded$: Subject<void>;
   addChatUser: ReturnType<typeof vi.fn>;
 };
 
@@ -42,7 +40,7 @@ describe('AddChatUserPanel', () => {
     vi.useFakeTimers();
 
     addChatUserServiceMock = {
-      status: signal(AddChatUserStatus.Idle),
+      succeeded$: new Subject<void>(),
       addChatUser: vi.fn(),
     };
 
@@ -164,8 +162,6 @@ describe('AddChatUserPanel', () => {
       searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       search('jane');
-
-      addChatUserServiceMock.status.set(AddChatUserStatus.Error);
       fixture.detectChanges();
 
       const errorElement: HTMLElement | null = fixture.nativeElement.querySelector(
@@ -178,14 +174,13 @@ describe('AddChatUserPanel', () => {
   });
 
   describe('успешное добавление', () => {
-    it('should emit userAdded', () => {
+    it('should emit userAdded when the service reports success, without a manual application tick', () => {
       fixture.detectChanges();
 
       const userAddedSpy = vi.fn();
       component.userAdded.subscribe(userAddedSpy);
 
-      addChatUserServiceMock.status.set(AddChatUserStatus.Success);
-      fixture.detectChanges();
+      addChatUserServiceMock.succeeded$.next();
 
       expect(userAddedSpy).toHaveBeenCalledOnce();
     });

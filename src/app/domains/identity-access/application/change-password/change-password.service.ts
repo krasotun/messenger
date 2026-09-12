@@ -15,9 +15,9 @@ export class ChangePasswordService {
 
   private readonly _flow = createAuthFlowState();
 
-  readonly status = this._flow.status;
-
   readonly isSubmitting = this._flow.isSubmitting;
+
+  readonly succeeded$ = this._flow.succeeded$;
 
   changePassword(changePasswordInput: ChangePasswordInput): void {
     this._flow.startSubmitting();
@@ -32,9 +32,5 @@ export class ChangePasswordService {
         this._notifier.error('Failed to change password', message);
       },
     });
-  }
-
-  reset(): void {
-    this._flow.reset();
   }
 }

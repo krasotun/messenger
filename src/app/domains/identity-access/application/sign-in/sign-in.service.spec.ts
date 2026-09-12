@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
-import { AuthFlowStatus } from '../auth-flow-status.type';
 import { AUTH_GATEWAY } from '../auth.gateway';
 import { CurrentSessionResult } from '../current-session/current-session-result.type';
 import { CurrentSessionStatus } from '../current-session/current-session-status.type';
@@ -87,10 +86,6 @@ describe('SignIn', () => {
   });
 
   describe('initial state', () => {
-    it('status should be idle', () => {
-      expect(service.status()).toBe(AuthFlowStatus.Idle);
-    });
-
     it('isSubmitting should be false', () => {
       expect(service.isSubmitting()).toBe(false);
     });
@@ -112,38 +107,44 @@ describe('SignIn', () => {
 
       service.signIn(signInInputMock);
 
-      expect(service.status()).toBe(AuthFlowStatus.Submitting);
+      expect(service.isSubmitting()).toBe(true);
     });
 
-    it('should set success state when request succeeds and current session is authenticated', () => {
+    it('should emit succeeded$ once when request succeeds and current session is authenticated', () => {
       const signInResult$ = of({ authenticated: true });
       authGatewayMock.signIn.mockReturnValue(signInResult$);
       currentSessionServiceMock.restoreCurrentSession.mockReturnValue(of(successResponseMock));
+      const succeededSpy = vi.fn();
+      service.succeeded$.subscribe(succeededSpy);
 
       service.signIn(signInInputMock);
 
-      expect(service.status()).toBe(AuthFlowStatus.Success);
+      expect(succeededSpy).toHaveBeenCalledOnce();
+      expect(service.isSubmitting()).toBe(false);
       expect(notifierMock.error).not.toHaveBeenCalled();
     });
 
-    it('should set error state and notify when request succeeds but current session is anonymous', () => {
+    it('should not emit succeeded$ when request succeeds but current session is anonymous', () => {
       authGatewayMock.signIn.mockReturnValue(of({ authenticated: true }));
       currentSessionServiceMock.restoreCurrentSession.mockReturnValue(
         of({
           status: CurrentSessionStatus.Anonymous,
         }),
       );
+      const succeededSpy = vi.fn();
+      service.succeeded$.subscribe(succeededSpy);
 
       service.signIn(signInInputMock);
 
-      expect(service.status()).toBe(AuthFlowStatus.Error);
+      expect(succeededSpy).not.toHaveBeenCalled();
+      expect(service.isSubmitting()).toBe(false);
       expect(notifierMock.error).toHaveBeenCalledWith(
         'Sign-in failed',
         'Login failed. Please try again later',
       );
     });
 
-    it('should set error state and notify when request succeeds but current session restore fails', () => {
+    it('should notify when request succeeds but current session restore fails', () => {
       authGatewayMock.signIn.mockReturnValue(of({ authenticated: true }));
       currentSessionServiceMock.restoreCurrentSession.mockReturnValue(
         throwError(() => new ApplicationError('mockError')),
@@ -151,7 +152,7 @@ describe('SignIn', () => {
 
       service.signIn(signInInputMock);
 
-      expect(service.status()).toBe(AuthFlowStatus.Error);
+      expect(service.isSubmitting()).toBe(false);
       expect(notifierMock.error).toHaveBeenCalledWith('Sign-in failed', 'mockError');
     });
 
@@ -163,33 +164,17 @@ describe('SignIn', () => {
 
       service.signIn(signInInputMock);
 
-      expect(service.status()).toBe(AuthFlowStatus.Error);
+      expect(service.isSubmitting()).toBe(false);
       expect(notifierMock.error).toHaveBeenCalledWith('Sign-in failed', 'mockReason');
     });
 
-    it('should restore current session after successful sign in', () => {
+    it('should restore current session after successful sign in even without a succeeded$ subscriber', () => {
       authGatewayMock.signIn.mockReturnValue(of({ authenticated: true }));
       currentSessionServiceMock.restoreCurrentSession.mockReturnValue(of(successResponseMock));
 
       service.signIn(signInInputMock);
 
       expect(currentSessionServiceMock.restoreCurrentSession).toHaveBeenCalledOnce();
-    });
-  });
-
-  describe('reset', () => {
-    it('should reset status', () => {
-      authGatewayMock.signIn.mockReturnValueOnce(
-        throwError(() => new ApplicationError('mockError')),
-      );
-
-      service.signIn(signInInputMock);
-
-      expect(service.status()).toBe(AuthFlowStatus.Error);
-
-      service.reset();
-
-      expect(service.status()).toBe(AuthFlowStatus.Idle);
     });
   });
 });

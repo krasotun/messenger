@@ -1,9 +1,8 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { throwError } from 'rxjs';
+import { Subject, throwError } from 'rxjs';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { ChangePasswordService } from '../../application/change-password/change-password.service';
 import { USER_GATEWAY } from '../../application/user.gateway';
 import { ChangePasswordForm } from '../change-password-form/change-password-form';
@@ -16,9 +15,8 @@ import { ModalRef } from '@shared/ui/modal/modal-ref';
 
 let changePasswordServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  status: WritableSignal<AuthFlowStatus>;
+  succeeded$: Subject<void>;
   changePassword: ReturnType<typeof vi.fn>;
-  reset: ReturnType<typeof vi.fn>;
 };
 
 let modalRefMock: {
@@ -36,9 +34,8 @@ describe('ChangePasswordModalContent', () => {
   beforeEach(async () => {
     changePasswordServiceMock = {
       isSubmitting: signal(false),
-      status: signal(AuthFlowStatus.Idle),
+      succeeded$: new Subject<void>(),
       changePassword: vi.fn(),
-      reset: vi.fn(),
     };
 
     modalRefMock = {
@@ -84,12 +81,10 @@ describe('ChangePasswordModalContent', () => {
   });
 
   describe('successful change', () => {
-    it('should close the modal', () => {
+    it('should close the modal without a manual application tick', () => {
       fixture.detectChanges();
 
-      changePasswordServiceMock.status.set(AuthFlowStatus.Success);
-
-      fixture.detectChanges();
+      changePasswordServiceMock.succeeded$.next();
 
       expect(modalRefMock.close).toHaveBeenCalledOnce();
     });

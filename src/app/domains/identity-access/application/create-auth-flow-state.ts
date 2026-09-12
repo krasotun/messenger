@@ -1,36 +1,28 @@
-import { computed, signal } from '@angular/core';
-
-import { AuthFlowStatus } from './auth-flow-status.type';
+import { signal } from '@angular/core';
+import { Subject } from 'rxjs';
 
 export const createAuthFlowState = () => {
-  const status = signal<AuthFlowStatus>(AuthFlowStatus.Idle);
-
-  const isSubmitting = computed(() => {
-    return status() === AuthFlowStatus.Submitting;
-  });
+  const isSubmitting = signal(false);
+  const succeeded = new Subject<void>();
 
   const startSubmitting = () => {
-    status.set(AuthFlowStatus.Submitting);
+    isSubmitting.set(true);
   };
 
   const markSuccess = () => {
-    status.set(AuthFlowStatus.Success);
+    isSubmitting.set(false);
+    succeeded.next();
   };
 
   const markError = () => {
-    status.set(AuthFlowStatus.Error);
-  };
-
-  const reset = () => {
-    status.set(AuthFlowStatus.Idle);
+    isSubmitting.set(false);
   };
 
   return {
-    status: status.asReadonly(),
-    isSubmitting,
+    isSubmitting: isSubmitting.asReadonly(),
+    succeeded$: succeeded.asObservable(),
     startSubmitting,
     markSuccess,
     markError,
-    reset,
   };
 };

@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
-import { AuthFlowStatus } from '../auth-flow-status.type';
 import { AUTH_GATEWAY } from '../auth.gateway';
 
 import { SignUpInput } from './sign-up-input.type';
@@ -58,10 +57,6 @@ describe('SignUpService', () => {
   });
 
   describe('initial state', () => {
-    it('status should be idle', () => {
-      expect(service.status()).toBe(AuthFlowStatus.Idle);
-    });
-
     it('isSubmitting should be false', () => {
       expect(service.isSubmitting()).toBe(false);
     });
@@ -82,45 +77,35 @@ describe('SignUpService', () => {
 
       service.signUp(signUpInputMock);
 
-      expect(service.status()).toBe(AuthFlowStatus.Submitting);
+      expect(service.isSubmitting()).toBe(true);
     });
 
-    it('should set success state when request succeeds', () => {
+    it('should emit succeeded$ once when request succeeds', () => {
       const signUpResult$ = of({ userId: 1 });
       authGatewayMock.signUp.mockReturnValue(signUpResult$);
+      const succeededSpy = vi.fn();
+      service.succeeded$.subscribe(succeededSpy);
 
       service.signUp(signUpInputMock);
 
-      expect(service.status()).toBe(AuthFlowStatus.Success);
+      expect(succeededSpy).toHaveBeenCalledOnce();
+      expect(service.isSubmitting()).toBe(false);
       expect(notifierMock.error).not.toHaveBeenCalled();
     });
 
-    it('should set error state and notify with the reason from the backend', () => {
+    it('should notify with the reason from the backend', () => {
       const signUpResult$ = throwError(() => {
         return new ApplicationError('mockReason');
       });
       authGatewayMock.signUp.mockReturnValue(signUpResult$);
+      const succeededSpy = vi.fn();
+      service.succeeded$.subscribe(succeededSpy);
 
       service.signUp(signUpInputMock);
 
-      expect(service.status()).toBe(AuthFlowStatus.Error);
+      expect(succeededSpy).not.toHaveBeenCalled();
+      expect(service.isSubmitting()).toBe(false);
       expect(notifierMock.error).toHaveBeenCalledWith('Sign-up failed', 'mockReason');
-    });
-  });
-
-  describe('reset', () => {
-    it('should reset status', () => {
-      authGatewayMock.signUp.mockReturnValueOnce(
-        throwError(() => new ApplicationError('mockError')),
-      );
-
-      service.signUp(signUpInputMock);
-
-      expect(service.status()).toBe(AuthFlowStatus.Error);
-
-      service.reset();
-
-      expect(service.status()).toBe(AuthFlowStatus.Idle);
     });
   });
 });

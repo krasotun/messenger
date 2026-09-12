@@ -1,16 +1,15 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Subject } from 'rxjs';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { SignInService } from '../../application/sign-in/sign-in.service';
 
 import { SignInForm } from './sign-in-form';
 
 let signInServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  status: WritableSignal<AuthFlowStatus>;
+  succeeded$: Subject<void>;
   signIn: ReturnType<typeof vi.fn>;
-  reset: ReturnType<typeof vi.fn>;
 };
 
 describe('SignInForm', () => {
@@ -20,9 +19,8 @@ describe('SignInForm', () => {
   beforeEach(async () => {
     signInServiceMock = {
       isSubmitting: signal(false),
-      status: signal(AuthFlowStatus.Idle),
+      succeeded$: new Subject<void>(),
       signIn: vi.fn(),
-      reset: vi.fn(),
     };
     await TestBed.configureTestingModule({
       imports: [SignInForm],
@@ -120,23 +118,13 @@ describe('SignInForm', () => {
   });
 
   describe('success state', () => {
-    it('should emit signInSucceeded', () => {
+    it('should emit signInSucceeded when the service reports success, without a manual application tick', () => {
       const signInSucceededSpy = vi.fn();
       component.signInSucceeded.subscribe(signInSucceededSpy);
 
-      signInServiceMock.status.set(AuthFlowStatus.Success);
-
-      fixture.detectChanges();
+      signInServiceMock.succeeded$.next();
 
       expect(signInSucceededSpy).toHaveBeenCalledOnce();
-    });
-
-    it('should reset submitting status', () => {
-      signInServiceMock.status.set(AuthFlowStatus.Success);
-
-      fixture.detectChanges();
-
-      expect(signInServiceMock.reset).toHaveBeenCalledOnce();
     });
   });
 });

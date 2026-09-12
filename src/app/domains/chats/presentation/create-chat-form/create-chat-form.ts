@@ -1,7 +1,7 @@
 import { Component, effect, inject, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { CreateChatStatus } from '../../application/create-chat/create-chat-status.type';
 import { CreateChatService } from '../../application/create-chat/create-chat.service';
 
 import { Button } from '@shared/ui/button/button';
@@ -38,12 +38,8 @@ export class CreateChatForm {
       }
     });
 
-    effect(() => {
-      if (this._createChatService.status() === CreateChatStatus.Success) {
-        this._createChatService.reset();
-
-        this.chatCreated.emit();
-      }
+    this._createChatService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.chatCreated.emit();
     });
   }
 

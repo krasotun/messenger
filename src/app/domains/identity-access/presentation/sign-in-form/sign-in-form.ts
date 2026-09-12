@@ -1,4 +1,5 @@
 import { Component, effect, inject, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
@@ -7,7 +8,6 @@ import {
   Validators,
 } from '@angular/forms';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { SignInService } from '../../application/sign-in/sign-in.service';
 
 import { Button } from '@shared/ui/button/button';
@@ -46,12 +46,8 @@ export class SignInForm {
       }
     });
 
-    effect(() => {
-      if (this._signInService.status() === AuthFlowStatus.Success) {
-        this._signInService.reset();
-
-        this.signInSucceeded.emit();
-      }
+    this._signInService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.signInSucceeded.emit();
     });
   }
 
