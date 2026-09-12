@@ -3,4 +3,5 @@ export const CHAT_ERROR_MESSAGES = {
   createChat: 'Failed to create chat. Please try again.',
   chatUsers: 'Failed to load chat members. Please try again.',
   addChatUser: 'Failed to add chat member. Please try again.',
+  deleteChat: 'Failed to delete chat. Please try again.',
 } as const;

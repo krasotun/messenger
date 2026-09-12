@@ -18,6 +18,7 @@ const chatApiMock = {
   createChat: vi.fn(),
   chatUsers: vi.fn(),
   addChatUser: vi.fn(),
+  deleteChat: vi.fn(),
 };
 
 const resourcesBaseUrlMock = 'https://mock.host/resources';
@@ -328,6 +329,34 @@ describe('HttpChatGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.chatUsers);
+    });
+  });
+
+  describe('deleteChat', () => {
+    it('should ask api to delete the chat', () => {
+      chatApiMock.deleteChat.mockReturnValue(of(null));
+
+      service.deleteChat({ chatId: 1 }).subscribe();
+
+      expect(chatApiMock.deleteChat).toHaveBeenCalledOnce();
+      expect(chatApiMock.deleteChat).toHaveBeenCalledWith({ chatId: 1 });
+    });
+
+    it('should turn a rejected request into an application error', () => {
+      chatApiMock.deleteChat.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 500 })),
+      );
+
+      let caughtError: unknown;
+
+      service.deleteChat({ chatId: 1 }).subscribe({
+        error: (error: unknown) => {
+          caughtError = error;
+        },
+      });
+
+      expect(caughtError).toBeInstanceOf(ApplicationError);
+      expect((caughtError as ApplicationError).message).toBe(CHAT_ERROR_MESSAGES.deleteChat);
     });
   });
 
