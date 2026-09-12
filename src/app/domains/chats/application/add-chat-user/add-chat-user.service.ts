@@ -7,24 +7,21 @@ import { AddChatUserInput } from './add-chat-user-input.type';
 import { AddChatUserStatus } from './add-chat-user-status.type';
 
 import { ApplicationError } from '@shared/errors';
-import { Nullable } from '@shared/types';
+import { NOTIFIER } from '@shared/notifications';
 
 @Injectable()
 export class AddChatUserService {
   private readonly _chatGateway = inject(CHAT_GATEWAY);
   private readonly _chatUsersService = inject(ChatUsersService);
+  private readonly _notifier = inject(NOTIFIER);
 
   private readonly _status = signal<AddChatUserStatus>(AddChatUserStatus.Idle);
   readonly status = this._status.asReadonly();
-
-  private readonly _errorMessage = signal<Nullable<string>>(null);
-  readonly errorMessage = this._errorMessage.asReadonly();
 
   readonly isSubmitting = computed(() => this._status() === AddChatUserStatus.Submitting);
 
   addChatUser(addChatUserInput: AddChatUserInput): void {
     this._status.set(AddChatUserStatus.Submitting);
-    this._errorMessage.set(null);
 
     this._chatGateway.addChatUser(addChatUserInput).subscribe({
       next: () => {
@@ -33,13 +30,12 @@ export class AddChatUserService {
       },
       error: ({ message }: ApplicationError) => {
         this._status.set(AddChatUserStatus.Error);
-        this._errorMessage.set(message);
+        this._notifier.error('Failed to add chat user', message);
       },
     });
   }
 
   reset(): void {
     this._status.set(AddChatUserStatus.Idle);
-    this._errorMessage.set(null);
   }
 }

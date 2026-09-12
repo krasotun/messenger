@@ -9,6 +9,7 @@ import { AddChatUserStatus } from './add-chat-user-status.type';
 import { AddChatUserService } from './add-chat-user.service';
 
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 
 const chatGatewayMock = {
   addChatUser: vi.fn(),
@@ -16,6 +17,11 @@ const chatGatewayMock = {
 
 const chatUsersServiceMock = {
   loadChatUsers: vi.fn(),
+};
+
+const notifierMock = {
+  success: vi.fn(),
+  error: vi.fn(),
 };
 
 const addChatUserResultMock: AddChatUserResult = {
@@ -28,6 +34,8 @@ describe('AddChatUserService', () => {
   beforeEach(() => {
     chatGatewayMock.addChatUser.mockReset();
     chatUsersServiceMock.loadChatUsers.mockReset();
+    notifierMock.success.mockReset();
+    notifierMock.error.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -38,6 +46,10 @@ describe('AddChatUserService', () => {
         {
           provide: ChatUsersService,
           useValue: chatUsersServiceMock,
+        },
+        {
+          provide: NOTIFIER,
+          useValue: notifierMock,
         },
         AddChatUserService,
       ],
@@ -51,9 +63,8 @@ describe('AddChatUserService', () => {
   });
 
   describe('initial state', () => {
-    it('should be idle with no error', () => {
+    it('should be idle', () => {
       expect(service.status()).toBe(AddChatUserStatus.Idle);
-      expect(service.errorMessage()).toBeNull();
       expect(service.isSubmitting()).toBe(false);
     });
   });
@@ -86,7 +97,6 @@ describe('AddChatUserService', () => {
         service.addChatUser({ chatId: 1, userId: 2 });
 
         expect(service.status()).toBe(AddChatUserStatus.Success);
-        expect(service.errorMessage()).toBeNull();
       });
 
       it('should reload the members of the given chat', () => {
@@ -94,6 +104,13 @@ describe('AddChatUserService', () => {
 
         expect(chatUsersServiceMock.loadChatUsers).toHaveBeenCalledOnce();
         expect(chatUsersServiceMock.loadChatUsers).toHaveBeenCalledWith(1);
+      });
+
+      it('should not notify', () => {
+        service.addChatUser({ chatId: 1, userId: 2 });
+
+        expect(notifierMock.success).not.toHaveBeenCalled();
+        expect(notifierMock.error).not.toHaveBeenCalled();
       });
     });
 
@@ -104,11 +121,11 @@ describe('AddChatUserService', () => {
         );
       });
 
-      it('should expose the error message', () => {
+      it('should set error state and notify with the reason', () => {
         service.addChatUser({ chatId: 1, userId: 2 });
 
         expect(service.status()).toBe(AddChatUserStatus.Error);
-        expect(service.errorMessage()).toBe('mockReason');
+        expect(notifierMock.error).toHaveBeenCalledWith('Failed to add chat user', 'mockReason');
       });
 
       it('should not reload chat members', () => {
@@ -120,7 +137,7 @@ describe('AddChatUserService', () => {
   });
 
   describe('reset', () => {
-    it('should reset status and error message', () => {
+    it('should reset status', () => {
       chatGatewayMock.addChatUser.mockReturnValue(
         throwError(() => new ApplicationError('mockReason')),
       );
@@ -132,7 +149,6 @@ describe('AddChatUserService', () => {
       service.reset();
 
       expect(service.status()).toBe(AddChatUserStatus.Idle);
-      expect(service.errorMessage()).toBeNull();
     });
   });
 });
