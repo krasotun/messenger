@@ -49,11 +49,11 @@
 
 ## 6. Исход действий над чатами
 
-- [ ] 6.1 Дописать падающие спеки `create-chat.service.spec.ts` и `add-chat-user.service.spec.ts`: ошибка показывает **Уведомление**, исход виден и после закрытия **Поиска пользователя**
-- [ ] 6.2 Убрать сигнал с текстом ошибки из обоих сервисов и вызвать порт; проверка: спеки из 6.1 зеленые
-- [ ] 6.3 Написать падающие component specs: `create-chat-form` и `add-chat-user-panel` не содержат текста **Ошибки приложения**
-- [ ] 6.4 Убрать блоки ошибки из `create-chat-form.html`, `add-chat-user-panel.html` и их компонентов; проверка: спеки из 6.3 зеленые, `chat-list` и `selected-chat-header` не тронуты
-- [ ] 6.5 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 6.1 Дописать падающие спеки `create-chat.service.spec.ts` и `add-chat-user.service.spec.ts`: ошибка показывает **Уведомление**, исход виден и после закрытия **Поиска пользователя**
+- [x] 6.2 Убрать сигнал с текстом ошибки из обоих сервисов и вызвать порт; проверка: спеки из 6.1 зеленые
+- [x] 6.3 Написать падающие component specs: `create-chat-form` и `add-chat-user-panel` не содержат текста **Ошибки приложения**
+- [x] 6.4 Убрать блоки ошибки из `create-chat-form.html`, `add-chat-user-panel.html` и их компонентов; проверка: спеки из 6.3 зеленые, `chat-list` и `selected-chat-header` не тронуты
+- [x] 6.5 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 7. Визуальный тест и quality gates
 

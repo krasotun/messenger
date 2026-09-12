@@ -8,7 +8,6 @@ import { CreateChatForm } from './create-chat-form';
 
 let createChatServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  errorMessage: WritableSignal<string | null>;
   status: WritableSignal<CreateChatStatus>;
   createChat: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
@@ -30,7 +29,6 @@ describe('CreateChatForm', () => {
   beforeEach(async () => {
     createChatServiceMock = {
       isSubmitting: signal(false),
-      errorMessage: signal(null),
       status: signal(CreateChatStatus.Idle),
       createChat: vi.fn(),
       reset: vi.fn(),
@@ -116,28 +114,14 @@ describe('CreateChatForm', () => {
   });
 
   describe('error state', () => {
-    it('should render submit error', () => {
-      createChatServiceMock.errorMessage.set('Mock error');
-
+    it('should not render a submit error in the form', () => {
       fixture.detectChanges();
 
       const errorElement: HTMLElement | null = fixture.nativeElement.querySelector(
         '.create-chat-form__error',
       );
 
-      expect(errorElement).not.toBeNull();
-      expect(errorElement?.textContent).toContain('Mock error');
-    });
-
-    it('should keep the entered title', () => {
-      fixture.detectChanges();
-
-      fillForm('Analytics Q3');
-
-      createChatServiceMock.errorMessage.set('Mock error');
-      fixture.detectChanges();
-
-      expect(component.createChatForm.getRawValue()).toEqual({ title: 'Analytics Q3' });
+      expect(errorElement).toBeNull();
     });
   });
 

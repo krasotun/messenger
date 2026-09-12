@@ -55,8 +55,6 @@ export class AddChatUserPanel {
     }
   });
 
-  protected readonly errorMessage = this._addChatUserService.errorMessage;
-
   constructor() {
     // Успешное добавление закрывает всю панель, а не только очищает список:
     // добавленный участник виден в шапке, отдельного сообщения об успехе нет.
