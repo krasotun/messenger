@@ -10,5 +10,6 @@ export interface Chat {
   title: string;
   avatar: Nullable<string>;
   unreadCount: number;
+  createdBy: number;
   lastMessage: Nullable<ChatLastMessage>;
 }

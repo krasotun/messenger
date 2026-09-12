@@ -16,6 +16,7 @@ export interface Chat {
   id: number;
   title: string;
   avatar: string | null;
+  createdBy: number;
 }
 
 export const sessionCookieName = 'mock_auth_session';

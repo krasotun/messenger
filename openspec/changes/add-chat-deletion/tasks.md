@@ -14,11 +14,11 @@
 
 ## 3. Создатель чата в модели Чата
 
-- [ ] 3.1 Написать падающую спеку `src/app/domains/chats/infrastructure/chat.mapper.spec.ts` (или дополнить существующую): `created_by` из `ChatDto` попадает в модель `Chat`
-- [ ] 3.2 Добавить `created_by` в `chat-dto.type.ts`, автора в `chat.type.ts` и чтение в `chat.mapper.ts`, проверив, что спека зеленая
-- [ ] 3.3 Проверить живым запросом к `GET /chats` учебного API, что `created_by` действительно приходит; если нет - остановиться и вернуться к развилке источника права из `design.md`, не меняя спеку **Удаления чата**
-- [ ] 3.4 Отдать `created_by` в `mock-backend/src/routes/chats.ts` и `mock-backend/src/store.ts`, чтобы e2e видел то же, что и реальное API
-- [ ] 3.5 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 3.1 Написать падающую спеку `src/app/domains/chats/infrastructure/chat.mapper.spec.ts` (или дополнить существующую): `created_by` из `ChatDto` попадает в модель `Chat`
+- [x] 3.2 Добавить `created_by` в `chat-dto.type.ts`, автора в `chat.type.ts` и чтение в `chat.mapper.ts`, проверив, что спека зеленая
+- [x] 3.3 Проверить живым запросом к `GET /chats` учебного API, что `created_by` действительно приходит; если нет - остановиться и вернуться к развилке источника права из `design.md`, не меняя спеку **Удаления чата**
+- [x] 3.4 Отдать `created_by` в `mock-backend/src/routes/chats.ts` и `mock-backend/src/store.ts`, чтобы e2e видел то же, что и реальное API
+- [x] 3.5 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 4. Use case удаления чата
 

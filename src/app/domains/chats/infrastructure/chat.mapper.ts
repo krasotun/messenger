@@ -14,7 +14,7 @@ const lastMessageMapper = ({ user, content }: ChatLastMessageDto): ChatLastMessa
 };
 
 export const chatMapper = (
-  { id, title, avatar, unread_count, last_message }: ChatDto,
+  { id, title, avatar, unread_count, created_by, last_message }: ChatDto,
   resourcesBaseUrl: string,
 ): Chat => {
   const lastMessage: Nullable<ChatLastMessage> = last_message
@@ -26,6 +26,7 @@ export const chatMapper = (
     title,
     avatar: resolveAvatarUrl(avatar, resourcesBaseUrl),
     unreadCount: unread_count,
+    createdBy: created_by,
     lastMessage,
   };
 };
