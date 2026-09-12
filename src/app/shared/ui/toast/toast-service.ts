@@ -50,6 +50,11 @@ export class ToastService implements Notifier {
 
     stackRef.instance.closed.subscribe((id: number) => this._remove(id));
 
+    // items у стека required, а effect выполняется асинхронно: первое значение
+    // ставим сразу после attach, чтобы оно не зависело от того, успеет ли
+    // effect до первого рендера.
+    stackRef.setInput('items', this._items());
+
     effect(() => stackRef.setInput('items', this._items()), { injector: this._injector });
   }
 

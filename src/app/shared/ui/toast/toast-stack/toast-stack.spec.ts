@@ -39,6 +39,19 @@ describe('ToastStack', () => {
     );
   }
 
+  it('should keep an already shown notification visible when another one appears', () => {
+    fixture.componentRef.setInput('items', [
+      makeItem(2, errorNotification),
+      makeItem(1, successNotification),
+    ]);
+
+    fixture.detectChanges();
+
+    expect(titles()).toHaveLength(2);
+    expect(titles()).toContain(successNotification.title);
+    expect(titles()).toContain(errorNotification.title);
+  });
+
   it('should render items in the given order, newest first', () => {
     fixture.componentRef.setInput('items', [
       makeItem(2, errorNotification),
@@ -104,6 +117,9 @@ describe('ToastStack', () => {
   });
 
   it('should declare itself as a live region', () => {
+    fixture.componentRef.setInput('items', []);
+    fixture.detectChanges();
+
     const hostEl: HTMLElement = fixture.nativeElement;
 
     expect(hostEl.getAttribute('aria-live')).toBe('polite');

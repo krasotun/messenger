@@ -18,13 +18,12 @@ export interface ToastStackItem {
   templateUrl: './toast-stack.html',
   styleUrl: './toast-stack.scss',
   host: {
-    class: 'app-toast-stack',
     role: 'status',
     'aria-live': 'polite',
   },
 })
 export class ToastStack {
-  readonly items = input<ToastStackItem[]>([]);
+  readonly items = input.required<ToastStackItem[]>();
 
   readonly closed = output<number>();
 
