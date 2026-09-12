@@ -21,6 +21,7 @@ export interface ChatDto {
   title: string;
   avatar: Nullable<string>;
   unread_count: number;
+  created_by: number;
   last_message: Nullable<ChatLastMessageDto>;
 }
 

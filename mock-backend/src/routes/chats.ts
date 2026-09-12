@@ -38,6 +38,7 @@ chatsRouter.get('/chats', (request, response) => {
       title: chat.title,
       avatar: chat.avatar,
       unread_count: 0,
+      created_by: chat.createdBy,
       last_message: null,
     })),
   );
@@ -57,6 +58,7 @@ chatsRouter.post('/chats', (request, response) => {
     id: nextChatId(),
     title: body.title,
     avatar: null,
+    createdBy: user.id,
   };
 
   chatsById.set(chat.id, chat);

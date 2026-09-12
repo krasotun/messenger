@@ -27,6 +27,7 @@ const chatDtoMock: ChatDto = {
   title: 'Analytics Q3',
   avatar: '/path/to/chat-avatar.png',
   unread_count: 3,
+  created_by: 1,
   last_message: {
     user: {
       first_name: 'John',
@@ -47,6 +48,7 @@ const chatMock: Chat = {
   title: 'Analytics Q3',
   avatar: `${resourcesBaseUrlMock}/path/to/chat-avatar.png`,
   unreadCount: 3,
+  createdBy: 1,
   lastMessage: {
     authorName: 'Johnny',
     content: 'the report is ready',

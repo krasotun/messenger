@@ -10,6 +10,7 @@ const chatDtoMock: ChatDto = {
   title: 'Analytics Q3',
   avatar: null,
   unread_count: 0,
+  created_by: 1,
   last_message: null,
 };
 

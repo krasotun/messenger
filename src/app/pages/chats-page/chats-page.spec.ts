@@ -9,6 +9,7 @@ const chatMock = {
   title: 'Analytics Q3',
   avatar: null,
   unreadCount: 0,
+  createdBy: 1,
   lastMessage: null,
 };
 
