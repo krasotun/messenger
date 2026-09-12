@@ -1,9 +1,9 @@
 ## 1. Результат закрытия модального окна
 
-- [ ] 1.1 Написать падающие спеки в `src/app/shared/ui/modal/modal-service.spec.ts`: `open()` возвращает ссылку на окно, при уже открытом окне - `null`, закрытие приходит по этой ссылке ровно один раз
-- [ ] 1.2 Написать падающие спеки на `ModalRef` (`src/app/shared/ui/modal/modal-ref.ts`): `close(result)` доносит результат, закрытие по `Escape`, фону и кнопке приходит без результата
-- [ ] 1.3 Реализовать результат закрытия в `modal-ref.ts` и возврат ссылки из `modal-service.ts`, проверив, что спеки блока зеленые
-- [ ] 1.4 Прогнать `npm run lint` и `npm run test:ci` и убедиться, что существующие потребители модалки (`create-chat`, `update-profile`, `change-password`, `change-avatar`) не сломались
+- [x] 1.1 Написать падающие спеки в `src/app/shared/ui/modal/modal-service.spec.ts`: `open()` возвращает ссылку на окно, при уже открытом окне - `null`, закрытие приходит по этой ссылке ровно один раз
+- [x] 1.2 Написать падающие спеки на `ModalRef` (`src/app/shared/ui/modal/modal-ref.ts`): `close(result)` доносит результат, закрытие по `Escape`, фону и кнопке приходит без результата
+- [x] 1.3 Реализовать результат закрытия в `modal-ref.ts` и возврат ссылки из `modal-service.ts`, проверив, что спеки блока зеленые
+- [x] 1.4 Прогнать `npm run lint` и `npm run test:ci` и убедиться, что существующие потребители модалки (`create-chat`, `update-profile`, `change-password`, `change-avatar`) не сломались
 
 ## 2. Подтверждение в shared/ui
 

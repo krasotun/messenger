@@ -26,9 +26,9 @@ export class ModalService {
 
   private _activeOverlayRef: OverlayRef | null = null;
 
-  open<T>(component: Type<T>, options?: ModalOptions): void {
+  open<T>(component: Type<T>, options?: ModalOptions): ModalRef | null {
     if (this._activeOverlayRef) {
-      return;
+      return null;
     }
 
     const modalRef = new ModalRef();
@@ -40,6 +40,8 @@ export class ModalService {
     this._attachModalShell(overlayRef, modalRef, component, options);
 
     this._setSubscriptions(overlayRef, modalRef);
+
+    return modalRef;
   }
 
   private _createOverlayRef(): OverlayRef {
@@ -92,6 +94,8 @@ export class ModalService {
       if (this._activeOverlayRef === overlayRef) {
         this._activeOverlayRef = null;
       }
+
+      modalRef.notifyClosed();
     });
   }
 }
