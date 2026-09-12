@@ -1,4 +1,7 @@
-.app-toast {
+// Класс вида висит на host-элементе, поэтому стили карточки и цвета видов
+// пишутся через :host: правило вида `.app-toast` компилируется с атрибутом
+// содержимого и до host-элемента не достает.
+:host {
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -8,15 +11,17 @@
   border-radius: 8px;
   border-left: 4px solid transparent;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+}
 
-  &_success {
-    border-left-color: var(--color-success);
-  }
+:host(.app-toast_success) {
+  border-left-color: var(--color-success);
+}
 
-  &_error {
-    border-left-color: var(--color-danger);
-  }
+:host(.app-toast_error) {
+  border-left-color: var(--color-danger);
+}
 
+.app-toast {
   &__body {
     display: flex;
     flex-direction: column;
@@ -27,16 +32,6 @@
   &__title {
     font-size: 14px;
     font-weight: 600;
-  }
-
-  // Заголовок и в успехе, и в ошибке красится тем же цветом, что и полоса
-  // слева, - вид читается без опоры на саму полосу.
-  &_success &__title {
-    color: var(--color-success);
-  }
-
-  &_error &__title {
-    color: var(--color-danger);
   }
 
   &__text {
@@ -57,4 +52,14 @@
     cursor: pointer;
     color: var(--color-text-secondary);
   }
+}
+
+// Заголовок и в успехе, и в ошибке красится тем же цветом, что и полоса
+// слева, - вид читается без опоры на саму полосу.
+:host(.app-toast_success) .app-toast__title {
+  color: var(--color-success);
+}
+
+:host(.app-toast_error) .app-toast__title {
+  color: var(--color-danger);
 }

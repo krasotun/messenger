@@ -32,6 +32,8 @@ test('shows updated profile data without page reload', async ({ page, request })
   await expect(page.getByRole('dialog')).toBeHidden();
 
   await expect(page.getByRole('button', { name: `Avatar ${updatedFirstName}` })).toBeVisible();
+
+  await expect(page.getByText('Profile updated successfully')).toBeVisible();
 });
 
 test('keeps entered values and shows an error when the backend rejects saving', async ({
@@ -63,7 +65,8 @@ test('keeps entered values and shows an error when the backend rejects saving', 
 
   await page.getByRole('button', { name: 'Save' }).click();
 
-  await expect(page.getByText('Ошибка сохранения: Login already exists')).toBeVisible();
+  await expect(page.getByText('Failed to update profile')).toBeVisible();
+  await expect(page.getByText('Login already exists')).toBeVisible();
 
   await expect(page.getByRole('textbox', { name: 'Login' })).toHaveValue(takenLoginUser.login);
 });
