@@ -12,7 +12,6 @@ import { Nullable } from '@shared/types';
 
 let changeAvatarServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  errorMessage: WritableSignal<Nullable<string>>;
   status: WritableSignal<AuthFlowStatus>;
   changeAvatar: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
@@ -81,7 +80,6 @@ describe('ChangeAvatarForm', () => {
 
     changeAvatarServiceMock = {
       isSubmitting: signal(false),
-      errorMessage: signal(null),
       status: signal(AuthFlowStatus.Idle),
       changeAvatar: vi.fn(),
       reset: vi.fn(),
@@ -205,21 +203,17 @@ describe('ChangeAvatarForm', () => {
     });
   });
 
-  describe('error state', () => {
-    it('should render the error message and keep the selected file with its preview', () => {
+  describe('backend rejects the submission', () => {
+    it('should not show a submit error and should keep the selected file with its preview', () => {
       fixture.detectChanges();
 
       selectFile(pngFileMock);
-
-      changeAvatarServiceMock.errorMessage.set('Mock error');
-      fixture.detectChanges();
-
-      expect(getErrorMessage()).toContain('Mock error');
-      expect(getAvatarImage()?.getAttribute('src')).toBe('blob:mock/1');
-
       submitForm();
 
-      expect(changeAvatarServiceMock.changeAvatar).toHaveBeenCalledWith({ file: pngFileMock });
+      fixture.detectChanges();
+
+      expect(getErrorMessage()).toBe('');
+      expect(getAvatarImage()?.getAttribute('src')).toBe('blob:mock/1');
     });
   });
 

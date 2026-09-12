@@ -7,6 +7,7 @@ import { USER_GATEWAY } from '../user.gateway';
 import { UpdateProfileInput } from './update-profile-input.type';
 
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 
 const emptyInitialValues: UpdateProfileInput = {
   firstName: '',
@@ -21,11 +22,11 @@ const emptyInitialValues: UpdateProfileInput = {
 export class UpdateProfileService {
   private readonly _userGateway = inject(USER_GATEWAY);
   private readonly _currentSessionService = inject(CurrentSessionService);
+  private readonly _notifier = inject(NOTIFIER);
 
   private readonly _flow = createAuthFlowState();
 
   readonly status = this._flow.status;
-  readonly errorMessage = this._flow.errorMessage;
 
   readonly isSubmitting = this._flow.isSubmitting;
 
@@ -55,9 +56,11 @@ export class UpdateProfileService {
       next: ({ user }) => {
         this._currentSessionService.updateCurrentUser(user);
         this._flow.markSuccess();
+        this._notifier.success('Update profile', 'Profile updated successfully');
       },
       error: ({ message }: ApplicationError) => {
-        this._flow.markError(message);
+        this._flow.markError();
+        this._notifier.error('Failed to update profile', message);
       },
     });
   }

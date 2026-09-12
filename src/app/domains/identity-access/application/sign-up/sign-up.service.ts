@@ -5,16 +5,17 @@ import { createAuthFlowState } from '../create-auth-flow-state';
 
 import { SignUpInput } from '@domains/identity-access/application/sign-up/sign-up-input.type';
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SignUpService {
   private readonly _authGateway = inject(AUTH_GATEWAY);
+  private readonly _notifier = inject(NOTIFIER);
   private readonly _flow = createAuthFlowState();
 
   readonly status = this._flow.status;
-  readonly errorMessage = this._flow.errorMessage;
 
   readonly isSubmitting = this._flow.isSubmitting;
 
@@ -26,7 +27,8 @@ export class SignUpService {
         this._flow.markSuccess();
       },
       error: ({ message }: ApplicationError) => {
-        this._flow.markError(message);
+        this._flow.markError();
+        this._notifier.error('Sign-up failed', message);
       },
     });
   }

@@ -52,7 +52,6 @@ export class ChangePasswordForm {
   private readonly _changePasswordService = inject(ChangePasswordService);
 
   protected readonly isSubmitting = this._changePasswordService.isSubmitting;
-  protected readonly errorMessage = this._changePasswordService.errorMessage;
 
   constructor() {
     effect(() => {

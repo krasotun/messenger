@@ -12,6 +12,7 @@ import { SignInInput } from './sign-in-input.type';
 import { SignInService } from './sign-in.service';
 
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 
 const authGatewayMock = {
   signIn: vi.fn(),
@@ -20,6 +21,11 @@ const authGatewayMock = {
 const currentSessionServiceMock = {
   restoreCurrentSession: vi.fn(),
   logout: vi.fn(),
+};
+
+const notifierMock = {
+  success: vi.fn(),
+  error: vi.fn(),
 };
 
 const signInInputMock: SignInInput = {
@@ -52,6 +58,9 @@ describe('SignIn', () => {
     currentSessionServiceMock.restoreCurrentSession.mockReset();
     currentSessionServiceMock.logout.mockReset();
 
+    notifierMock.success.mockReset();
+    notifierMock.error.mockReset();
+
     TestBed.configureTestingModule({
       providers: [
         {
@@ -62,6 +71,11 @@ describe('SignIn', () => {
         {
           provide: CurrentSessionService,
           useValue: currentSessionServiceMock,
+        },
+
+        {
+          provide: NOTIFIER,
+          useValue: notifierMock,
         },
       ],
     });
@@ -75,10 +89,6 @@ describe('SignIn', () => {
   describe('initial state', () => {
     it('status should be idle', () => {
       expect(service.status()).toBe(AuthFlowStatus.Idle);
-    });
-
-    it('errorMessage should be null', () => {
-      expect(service.errorMessage()).toBeNull();
     });
 
     it('isSubmitting should be false', () => {
@@ -96,21 +106,12 @@ describe('SignIn', () => {
       expect(authGatewayMock.signIn).toHaveBeenCalledWith(signInInputMock);
     });
 
-    it('should set submitting state and clear error message while request is pending', () => {
-      authGatewayMock.signIn.mockReturnValueOnce(
-        throwError(() => new ApplicationError('mockError')),
-      );
-
-      service.signIn(signInInputMock);
-
-      expect(service.errorMessage()).toBe('mockError');
-
+    it('should set submitting state while request is pending', () => {
       const signInResult$ = new Subject<{ authenticated: true }>();
       authGatewayMock.signIn.mockReturnValueOnce(signInResult$);
 
       service.signIn(signInInputMock);
 
-      expect(service.errorMessage()).toBeNull();
       expect(service.status()).toBe(AuthFlowStatus.Submitting);
     });
 
@@ -122,10 +123,10 @@ describe('SignIn', () => {
       service.signIn(signInInputMock);
 
       expect(service.status()).toBe(AuthFlowStatus.Success);
-      expect(service.errorMessage()).toBeNull();
+      expect(notifierMock.error).not.toHaveBeenCalled();
     });
 
-    it('should set error state when request succeeds but current session is anonymous', () => {
+    it('should set error state and notify when request succeeds but current session is anonymous', () => {
       authGatewayMock.signIn.mockReturnValue(of({ authenticated: true }));
       currentSessionServiceMock.restoreCurrentSession.mockReturnValue(
         of({
@@ -134,11 +135,15 @@ describe('SignIn', () => {
       );
 
       service.signIn(signInInputMock);
+
       expect(service.status()).toBe(AuthFlowStatus.Error);
-      expect(service.errorMessage()).toBe('Login failed. Please try again later');
+      expect(notifierMock.error).toHaveBeenCalledWith(
+        'Sign-in failed',
+        'Login failed. Please try again later',
+      );
     });
 
-    it('should set error state when request succeeds but current session restore fails', () => {
+    it('should set error state and notify when request succeeds but current session restore fails', () => {
       authGatewayMock.signIn.mockReturnValue(of({ authenticated: true }));
       currentSessionServiceMock.restoreCurrentSession.mockReturnValue(
         throwError(() => new ApplicationError('mockError')),
@@ -147,10 +152,10 @@ describe('SignIn', () => {
       service.signIn(signInInputMock);
 
       expect(service.status()).toBe(AuthFlowStatus.Error);
-      expect(service.errorMessage()).toBe('mockError');
+      expect(notifierMock.error).toHaveBeenCalledWith('Sign-in failed', 'mockError');
     });
 
-    it('should show application error message', () => {
+    it('should notify with the reason from the backend', () => {
       const signInResult$ = throwError(() => {
         return new ApplicationError('mockReason');
       });
@@ -159,7 +164,7 @@ describe('SignIn', () => {
       service.signIn(signInInputMock);
 
       expect(service.status()).toBe(AuthFlowStatus.Error);
-      expect(service.errorMessage()).toBe('mockReason');
+      expect(notifierMock.error).toHaveBeenCalledWith('Sign-in failed', 'mockReason');
     });
 
     it('should restore current session after successful sign in', () => {
@@ -173,7 +178,7 @@ describe('SignIn', () => {
   });
 
   describe('reset', () => {
-    it('should reset status and error message', () => {
+    it('should reset status', () => {
       authGatewayMock.signIn.mockReturnValueOnce(
         throwError(() => new ApplicationError('mockError')),
       );
@@ -181,12 +186,10 @@ describe('SignIn', () => {
       service.signIn(signInInputMock);
 
       expect(service.status()).toBe(AuthFlowStatus.Error);
-      expect(service.errorMessage()).toBe('mockError');
 
       service.reset();
 
       expect(service.status()).toBe(AuthFlowStatus.Idle);
-      expect(service.errorMessage()).toBeNull();
     });
   });
 });

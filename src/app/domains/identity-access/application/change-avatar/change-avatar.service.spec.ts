@@ -15,6 +15,7 @@ import { ChangeAvatarResult } from './change-avatar-result.type';
 import { ChangeAvatarService } from './change-avatar.service';
 
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 
 const authGatewayMock = {
   currentSession: vi.fn(),
@@ -28,6 +29,11 @@ const userGatewayMock = {
 const routerMock = {
   navigate: vi.fn(),
   navigateByUrl: vi.fn(),
+};
+
+const notifierMock = {
+  success: vi.fn(),
+  error: vi.fn(),
 };
 
 const currentUserMock: CurrentUser = {
@@ -65,6 +71,8 @@ describe('ChangeAvatarService', () => {
     userGatewayMock.changeAvatar.mockReset();
     routerMock.navigate.mockReset();
     routerMock.navigateByUrl.mockReset();
+    notifierMock.success.mockReset();
+    notifierMock.error.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -79,6 +87,10 @@ describe('ChangeAvatarService', () => {
         {
           provide: Router,
           useValue: routerMock,
+        },
+        {
+          provide: NOTIFIER,
+          useValue: notifierMock,
         },
         ChangeAvatarService,
       ],
@@ -100,10 +112,6 @@ describe('ChangeAvatarService', () => {
       expect(service.status()).toBe(AuthFlowStatus.Idle);
     });
 
-    it('errorMessage should be null', () => {
-      expect(service.errorMessage()).toBeNull();
-    });
-
     it('isSubmitting should be false', () => {
       expect(service.isSubmitting()).toBe(false);
     });
@@ -119,21 +127,12 @@ describe('ChangeAvatarService', () => {
       expect(userGatewayMock.changeAvatar).toHaveBeenCalledWith(changeAvatarInputMock);
     });
 
-    it('should set submitting state and clear error message while request is pending', () => {
-      userGatewayMock.changeAvatar.mockReturnValueOnce(
-        throwError(() => new ApplicationError('mockError')),
-      );
-
-      service.changeAvatar(changeAvatarInputMock);
-
-      expect(service.errorMessage()).toBe('mockError');
-
+    it('should set submitting state while request is pending', () => {
       const changeAvatarResult$ = new Subject<ChangeAvatarResult>();
       userGatewayMock.changeAvatar.mockReturnValueOnce(changeAvatarResult$);
 
       service.changeAvatar(changeAvatarInputMock);
 
-      expect(service.errorMessage()).toBeNull();
       expect(service.status()).toBe(AuthFlowStatus.Submitting);
       expect(service.isSubmitting()).toBe(true);
     });
@@ -147,7 +146,15 @@ describe('ChangeAvatarService', () => {
         service.changeAvatar(changeAvatarInputMock);
 
         expect(service.status()).toBe(AuthFlowStatus.Success);
-        expect(service.errorMessage()).toBeNull();
+      });
+
+      it('should notify about success', () => {
+        service.changeAvatar(changeAvatarInputMock);
+
+        expect(notifierMock.success).toHaveBeenCalledWith(
+          'Change avatar',
+          'Avatar changed successfully',
+        );
       });
 
       it('should update the current session from the backend response', () => {
@@ -177,11 +184,11 @@ describe('ChangeAvatarService', () => {
         );
       });
 
-      it('should expose the error message', () => {
+      it('should set error state and notify with the reason', () => {
         service.changeAvatar(changeAvatarInputMock);
 
         expect(service.status()).toBe(AuthFlowStatus.Error);
-        expect(service.errorMessage()).toBe('mockReason');
+        expect(notifierMock.error).toHaveBeenCalledWith('Failed to change avatar', 'mockReason');
       });
 
       it('should keep the current session unchanged', () => {
@@ -200,7 +207,7 @@ describe('ChangeAvatarService', () => {
   });
 
   describe('reset', () => {
-    it('should reset status and error message', () => {
+    it('should reset status', () => {
       userGatewayMock.changeAvatar.mockReturnValue(
         throwError(() => new ApplicationError('mockError')),
       );
@@ -208,12 +215,10 @@ describe('ChangeAvatarService', () => {
       service.changeAvatar(changeAvatarInputMock);
 
       expect(service.status()).toBe(AuthFlowStatus.Error);
-      expect(service.errorMessage()).toBe('mockError');
 
       service.reset();
 
       expect(service.status()).toBe(AuthFlowStatus.Idle);
-      expect(service.errorMessage()).toBeNull();
     });
   });
 });

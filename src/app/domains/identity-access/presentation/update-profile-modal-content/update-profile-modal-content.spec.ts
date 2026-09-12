@@ -18,7 +18,7 @@ import { UpdateProfileForm } from '../update-profile-form/update-profile-form';
 import { UpdateProfileModalContent } from './update-profile-modal-content';
 
 import { ApplicationError } from '@shared/errors';
-import { Nullable } from '@shared/types';
+import { NOTIFIER } from '@shared/notifications';
 import { ModalRef } from '@shared/ui/modal/modal-ref';
 
 const currentUserMock: CurrentUser = {
@@ -44,7 +44,6 @@ const initialValuesMock: UpdateProfileInput = {
 let updateProfileServiceMock: {
   initialValues: WritableSignal<UpdateProfileInput>;
   isSubmitting: WritableSignal<boolean>;
-  errorMessage: WritableSignal<string | null>;
   status: WritableSignal<AuthFlowStatus>;
   updateProfile: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
@@ -52,7 +51,6 @@ let updateProfileServiceMock: {
 
 let changeAvatarServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  errorMessage: WritableSignal<Nullable<string>>;
   status: WritableSignal<AuthFlowStatus>;
   changeAvatar: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
@@ -60,6 +58,11 @@ let changeAvatarServiceMock: {
 
 let modalRefMock: {
   close: ReturnType<typeof vi.fn>;
+};
+
+const notifierMock = {
+  success: vi.fn(),
+  error: vi.fn(),
 };
 
 const pngFileMock = new File(['mockContent'], 'avatar.png', { type: 'image/png' });
@@ -102,7 +105,6 @@ describe('UpdateProfileModalContent', () => {
     updateProfileServiceMock = {
       initialValues: signal(initialValuesMock),
       isSubmitting: signal(false),
-      errorMessage: signal(null),
       status: signal(AuthFlowStatus.Idle),
       updateProfile: vi.fn(),
       reset: vi.fn(),
@@ -110,7 +112,6 @@ describe('UpdateProfileModalContent', () => {
 
     changeAvatarServiceMock = {
       isSubmitting: signal(false),
-      errorMessage: signal(null),
       status: signal(AuthFlowStatus.Idle),
       changeAvatar: vi.fn(),
       reset: vi.fn(),
@@ -119,6 +120,9 @@ describe('UpdateProfileModalContent', () => {
     modalRefMock = {
       close: vi.fn(),
     };
+
+    notifierMock.success.mockReset();
+    notifierMock.error.mockReset();
 
     TestBed.configureTestingModule({
       imports: [UpdateProfileModalContent],
@@ -130,6 +134,10 @@ describe('UpdateProfileModalContent', () => {
         {
           provide: CurrentSessionService,
           useValue: { currentUser: signal(currentUserMock) },
+        },
+        {
+          provide: NOTIFIER,
+          useValue: notifierMock,
         },
       ],
     });
@@ -270,6 +278,10 @@ describe('UpdateProfileModalContent', () => {
             provide: ModalRef,
             useValue: modalRefMock,
           },
+          {
+            provide: NOTIFIER,
+            useValue: notifierMock,
+          },
         ],
       });
 
@@ -283,9 +295,8 @@ describe('UpdateProfileModalContent', () => {
 
       await submitWithError(failedFixture);
 
-      expect(
-        failedFixture.nativeElement.querySelector('.update-profile-form__error'),
-      ).not.toBeNull();
+      expect(notifierMock.error).toHaveBeenCalledWith('Failed to update profile', 'Mock error');
+      expect(failedFixture.nativeElement.querySelector('.update-profile-form__error')).toBeNull();
 
       failedFixture.destroy();
 
@@ -312,9 +323,8 @@ describe('UpdateProfileModalContent', () => {
       failedFixture.detectChanges();
 
       expect(userGatewayMock.changeAvatar).toHaveBeenCalledOnce();
-      expect(
-        failedFixture.nativeElement.querySelector('.change-avatar-form__error'),
-      ).not.toBeNull();
+      expect(notifierMock.error).toHaveBeenCalledWith('Failed to change avatar', 'Mock error');
+      expect(failedFixture.nativeElement.querySelector('.change-avatar-form__error')).toBeNull();
 
       failedFixture.destroy();
 

@@ -59,7 +59,6 @@ export class SignUpForm {
   private readonly _signUpService = inject(SignUpService);
 
   protected readonly isSubmitting = this._signUpService.isSubmitting;
-  protected readonly errorMessage = this._signUpService.errorMessage;
 
   constructor() {
     effect(() => {

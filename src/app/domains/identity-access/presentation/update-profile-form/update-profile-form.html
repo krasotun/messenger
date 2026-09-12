@@ -73,9 +73,6 @@
     </app-form-field>
   </div>
 
-  @if (errorMessage()) {
-  <span class="update-profile-form__error">Ошибка сохранения: {{ errorMessage() }}</span>
-  }
   <div class="update-profile-form__actions">
     <button appButton [disabled]="isSubmitting()" type="submit">Save</button>
   </div>
