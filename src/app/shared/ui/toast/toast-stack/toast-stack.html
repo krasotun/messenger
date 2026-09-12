@@ -1,0 +1,7 @@
+@for (item of visibleItems(); track item.id) {
+<app-toast
+  [notification]="item.notification"
+  [delayMs]="item.delayMs"
+  (closed)="closed.emit(item.id)"
+/>
+}

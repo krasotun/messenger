@@ -15,12 +15,12 @@
 
 ## 3. Стек уведомлений и реализация порта
 
-- [ ] 3.1 Написать падающий `src/app/shared/ui/toast/toast-stack/toast-stack.spec.ts`: порядок (новое сверху), предел в три, вытеснение самого старого, два одинаковых не схлопываются, контейнер объявлен как live region
-- [ ] 3.2 Реализовать `toast-stack.ts`, `toast-stack.html`, `toast-stack.scss`; проверка: спека из 3.1 зеленая
-- [ ] 3.3 Написать падающий `src/app/shared/ui/toast/toast-service.spec.ts`: показ создает overlay, интервал из вызова доходит до `Toast`, стек опустел - overlay уничтожен, **Уведомление** видно поверх открытой модалки, фокус не переносится
-- [ ] 3.4 Реализовать `toast-service.ts` как реализацию `Notifier` на CDK Overlay с `global().top().right()`; проверка: спека из 3.3 зеленая
-- [ ] 3.5 Подключить `NOTIFIER` к `ToastService` в `src/app/app.config.ts`; проверка: спека, поднимающая приложение, получает `Notifier` из инжектора
-- [ ] 3.6 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 3.1 Написать падающий `src/app/shared/ui/toast/toast-stack/toast-stack.spec.ts`: порядок (новое сверху), предел в три, вытеснение самого старого, два одинаковых не схлопываются, контейнер объявлен как live region
+- [x] 3.2 Реализовать `toast-stack.ts`, `toast-stack.html`, `toast-stack.scss`; проверка: спека из 3.1 зеленая
+- [x] 3.3 Написать падающий `src/app/shared/ui/toast/toast-service.spec.ts`: показ создает overlay, интервал из вызова доходит до `Toast`, стек опустел - overlay уничтожен, **Уведомление** видно поверх открытой модалки, фокус не переносится
+- [x] 3.4 Реализовать `toast-service.ts` как реализацию `Notifier` на CDK Overlay с `global().top().right()`; проверка: спека из 3.3 зеленая
+- [x] 3.5 Подключить `NOTIFIER` к `ToastService` в `src/app/app.config.ts`; проверка: спека, поднимающая приложение, получает `Notifier` из инжектора
+- [x] 3.6 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 4. Исход входа и регистрации
 
