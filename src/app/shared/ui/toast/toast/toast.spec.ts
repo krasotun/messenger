@@ -6,14 +6,14 @@ import { DEFAULT_NOTIFICATION_DELAY_MS, Notification } from '@shared/notificatio
 
 const successNotification: Notification = {
   kind: 'success',
-  title: 'Смена пароля',
-  text: 'Пароль успешно изменен',
+  title: 'Password change',
+  text: 'Password changed successfully',
 };
 
 const errorNotification: Notification = {
   kind: 'error',
-  title: 'Не удалось сменить пароль',
-  text: 'Неверный пароль',
+  title: 'Failed to change password',
+  text: 'Wrong password',
 };
 
 describe('Toast', () => {
@@ -39,9 +39,9 @@ describe('Toast', () => {
   it('should render notification title and text', () => {
     const toastEl: HTMLElement = fixture.nativeElement;
 
-    expect(toastEl.querySelector('.app-toast__title')?.textContent?.trim()).toBe('Смена пароля');
+    expect(toastEl.querySelector('.app-toast__title')?.textContent?.trim()).toBe('Password change');
     expect(toastEl.querySelector('.app-toast__text')?.textContent?.trim()).toBe(
-      'Пароль успешно изменен',
+      'Password changed successfully',
     );
   });
 
@@ -62,7 +62,7 @@ describe('Toast', () => {
     expect(toastEl.classList.contains('app-toast_success')).toBe(false);
   });
 
-  describe('закрытие кнопкой', () => {
+  describe('closing by button', () => {
     it('should emit closed when close button is clicked', () => {
       const closedSpy = vi.fn();
 
@@ -94,7 +94,7 @@ describe('Toast', () => {
     });
   });
 
-  describe('угасание', () => {
+  describe('fading', () => {
     it('should emit closed after default delay when delayMs is not given', () => {
       const closedSpy = vi.fn();
 

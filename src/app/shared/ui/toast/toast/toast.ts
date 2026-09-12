@@ -1,4 +1,6 @@
-import { Component, computed, input, OnDestroy, OnInit, output } from '@angular/core';
+import { Component, DestroyRef, inject, input, OnInit, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription, timer } from 'rxjs';
 
 import { DEFAULT_NOTIFICATION_DELAY_MS, Notification } from '@shared/notifications';
 
@@ -8,33 +10,30 @@ import { DEFAULT_NOTIFICATION_DELAY_MS, Notification } from '@shared/notificatio
   templateUrl: './toast.html',
   styleUrl: './toast.scss',
   host: {
-    '[class]': 'hostClass()',
+    class: 'app-toast',
+    '[class.app-toast_success]': "notification().kind === 'success'",
+    '[class.app-toast_error]': "notification().kind === 'error'",
   },
 })
-export class Toast implements OnInit, OnDestroy {
+export class Toast implements OnInit {
   readonly notification = input.required<Notification>();
 
   readonly delayMs = input<number>();
 
   readonly closed = output<void>();
 
-  readonly hostClass = computed(() => `app-toast app-toast_${this.notification().kind}`);
+  private readonly _destroyRef = inject(DestroyRef);
 
-  private _fadeTimeoutId?: ReturnType<typeof setTimeout>;
+  private _fadeSubscription?: Subscription;
 
   ngOnInit(): void {
-    this._fadeTimeoutId = setTimeout(
-      () => this.closed.emit(),
-      this.delayMs() ?? DEFAULT_NOTIFICATION_DELAY_MS,
-    );
-  }
-
-  ngOnDestroy(): void {
-    clearTimeout(this._fadeTimeoutId);
+    this._fadeSubscription = timer(this.delayMs() ?? DEFAULT_NOTIFICATION_DELAY_MS)
+      .pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe(() => this.closed.emit());
   }
 
   close(): void {
-    clearTimeout(this._fadeTimeoutId);
+    this._fadeSubscription?.unsubscribe();
 
     this.closed.emit();
   }
