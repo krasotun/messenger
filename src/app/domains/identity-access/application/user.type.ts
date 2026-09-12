@@ -1,7 +1,9 @@
+import { UserId } from './user-id.type';
+
 import { Nullable } from '@shared/types';
 
 export interface User {
-  id: number;
+  id: UserId;
   login: string;
   name: string;
   avatar: Nullable<string>;

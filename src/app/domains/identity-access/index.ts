@@ -8,3 +8,4 @@ export { SearchUsersService } from './application/search-users/search-users.serv
 export type { SearchUsersInput } from './application/search-users/search-users-input.type';
 export type { SearchUsersResult } from './application/search-users/search-users-result.type';
 export type { User } from './application/user.type';
+export type { UserId } from './application/user-id.type';
