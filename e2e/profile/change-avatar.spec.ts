@@ -108,7 +108,8 @@ test('keeps the form open with the selected file when the backend rejects the ch
 
   await modal.getByRole('button', { name: 'Change avatar' }).click();
 
-  await expect(modal.getByText('Ошибка смены аватара: Avatar is too big')).toBeVisible();
+  await expect(page.getByText('Failed to change avatar')).toBeVisible();
+  await expect(page.getByText('Avatar is too big')).toBeVisible();
   await expect(modal.getByText(pngFile.name)).toBeVisible();
 
   await expect(modal.getByRole('textbox', { name: 'First name' })).toHaveValue(mockUser.first_name);

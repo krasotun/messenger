@@ -79,7 +79,8 @@ test('keeps the form open with an error when the old password is wrong', async (
 
   await page.getByRole('button', { name: 'Save' }).click();
 
-  await expect(page.getByText('Ошибка смены пароля: Password is incorrect')).toBeVisible();
+  await expect(page.getByText('Failed to change password')).toBeVisible();
+  await expect(page.getByText('Password is incorrect')).toBeVisible();
 
   await expect(page.getByRole('dialog')).toBeVisible();
 });

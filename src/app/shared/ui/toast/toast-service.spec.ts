@@ -1,6 +1,6 @@
 import { Overlay } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { ApplicationRef, Component } from '@angular/core';
+import { ApplicationRef, Component, effect, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { ToastService } from './toast-service';
@@ -12,6 +12,24 @@ import { DEFAULT_NOTIFICATION_DELAY_MS } from '@shared/notifications';
   template: `<div data-testid="modal-stub">Modal content</div>`,
 })
 class TestModalStub {}
+
+@Component({
+  selector: 'app-test-effect-caller',
+  template: `<span>{{ notificationsAsked() }}</span>`,
+})
+class TestEffectCaller {
+  readonly notificationsAsked = signal(0);
+
+  constructor() {
+    const toastService = TestBed.inject(ToastService);
+
+    effect(() => {
+      if (this.notificationsAsked() > 0) {
+        toastService.error('Called from an effect', 'Wrong password');
+      }
+    });
+  }
+}
 
 describe('ToastService', () => {
   let service: ToastService;
@@ -111,6 +129,41 @@ describe('ToastService', () => {
     expect(panes[panes.length - 1]).toBe(toastPane);
 
     modalOverlayRef.dispose();
+  });
+
+  describe('without a change detection pass of the application', () => {
+    it('should render the first notification', () => {
+      service.success('Password change', 'Password changed successfully');
+
+      expect(
+        document.querySelector('.cdk-overlay-container .app-toast__title')?.textContent?.trim(),
+      ).toBe('Password change');
+    });
+
+    it('should render the next notification in an already open stack', () => {
+      service.success('Password change', 'Password changed successfully');
+      service.error('Failed to change password', 'Wrong password');
+
+      const titleEls = document.querySelectorAll('.cdk-overlay-container .app-toast__title');
+
+      expect(Array.from(titleEls).map((titleEl) => titleEl.textContent?.trim())).toEqual([
+        'Failed to change password',
+        'Password change',
+      ]);
+    });
+  });
+
+  it('should render a notification asked for from inside a change detection pass', () => {
+    const fixture = TestBed.createComponent(TestEffectCaller);
+    fixture.detectChanges();
+
+    fixture.componentInstance.notificationsAsked.set(1);
+
+    expect(() => tick()).not.toThrow();
+
+    expect(
+      document.querySelector('.cdk-overlay-container .app-toast__title')?.textContent?.trim(),
+    ).toBe('Called from an effect');
   });
 
   it('should not move keyboard focus when a notification appears', () => {

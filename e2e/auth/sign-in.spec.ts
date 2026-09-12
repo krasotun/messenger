@@ -43,5 +43,6 @@ test('should show authorization error when sign in fails', async ({ page }) => {
 
   await expect(page).toHaveURL('/sign-in');
 
-  await expect(page.getByText('Ошибка авторизации: Invalid login or password')).toBeVisible();
+  await expect(page.getByText('Sign-in failed')).toBeVisible();
+  await expect(page.getByText('Invalid login or password')).toBeVisible();
 });

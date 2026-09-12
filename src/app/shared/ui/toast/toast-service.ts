@@ -1,6 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { effect, inject, Injectable, Injector, signal } from '@angular/core';
+import { ComponentRef, inject, Injectable, Injector, signal } from '@angular/core';
 
 import { ToastStack, ToastStackItem } from './toast-stack/toast-stack';
 
@@ -18,6 +18,8 @@ export class ToastService implements Notifier {
 
   private _overlayRef: OverlayRef | null = null;
 
+  private _stackRef: ComponentRef<ToastStack> | null = null;
+
   private _nextId = 0;
 
   success(title: string, text: string, delayMs?: number): void {
@@ -34,6 +36,7 @@ export class ToastService implements Notifier {
     this._items.update((items) => [item, ...items]);
 
     this._ensureOverlay();
+    this._renderStack();
   }
 
   private _ensureOverlay(): void {
@@ -46,24 +49,37 @@ export class ToastService implements Notifier {
     this._overlayRef = this._overlay.create({ positionStrategy, hasBackdrop: false });
 
     const portal = new ComponentPortal(ToastStack, null, this._injector);
-    const stackRef = this._overlayRef.attach(portal);
 
-    stackRef.instance.closed.subscribe((id: number) => this._remove(id));
+    this._stackRef = this._overlayRef.attach(portal);
 
-    // items у стека required, а effect выполняется асинхронно: первое значение
-    // ставим сразу после attach, чтобы оно не зависело от того, успеет ли
-    // effect до первого рендера.
-    stackRef.setInput('items', this._items());
+    this._stackRef.instance.closed.subscribe((id: number) => this._remove(id));
+  }
 
-    effect(() => stackRef.setInput('items', this._items()), { injector: this._injector });
+  // Стек рисует себя сам, а не ждет общего прохода приложения: показ уведомления
+  // не должен зависеть ни от того, чей проход идет сейчас, ни от того, дойдет
+  // ли он до overlay вообще.
+  private _renderStack(): void {
+    if (!this._stackRef) {
+      return;
+    }
+
+    this._stackRef.setInput('items', this._items());
+    this._stackRef.changeDetectorRef.detectChanges();
   }
 
   private _remove(id: number): void {
     this._items.update((items) => items.filter((item) => item.id !== id));
 
-    if (this._items().length === 0 && this._overlayRef) {
+    if (this._items().length > 0) {
+      this._renderStack();
+
+      return;
+    }
+
+    if (this._overlayRef) {
       this._overlayRef.dispose();
       this._overlayRef = null;
+      this._stackRef = null;
     }
   }
 }
