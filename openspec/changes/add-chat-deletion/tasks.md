@@ -29,10 +29,10 @@
 
 ## 5. Удаление в шапке выбранного чата
 
-- [ ] 5.1 Написать падающие спеки `src/app/domains/chats/presentation/selected-chat-header/selected-chat-header.spec.ts`: действие удаления видно **Создателю чата**, отсутствует у остальных и пока список **Чатов** не загружен, у значка есть доступное имя
-- [ ] 5.2 Написать падающие спеки на поведение действия: подтверждение запрашивается с названием **Чата**, отказ не вызывает шлюз, согласие вызывает удаление, успех уводит навигацию на `/`
-- [ ] 5.3 Реализовать кнопку-значок и обработку в `selected-chat-header.ts`, `selected-chat-header.html`, `selected-chat-header.scss` с текстами из макета (`Delete chat`, `Delete "<title>"? The chat and its messages disappear for every member. This can't be undone.`, `Delete` / `Cancel`), проверив, что спеки блока зеленые
-- [ ] 5.4 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 5.1 Написать падающие спеки `src/app/domains/chats/presentation/selected-chat-header/selected-chat-header.spec.ts`: действие удаления видно **Создателю чата**, отсутствует у остальных и пока список **Чатов** не загружен, у значка есть доступное имя
+- [x] 5.2 Написать падающие спеки на поведение действия: подтверждение запрашивается с названием **Чата**, отказ не вызывает шлюз, согласие вызывает удаление, успех уводит навигацию на `/`
+- [x] 5.3 Реализовать кнопку-значок и обработку в `selected-chat-header.ts`, `selected-chat-header.html`, `selected-chat-header.scss` с текстами из макета (`Delete chat`, `Delete "<title>"? The chat and its messages disappear for every member. This can't be undone.`, `Delete` / `Cancel`), проверив, что спеки блока зеленые
+- [x] 5.4 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 6. Сквозной сценарий и макет
 
