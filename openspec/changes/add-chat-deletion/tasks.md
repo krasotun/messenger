@@ -22,10 +22,10 @@
 
 ## 4. Use case удаления чата
 
-- [ ] 4.1 Написать падающие спеки `src/app/domains/chats/infrastructure/http-chat-gateway.spec.ts` и `chat.api.spec.ts`: `deleteChat` шлет `DELETE /chats` с телом `{ chatId }`, отказ превращается в **Ошибку приложения**
-- [ ] 4.2 Написать падающие спеки `src/app/domains/chats/application/delete-chat/delete-chat.service.spec.ts`: на успехе список перезапрашивается, приходит событие успеха и показывается **Уведомление** об успехе; на отказе список не трогается и показывается **Уведомление** с текстом **Ошибки приложения**
-- [ ] 4.3 Реализовать `delete-chat-input.type.ts`, метод `deleteChat` в `chat.gateway.ts`, `chat.api.ts`, `http-chat-gateway.ts` и `delete-chat.service.ts`, проверив, что спеки блока зеленые
-- [ ] 4.4 Добавить `DELETE /chats` в `mock-backend/src/routes/chats.ts` и прогнать `npm run lint` и `npm run test:ci`
+- [x] 4.1 Написать падающие спеки `src/app/domains/chats/infrastructure/http-chat-gateway.spec.ts` и `chat.api.spec.ts`: `deleteChat` шлет `DELETE /chats` с телом `{ chatId }`, отказ превращается в **Ошибку приложения**
+- [x] 4.2 Написать падающие спеки `src/app/domains/chats/application/delete-chat/delete-chat.service.spec.ts`: на успехе список перезапрашивается, приходит событие успеха и показывается **Уведомление** об успехе; на отказе список не трогается и показывается **Уведомление** с текстом **Ошибки приложения**
+- [x] 4.3 Реализовать `delete-chat-input.type.ts`, метод `deleteChat` в `chat.gateway.ts`, `chat.api.ts`, `http-chat-gateway.ts` и `delete-chat.service.ts`, проверив, что спеки блока зеленые
+- [x] 4.4 Добавить `DELETE /chats` в `mock-backend/src/routes/chats.ts` и прогнать `npm run lint` и `npm run test:ci`
 
 ## 5. Удаление в шапке выбранного чата
 

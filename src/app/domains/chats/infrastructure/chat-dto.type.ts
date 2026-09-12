@@ -42,6 +42,10 @@ export interface ChatUserDto {
   avatar: Nullable<string>;
 }
 
+export interface DeleteChatRequestDto {
+  chatId: number;
+}
+
 export interface AddChatUserRequestDto {
   chatId: number;
   users: number[];

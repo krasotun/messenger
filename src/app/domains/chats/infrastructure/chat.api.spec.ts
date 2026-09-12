@@ -99,6 +99,17 @@ describe('ChatApi', () => {
     });
   });
 
+  describe('deleteChat', () => {
+    it('should send DELETE request with the chat id in the body', () => {
+      service.deleteChat({ chatId: 1 }).subscribe();
+
+      const request = httpTestingController.expectOne('/chats');
+
+      expect(request.request.method).toBe('DELETE');
+      expect(request.request.body).toEqual({ chatId: 1 });
+    });
+  });
+
   describe('addChatUser', () => {
     it('should send PUT request with the chat id and user ids as text', () => {
       const results: unknown[] = [];
