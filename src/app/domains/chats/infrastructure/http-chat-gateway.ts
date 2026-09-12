@@ -8,6 +8,7 @@ import { ChatGateway } from '../application/chat.gateway';
 import { Chat } from '../application/chat.type';
 import { CreateChatInput } from '../application/create-chat/create-chat-input.type';
 import { CreateChatResult } from '../application/create-chat/create-chat-result.type';
+import { DeleteChatInput } from '../application/delete-chat/delete-chat-input.type';
 
 import { ChatApi } from './chat.api';
 import { chatMapper, chatUserMapper } from './chat.mapper';
@@ -44,6 +45,12 @@ export class HttpChatGateway implements ChatGateway {
       }),
       toApplicationError(CHAT_ERROR_MESSAGES.chatUsers),
     );
+  }
+
+  deleteChat({ chatId }: DeleteChatInput): Observable<void> {
+    return this._chatApi
+      .deleteChat({ chatId })
+      .pipe(toApplicationError(CHAT_ERROR_MESSAGES.deleteChat));
   }
 
   addChatUser({ chatId, userId }: AddChatUserInput): Observable<AddChatUserResult> {

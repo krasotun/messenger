@@ -21,6 +21,7 @@ export interface ChatDto {
   title: string;
   avatar: Nullable<string>;
   unread_count: number;
+  created_by: number;
   last_message: Nullable<ChatLastMessageDto>;
 }
 
@@ -39,6 +40,10 @@ export interface ChatUserDto {
   display_name: Nullable<string>;
   login: string;
   avatar: Nullable<string>;
+}
+
+export interface DeleteChatRequestDto {
+  chatId: number;
 }
 
 export interface AddChatUserRequestDto {

@@ -1,0 +1,29 @@
+@let confirmation = data();
+
+<p class="app-confirmation-dialog__question">
+  {{ confirmation.confirmLabel }}
+  <b class="app-confirmation-dialog__subject">{{ confirmation.subject }}</b>? {{
+  confirmation.message }}
+</p>
+
+<div class="app-confirmation-dialog__actions">
+  <button
+    type="button"
+    class="app-confirmation-dialog__cancel-button"
+    appButton
+    colorType="secondary"
+    (click)="cancel()"
+  >
+    Cancel
+  </button>
+
+  <button
+    type="button"
+    class="app-confirmation-dialog__confirm-button"
+    appButton
+    [colorType]="confirmation.isDangerous ? 'danger' : 'primary'"
+    (click)="confirm()"
+  >
+    {{ confirmation.confirmLabel }}
+  </button>
+</div>

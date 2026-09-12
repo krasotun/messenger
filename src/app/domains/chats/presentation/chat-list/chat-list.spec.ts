@@ -24,6 +24,7 @@ const chatMock: Chat = {
   title: 'Analytics Q3',
   avatar: null,
   unreadCount: 3,
+  createdBy: 1,
   lastMessage: {
     authorName: 'John',
     content: 'the report is ready',

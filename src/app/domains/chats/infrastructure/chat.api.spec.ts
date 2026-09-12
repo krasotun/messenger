@@ -10,6 +10,7 @@ const chatDtoMock: ChatDto = {
   title: 'Analytics Q3',
   avatar: null,
   unread_count: 0,
+  created_by: 1,
   last_message: null,
 };
 
@@ -95,6 +96,17 @@ describe('ChatApi', () => {
       request.flush([chatUserDtoMock]);
 
       expect(results).toEqual([[chatUserDtoMock]]);
+    });
+  });
+
+  describe('deleteChat', () => {
+    it('should send DELETE request with the chat id in the body', () => {
+      service.deleteChat({ chatId: 1 }).subscribe();
+
+      const request = httpTestingController.expectOne('/chats');
+
+      expect(request.request.method).toBe('DELETE');
+      expect(request.request.body).toEqual({ chatId: 1 });
     });
   });
 

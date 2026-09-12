@@ -8,6 +8,7 @@ import {
   ChatUserDto,
   CreateChatRequestDto,
   CreateChatResponseDto,
+  DeleteChatRequestDto,
 } from './chat-dto.type';
 
 @Injectable({
@@ -26,6 +27,10 @@ export class ChatApi {
 
   chatUsers(chatId: number): Observable<ChatUserDto[]> {
     return this._httpClient.get<ChatUserDto[]>(`/chats/${chatId}/users`);
+  }
+
+  deleteChat(request: DeleteChatRequestDto): Observable<void> {
+    return this._httpClient.delete<void>('/chats', { body: request });
   }
 
   addChatUser(request: AddChatUserRequestDto): Observable<string> {

@@ -18,6 +18,7 @@ const chatApiMock = {
   createChat: vi.fn(),
   chatUsers: vi.fn(),
   addChatUser: vi.fn(),
+  deleteChat: vi.fn(),
 };
 
 const resourcesBaseUrlMock = 'https://mock.host/resources';
@@ -27,6 +28,7 @@ const chatDtoMock: ChatDto = {
   title: 'Analytics Q3',
   avatar: '/path/to/chat-avatar.png',
   unread_count: 3,
+  created_by: 1,
   last_message: {
     user: {
       first_name: 'John',
@@ -47,6 +49,7 @@ const chatMock: Chat = {
   title: 'Analytics Q3',
   avatar: `${resourcesBaseUrlMock}/path/to/chat-avatar.png`,
   unreadCount: 3,
+  createdBy: 1,
   lastMessage: {
     authorName: 'Johnny',
     content: 'the report is ready',
@@ -326,6 +329,34 @@ describe('HttpChatGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.chatUsers);
+    });
+  });
+
+  describe('deleteChat', () => {
+    it('should ask api to delete the chat', () => {
+      chatApiMock.deleteChat.mockReturnValue(of(null));
+
+      service.deleteChat({ chatId: 1 }).subscribe();
+
+      expect(chatApiMock.deleteChat).toHaveBeenCalledOnce();
+      expect(chatApiMock.deleteChat).toHaveBeenCalledWith({ chatId: 1 });
+    });
+
+    it('should turn a rejected request into an application error', () => {
+      chatApiMock.deleteChat.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 500 })),
+      );
+
+      let caughtError: unknown;
+
+      service.deleteChat({ chatId: 1 }).subscribe({
+        error: (error: unknown) => {
+          caughtError = error;
+        },
+      });
+
+      expect(caughtError).toBeInstanceOf(ApplicationError);
+      expect((caughtError as ApplicationError).message).toBe(CHAT_ERROR_MESSAGES.deleteChat);
     });
   });
 

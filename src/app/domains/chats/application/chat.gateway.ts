@@ -7,12 +7,14 @@ import { ChatUser } from './chat-user.type';
 import { Chat } from './chat.type';
 import { CreateChatInput } from './create-chat/create-chat-input.type';
 import { CreateChatResult } from './create-chat/create-chat-result.type';
+import { DeleteChatInput } from './delete-chat/delete-chat-input.type';
 
 export interface ChatGateway {
   chats(): Observable<Chat[]>;
   createChat(createChatInput: CreateChatInput): Observable<CreateChatResult>;
   chatUsers(chatId: number): Observable<ChatUser[]>;
   addChatUser(addChatUserInput: AddChatUserInput): Observable<AddChatUserResult>;
+  deleteChat(deleteChatInput: DeleteChatInput): Observable<void>;
 }
 
 export const CHAT_GATEWAY = new InjectionToken<ChatGateway>('CHAT_GATEWAY');

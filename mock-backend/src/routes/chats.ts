@@ -13,6 +13,10 @@ interface CreateChatRequest {
   title: string;
 }
 
+interface DeleteChatRequest {
+  chatId: number;
+}
+
 interface UsersRequest {
   chatId: number;
   users: number[];
@@ -38,6 +42,7 @@ chatsRouter.get('/chats', (request, response) => {
       title: chat.title,
       avatar: chat.avatar,
       unread_count: 0,
+      created_by: chat.createdBy,
       last_message: null,
     })),
   );
@@ -57,12 +62,48 @@ chatsRouter.post('/chats', (request, response) => {
     id: nextChatId(),
     title: body.title,
     avatar: null,
+    createdBy: user.id,
   };
 
   chatsById.set(chat.id, chat);
   chatUserIdsByChatId.set(chat.id, new Set([user.id]));
 
   response.json({ id: chat.id });
+});
+
+chatsRouter.delete('/chats', (request, response) => {
+  const user = findUserBySession(request);
+
+  if (!user) {
+    response.sendStatus(401);
+    return;
+  }
+
+  const body = request.body as DeleteChatRequest;
+  const chat = chatsById.get(body.chatId);
+
+  if (!chat) {
+    response.status(400).json({ reason: 'Chat not found' });
+    return;
+  }
+
+  if (chat.createdBy !== user.id) {
+    response.status(403).json({ reason: 'Forbidden' });
+    return;
+  }
+
+  chatsById.delete(chat.id);
+  chatUserIdsByChatId.delete(chat.id);
+
+  response.json({
+    result: {
+      id: chat.id,
+      title: chat.title,
+      avatar: chat.avatar,
+      created_by: chat.createdBy,
+    },
+    userId: user.id,
+  });
 });
 
 chatsRouter.get('/chats/:id/users', (request, response) => {
