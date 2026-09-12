@@ -9,7 +9,8 @@ import { ModalService } from '@shared/ui/modal/modal-service';
 
 const DATA: ConfirmationData = {
   title: 'Delete chat',
-  message: 'Delete "Team"? This cannot be undone.',
+  subject: 'Analytics Q3',
+  message: "The chat and its messages disappear for every member. This can't be undone.",
   confirmLabel: 'Delete',
   isDangerous: true,
 };

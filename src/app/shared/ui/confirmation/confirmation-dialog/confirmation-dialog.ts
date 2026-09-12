@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 
 import { ConfirmationData } from '../confirmation-data.type';
 
@@ -13,10 +13,6 @@ import { ModalRef } from '@shared/ui/modal/modal-ref';
 })
 export class ConfirmationDialog {
   readonly data = input.required<ConfirmationData>();
-
-  protected readonly confirmColorType = computed(() =>
-    this.data().isDangerous ? 'danger' : 'primary',
-  );
 
   private readonly _modalRef = inject(ModalRef);
 

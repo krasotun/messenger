@@ -1,8 +1,18 @@
+:host {
+  display: block;
+}
+
 .app-confirmation-dialog {
-  &__message {
+  &__question {
     margin: 0;
     font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-text-secondary);
+  }
+
+  &__subject {
     color: var(--color-text-primary);
+    font-weight: 600;
   }
 
   &__actions {

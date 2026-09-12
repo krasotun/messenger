@@ -9,7 +9,8 @@ import { ModalRef } from '@shared/ui/modal/modal-ref';
 
 const DANGEROUS_DATA: ConfirmationData = {
   title: 'Delete chat',
-  message: 'Delete "Team"? This cannot be undone.',
+  subject: 'Analytics Q3',
+  message: "The chat and its messages disappear for every member. This can't be undone.",
   confirmLabel: 'Delete',
   isDangerous: true,
 };
@@ -36,12 +37,22 @@ describe('ConfirmationDialog', () => {
     await TestBed.compileComponents();
   });
 
-  it('should show the message passed by the caller', async () => {
+  it('should ask about the subject passed by the caller', async () => {
     await renderWith(DANGEROUS_DATA);
 
-    const messageEl = fixture.debugElement.query(By.css('.app-confirmation-dialog__message'));
+    const questionEl = fixture.debugElement.query(By.css('.app-confirmation-dialog__question'));
 
-    expect(messageEl.nativeElement.textContent.trim()).toBe(DANGEROUS_DATA.message);
+    expect(questionEl.nativeElement.textContent.replace(/\s+/g, ' ').trim()).toBe(
+      "Delete Analytics Q3? The chat and its messages disappear for every member. This can't be undone.",
+    );
+  });
+
+  it('should set the subject apart from the rest of the question', async () => {
+    await renderWith(DANGEROUS_DATA);
+
+    const subjectEl = fixture.debugElement.query(By.css('.app-confirmation-dialog__subject'));
+
+    expect(subjectEl.nativeElement.textContent.trim()).toBe('Analytics Q3');
   });
 
   it('should label the confirm button with the text passed by the caller', async () => {
