@@ -8,7 +8,6 @@ import { SignUpForm } from './sign-up-form';
 
 let signUpServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  errorMessage: WritableSignal<string | null>;
   status: WritableSignal<AuthFlowStatus>;
   signUp: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
@@ -21,7 +20,6 @@ describe('SignUpForm', () => {
   beforeEach(async () => {
     signUpServiceMock = {
       isSubmitting: signal(false),
-      errorMessage: signal(null),
       status: signal(AuthFlowStatus.Idle),
       signUp: vi.fn(),
       reset: vi.fn(),
@@ -70,17 +68,13 @@ describe('SignUpForm', () => {
     });
   });
 
-  it('should render submit error', () => {
-    signUpServiceMock.errorMessage.set('Mock error');
-
+  it('should not render a submit error in the form', () => {
     fixture.detectChanges();
 
     const errorElement: HTMLElement | null =
       fixture.nativeElement.querySelector('.sign-up-form__error');
 
-    expect(errorElement).not.toBeNull();
-    expect(errorElement?.textContent).toContain('Ошибка регистрации');
-    expect(errorElement?.textContent).toContain('Mock error');
+    expect(errorElement).toBeNull();
   });
 
   describe('valid submit', () => {

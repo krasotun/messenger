@@ -5,11 +5,13 @@
       [htmlFor]="'firstName'"
       [error]="getControlError('firstName')"
     >
-      <input formControlName="firstName"
-             appInput
-             [invalid]="hasControlError('firstName')"
-             type="text"
-             id="firstName">
+      <input
+        formControlName="firstName"
+        appInput
+        [invalid]="hasControlError('firstName')"
+        type="text"
+        id="firstName"
+      />
     </app-form-field>
 
     <app-form-field
@@ -17,37 +19,33 @@
       [htmlFor]="'secondName'"
       [error]="getControlError('secondName')"
     >
-      <input formControlName="secondName"
-             appInput
-             [invalid]="hasControlError('secondName')"
-             type="text"
-             id="secondName">
+      <input
+        formControlName="secondName"
+        appInput
+        [invalid]="hasControlError('secondName')"
+        type="text"
+        id="secondName"
+      />
     </app-form-field>
 
-
-    <app-form-field
-      [label]="'Login'"
-      [htmlFor]="'login'"
-      [error]="getControlError('login')"
-    >
-      <input formControlName="login"
-             appInput
-             [invalid]="hasControlError('login')"
-             type="text"
-             id="login">
+    <app-form-field [label]="'Login'" [htmlFor]="'login'" [error]="getControlError('login')">
+      <input
+        formControlName="login"
+        appInput
+        [invalid]="hasControlError('login')"
+        type="text"
+        id="login"
+      />
     </app-form-field>
 
-
-    <app-form-field
-      [label]="'Email'"
-      [htmlFor]="'email'"
-      [error]="getControlError('email')"
-    >
-      <input formControlName="email"
-             appInput
-             [invalid]="hasControlError('email')"
-             type="email"
-             id="email">
+    <app-form-field [label]="'Email'" [htmlFor]="'email'" [error]="getControlError('email')">
+      <input
+        formControlName="email"
+        appInput
+        [invalid]="hasControlError('email')"
+        type="email"
+        id="email"
+      />
     </app-form-field>
 
     <app-form-field
@@ -55,35 +53,27 @@
       [htmlFor]="'password'"
       [error]="getControlError('password')"
     >
-      <input formControlName="password"
-             appInput
-             [invalid]="hasControlError('password')"
-             type="password"
-             id="password">
+      <input
+        formControlName="password"
+        appInput
+        [invalid]="hasControlError('password')"
+        type="password"
+        id="password"
+      />
     </app-form-field>
 
-    <app-form-field
-      [label]="'Mobile phone'"
-      [htmlFor]="'phone'"
-      [error]="getControlError('phone')"
-    >
-      <input formControlName="phone"
-             appInput
-             [invalid]="hasControlError('phone')"
-             type="text"
-             id="phone">
+    <app-form-field [label]="'Mobile phone'" [htmlFor]="'phone'" [error]="getControlError('phone')">
+      <input
+        formControlName="phone"
+        appInput
+        [invalid]="hasControlError('phone')"
+        type="text"
+        id="phone"
+      />
     </app-form-field>
   </div>
 
-  @if (errorMessage()) {
-    <span class="sign-up-form__error">Ошибка регистрации: {{ errorMessage() }}</span>
-  }
   <div class="sign-up-form__actions">
-    <button
-      appButton
-      [disabled]="isSubmitting()"
-      type="submit"
-    >Register
-    </button>
+    <button appButton [disabled]="isSubmitting()" type="submit">Register</button>
   </div>
 </form>

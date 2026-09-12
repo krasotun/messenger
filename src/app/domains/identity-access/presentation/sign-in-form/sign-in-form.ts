@@ -36,7 +36,6 @@ export class SignInForm {
   private readonly _signInService = inject(SignInService);
 
   protected readonly isSubmitting = this._signInService.isSubmitting;
-  protected readonly errorMessage = this._signInService.errorMessage;
 
   constructor() {
     effect(() => {

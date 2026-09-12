@@ -11,11 +11,11 @@ import { CreateChatForm } from '../create-chat-form/create-chat-form';
 import { CreateChatModalContent } from './create-chat-modal-content';
 
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 import { ModalRef } from '@shared/ui/modal/modal-ref';
 
 let createChatServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  errorMessage: WritableSignal<string | null>;
   status: WritableSignal<CreateChatStatus>;
   createChat: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
@@ -25,13 +25,17 @@ let modalRefMock: {
   close: ReturnType<typeof vi.fn>;
 };
 
+const notifierMock = {
+  success: vi.fn(),
+  error: vi.fn(),
+};
+
 describe('CreateChatModalContent', () => {
   let fixture: ComponentFixture<CreateChatModalContent>;
 
   beforeEach(async () => {
     createChatServiceMock = {
       isSubmitting: signal(false),
-      errorMessage: signal(null),
       status: signal(CreateChatStatus.Idle),
       createChat: vi.fn(),
       reset: vi.fn(),
@@ -41,12 +45,19 @@ describe('CreateChatModalContent', () => {
       close: vi.fn(),
     };
 
+    notifierMock.success.mockReset();
+    notifierMock.error.mockReset();
+
     TestBed.configureTestingModule({
       imports: [CreateChatModalContent],
       providers: [
         {
           provide: ModalRef,
           useValue: modalRefMock,
+        },
+        {
+          provide: NOTIFIER,
+          useValue: notifierMock,
         },
       ],
     });
@@ -153,6 +164,10 @@ describe('CreateChatModalContent', () => {
             provide: ModalRef,
             useValue: modalRefMock,
           },
+          {
+            provide: NOTIFIER,
+            useValue: notifierMock,
+          },
         ],
       });
 
@@ -164,7 +179,8 @@ describe('CreateChatModalContent', () => {
 
       await submitWithError(failedFixture);
 
-      expect(failedFixture.nativeElement.querySelector('.create-chat-form__error')).not.toBeNull();
+      expect(notifierMock.error).toHaveBeenCalledWith('Failed to create chat', 'Mock error');
+      expect(failedFixture.nativeElement.querySelector('.create-chat-form__error')).toBeNull();
 
       failedFixture.destroy();
 

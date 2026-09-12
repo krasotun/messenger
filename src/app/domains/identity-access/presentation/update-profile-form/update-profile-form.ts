@@ -56,7 +56,6 @@ export class UpdateProfileForm {
   private readonly _updateProfileService = inject(UpdateProfileService);
 
   protected readonly isSubmitting = this._updateProfileService.isSubmitting;
-  protected readonly errorMessage = this._updateProfileService.errorMessage;
 
   constructor() {
     this.updateProfileForm.setValue(this._updateProfileService.initialValues());

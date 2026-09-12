@@ -11,7 +11,6 @@ import { SearchUsersResult, SearchUsersService, User } from '@domains/identity-a
 
 let addChatUserServiceMock: {
   status: WritableSignal<AddChatUserStatus>;
-  errorMessage: WritableSignal<string | null>;
   addChatUser: ReturnType<typeof vi.fn>;
 };
 
@@ -44,7 +43,6 @@ describe('AddChatUserPanel', () => {
 
     addChatUserServiceMock = {
       status: signal(AddChatUserStatus.Idle),
-      errorMessage: signal(null),
       addChatUser: vi.fn(),
     };
 
@@ -160,17 +158,21 @@ describe('AddChatUserPanel', () => {
   });
 
   describe('400 на добавлении', () => {
-    it('should show the rejection reason under the found users and keep the panel open', () => {
+    it('should not render a submit error and keep the panel open', () => {
       fixture.detectChanges();
 
       searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       search('jane');
 
-      addChatUserServiceMock.errorMessage.set('mockReason');
+      addChatUserServiceMock.status.set(AddChatUserStatus.Error);
       fixture.detectChanges();
 
-      expect(getText()).toContain('mockReason');
+      const errorElement: HTMLElement | null = fixture.nativeElement.querySelector(
+        '.add-chat-user-panel__error',
+      );
+
+      expect(errorElement).toBeNull();
       expect(getText()).toContain('Janie');
     });
   });

@@ -19,7 +19,6 @@ const initialValuesMock: UpdateProfileInput = {
 let updateProfileServiceMock: {
   initialValues: WritableSignal<UpdateProfileInput>;
   isSubmitting: WritableSignal<boolean>;
-  errorMessage: WritableSignal<string | null>;
   status: WritableSignal<AuthFlowStatus>;
   updateProfile: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
@@ -33,7 +32,6 @@ describe('UpdateProfileForm', () => {
     updateProfileServiceMock = {
       initialValues: signal(initialValuesMock),
       isSubmitting: signal(false),
-      errorMessage: signal(null),
       status: signal(AuthFlowStatus.Idle),
       updateProfile: vi.fn(),
       reset: vi.fn(),
@@ -139,28 +137,14 @@ describe('UpdateProfileForm', () => {
   });
 
   describe('error state', () => {
-    it('should render submit error', () => {
-      updateProfileServiceMock.errorMessage.set('Mock error');
-
+    it('should not render a submit error in the form', () => {
       fixture.detectChanges();
 
       const errorElement: HTMLElement | null = fixture.nativeElement.querySelector(
         '.update-profile-form__error',
       );
 
-      expect(errorElement).not.toBeNull();
-      expect(errorElement?.textContent).toContain('Mock error');
-    });
-
-    it('should keep entered values in the form', () => {
-      fixture.detectChanges();
-
-      component.updateProfileForm.controls.firstName.setValue('typedFirstName');
-
-      updateProfileServiceMock.errorMessage.set('Mock error');
-      fixture.detectChanges();
-
-      expect(component.updateProfileForm.controls.firstName.value).toBe('typedFirstName');
+      expect(errorElement).toBeNull();
     });
   });
 

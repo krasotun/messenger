@@ -56,5 +56,6 @@ test('should show registration error when sign up fails', async ({ page }) => {
   await page.getByRole('button', { name: 'Register' }).click();
 
   await expect(page).toHaveURL('/sign-up');
-  await expect(page.getByText('Ошибка регистрации: Login already exists')).toBeVisible();
+  await expect(page.getByText('Sign-up failed')).toBeVisible();
+  await expect(page.getByText('Login already exists')).toBeVisible();
 });

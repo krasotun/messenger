@@ -11,11 +11,11 @@ import { ChangePasswordForm } from '../change-password-form/change-password-form
 import { ChangePasswordModalContent } from './change-password-modal-content';
 
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 import { ModalRef } from '@shared/ui/modal/modal-ref';
 
 let changePasswordServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  errorMessage: WritableSignal<string | null>;
   status: WritableSignal<AuthFlowStatus>;
   changePassword: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
@@ -25,13 +25,17 @@ let modalRefMock: {
   close: ReturnType<typeof vi.fn>;
 };
 
+const notifierMock = {
+  success: vi.fn(),
+  error: vi.fn(),
+};
+
 describe('ChangePasswordModalContent', () => {
   let fixture: ComponentFixture<ChangePasswordModalContent>;
 
   beforeEach(async () => {
     changePasswordServiceMock = {
       isSubmitting: signal(false),
-      errorMessage: signal(null),
       status: signal(AuthFlowStatus.Idle),
       changePassword: vi.fn(),
       reset: vi.fn(),
@@ -41,12 +45,19 @@ describe('ChangePasswordModalContent', () => {
       close: vi.fn(),
     };
 
+    notifierMock.success.mockReset();
+    notifierMock.error.mockReset();
+
     TestBed.configureTestingModule({
       imports: [ChangePasswordModalContent],
       providers: [
         {
           provide: ModalRef,
           useValue: modalRefMock,
+        },
+        {
+          provide: NOTIFIER,
+          useValue: notifierMock,
         },
       ],
     });
@@ -144,6 +155,10 @@ describe('ChangePasswordModalContent', () => {
             provide: ModalRef,
             useValue: modalRefMock,
           },
+          {
+            provide: NOTIFIER,
+            useValue: notifierMock,
+          },
         ],
       });
 
@@ -155,9 +170,8 @@ describe('ChangePasswordModalContent', () => {
 
       await submitWithError(failedFixture);
 
-      expect(
-        failedFixture.nativeElement.querySelector('.change-password-form__error'),
-      ).not.toBeNull();
+      expect(notifierMock.error).toHaveBeenCalledWith('Failed to change password', 'Mock error');
+      expect(failedFixture.nativeElement.querySelector('.change-password-form__error')).toBeNull();
 
       failedFixture.destroy();
 

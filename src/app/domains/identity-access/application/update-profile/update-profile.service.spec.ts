@@ -15,6 +15,7 @@ import { UpdateProfileResult } from './update-profile-result.type';
 import { UpdateProfileService } from './update-profile.service';
 
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 
 const authGatewayMock = {
   currentSession: vi.fn(),
@@ -28,6 +29,11 @@ const userGatewayMock = {
 const routerMock = {
   navigate: vi.fn(),
   navigateByUrl: vi.fn(),
+};
+
+const notifierMock = {
+  success: vi.fn(),
+  error: vi.fn(),
 };
 
 const currentUserMock: CurrentUser = {
@@ -72,6 +78,8 @@ describe('UpdateProfileService', () => {
     userGatewayMock.updateProfile.mockReset();
     routerMock.navigate.mockReset();
     routerMock.navigateByUrl.mockReset();
+    notifierMock.success.mockReset();
+    notifierMock.error.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -86,6 +94,10 @@ describe('UpdateProfileService', () => {
         {
           provide: Router,
           useValue: routerMock,
+        },
+        {
+          provide: NOTIFIER,
+          useValue: notifierMock,
         },
         UpdateProfileService,
       ],
@@ -105,10 +117,6 @@ describe('UpdateProfileService', () => {
   describe('initial state', () => {
     it('status should be idle', () => {
       expect(service.status()).toBe(AuthFlowStatus.Idle);
-    });
-
-    it('errorMessage should be null', () => {
-      expect(service.errorMessage()).toBeNull();
     });
 
     it('isSubmitting should be false', () => {
@@ -151,21 +159,12 @@ describe('UpdateProfileService', () => {
       expect(userGatewayMock.updateProfile).toHaveBeenCalledWith(updateProfileInputMock);
     });
 
-    it('should set submitting state and clear error message while request is pending', () => {
-      userGatewayMock.updateProfile.mockReturnValueOnce(
-        throwError(() => new ApplicationError('mockError')),
-      );
-
-      service.updateProfile(updateProfileInputMock);
-
-      expect(service.errorMessage()).toBe('mockError');
-
+    it('should set submitting state while request is pending', () => {
       const updateProfileResult$ = new Subject<UpdateProfileResult>();
       userGatewayMock.updateProfile.mockReturnValueOnce(updateProfileResult$);
 
       service.updateProfile(updateProfileInputMock);
 
-      expect(service.errorMessage()).toBeNull();
       expect(service.status()).toBe(AuthFlowStatus.Submitting);
     });
 
@@ -178,7 +177,15 @@ describe('UpdateProfileService', () => {
         service.updateProfile(updateProfileInputMock);
 
         expect(service.status()).toBe(AuthFlowStatus.Success);
-        expect(service.errorMessage()).toBeNull();
+      });
+
+      it('should notify about success', () => {
+        service.updateProfile(updateProfileInputMock);
+
+        expect(notifierMock.success).toHaveBeenCalledWith(
+          'Update profile',
+          'Profile updated successfully',
+        );
       });
 
       it('should update the current session from the backend response', () => {
@@ -214,11 +221,11 @@ describe('UpdateProfileService', () => {
         );
       });
 
-      it('should expose the error message', () => {
+      it('should set error state and notify with the reason', () => {
         service.updateProfile(updateProfileInputMock);
 
         expect(service.status()).toBe(AuthFlowStatus.Error);
-        expect(service.errorMessage()).toBe('mockReason');
+        expect(notifierMock.error).toHaveBeenCalledWith('Failed to update profile', 'mockReason');
       });
 
       it('should keep the current session unchanged', () => {
@@ -237,7 +244,7 @@ describe('UpdateProfileService', () => {
   });
 
   describe('reset', () => {
-    it('should reset status and error message', () => {
+    it('should reset status', () => {
       userGatewayMock.updateProfile.mockReturnValue(
         throwError(() => new ApplicationError('mockError')),
       );
@@ -245,12 +252,10 @@ describe('UpdateProfileService', () => {
       service.updateProfile(updateProfileInputMock);
 
       expect(service.status()).toBe(AuthFlowStatus.Error);
-      expect(service.errorMessage()).toBe('mockError');
 
       service.reset();
 
       expect(service.status()).toBe(AuthFlowStatus.Idle);
-      expect(service.errorMessage()).toBeNull();
     });
   });
 });

@@ -9,6 +9,7 @@ import { CreateChatStatus } from './create-chat-status.type';
 import { CreateChatService } from './create-chat.service';
 
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 
 const chatGatewayMock = {
   chats: vi.fn(),
@@ -17,6 +18,11 @@ const chatGatewayMock = {
 
 const chatListServiceMock = {
   loadChats: vi.fn(),
+};
+
+const notifierMock = {
+  success: vi.fn(),
+  error: vi.fn(),
 };
 
 const createChatResultMock: CreateChatResult = {
@@ -30,6 +36,8 @@ describe('CreateChatService', () => {
     chatGatewayMock.chats.mockReset();
     chatGatewayMock.createChat.mockReset();
     chatListServiceMock.loadChats.mockReset();
+    notifierMock.success.mockReset();
+    notifierMock.error.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -40,6 +48,10 @@ describe('CreateChatService', () => {
         {
           provide: ChatListService,
           useValue: chatListServiceMock,
+        },
+        {
+          provide: NOTIFIER,
+          useValue: notifierMock,
         },
         CreateChatService,
       ],
@@ -53,9 +65,8 @@ describe('CreateChatService', () => {
   });
 
   describe('initial state', () => {
-    it('should be idle with no error', () => {
+    it('should be idle', () => {
       expect(service.status()).toBe(CreateChatStatus.Idle);
-      expect(service.errorMessage()).toBeNull();
       expect(service.isSubmitting()).toBe(false);
     });
   });
@@ -88,13 +99,19 @@ describe('CreateChatService', () => {
         service.createChat({ title: 'Analytics Q3' });
 
         expect(service.status()).toBe(CreateChatStatus.Success);
-        expect(service.errorMessage()).toBeNull();
       });
 
       it('should reload the chat list', () => {
         service.createChat({ title: 'Analytics Q3' });
 
         expect(chatListServiceMock.loadChats).toHaveBeenCalledOnce();
+      });
+
+      it('should not notify', () => {
+        service.createChat({ title: 'Analytics Q3' });
+
+        expect(notifierMock.success).not.toHaveBeenCalled();
+        expect(notifierMock.error).not.toHaveBeenCalled();
       });
     });
 
@@ -105,11 +122,11 @@ describe('CreateChatService', () => {
         );
       });
 
-      it('should expose the error message', () => {
+      it('should set error state and notify with the reason', () => {
         service.createChat({ title: 'Analytics Q3' });
 
         expect(service.status()).toBe(CreateChatStatus.Error);
-        expect(service.errorMessage()).toBe('mockReason');
+        expect(notifierMock.error).toHaveBeenCalledWith('Failed to create chat', 'mockReason');
       });
 
       it('should not reload the chat list', () => {
@@ -121,7 +138,7 @@ describe('CreateChatService', () => {
   });
 
   describe('reset', () => {
-    it('should reset status and error message', () => {
+    it('should reset status', () => {
       chatGatewayMock.createChat.mockReturnValue(
         throwError(() => new ApplicationError('mockReason')),
       );
@@ -133,7 +150,6 @@ describe('CreateChatService', () => {
       service.reset();
 
       expect(service.status()).toBe(CreateChatStatus.Idle);
-      expect(service.errorMessage()).toBeNull();
     });
   });
 });

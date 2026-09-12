@@ -28,7 +28,6 @@ export class CreateChatForm {
   private readonly _createChatService = inject(CreateChatService);
 
   protected readonly isSubmitting = this._createChatService.isSubmitting;
-  protected readonly errorMessage = this._createChatService.errorMessage;
 
   constructor() {
     effect(() => {

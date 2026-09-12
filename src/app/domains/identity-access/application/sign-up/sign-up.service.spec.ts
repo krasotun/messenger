@@ -8,9 +8,15 @@ import { SignUpInput } from './sign-up-input.type';
 import { SignUpService } from './sign-up.service';
 
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 
 const authGatewayMock = {
   signUp: vi.fn(),
+};
+
+const notifierMock = {
+  success: vi.fn(),
+  error: vi.fn(),
 };
 
 const signUpInputMock: SignUpInput = {
@@ -28,11 +34,19 @@ describe('SignUpService', () => {
   beforeEach(() => {
     authGatewayMock.signUp.mockReset();
 
+    notifierMock.success.mockReset();
+    notifierMock.error.mockReset();
+
     TestBed.configureTestingModule({
       providers: [
         {
           provide: AUTH_GATEWAY,
           useValue: authGatewayMock,
+        },
+
+        {
+          provide: NOTIFIER,
+          useValue: notifierMock,
         },
       ],
     });
@@ -46,10 +60,6 @@ describe('SignUpService', () => {
   describe('initial state', () => {
     it('status should be idle', () => {
       expect(service.status()).toBe(AuthFlowStatus.Idle);
-    });
-
-    it('errorMessage should be null', () => {
-      expect(service.errorMessage()).toBeNull();
     });
 
     it('isSubmitting should be false', () => {
@@ -66,21 +76,12 @@ describe('SignUpService', () => {
       expect(authGatewayMock.signUp).toHaveBeenCalledWith(signUpInputMock);
     });
 
-    it('should set submitting state and clear error message while request is pending', () => {
-      authGatewayMock.signUp.mockReturnValueOnce(
-        throwError(() => new ApplicationError('mockError')),
-      );
-
-      service.signUp(signUpInputMock);
-
-      expect(service.errorMessage()).toBe('mockError');
-
+    it('should set submitting state while request is pending', () => {
       const signUpResult$ = new Subject<{ userId: number }>();
       authGatewayMock.signUp.mockReturnValueOnce(signUpResult$);
 
       service.signUp(signUpInputMock);
 
-      expect(service.errorMessage()).toBeNull();
       expect(service.status()).toBe(AuthFlowStatus.Submitting);
     });
 
@@ -91,10 +92,10 @@ describe('SignUpService', () => {
       service.signUp(signUpInputMock);
 
       expect(service.status()).toBe(AuthFlowStatus.Success);
-      expect(service.errorMessage()).toBeNull();
+      expect(notifierMock.error).not.toHaveBeenCalled();
     });
 
-    it('should show application error message', () => {
+    it('should set error state and notify with the reason from the backend', () => {
       const signUpResult$ = throwError(() => {
         return new ApplicationError('mockReason');
       });
@@ -103,12 +104,12 @@ describe('SignUpService', () => {
       service.signUp(signUpInputMock);
 
       expect(service.status()).toBe(AuthFlowStatus.Error);
-      expect(service.errorMessage()).toBe('mockReason');
+      expect(notifierMock.error).toHaveBeenCalledWith('Sign-up failed', 'mockReason');
     });
   });
 
   describe('reset', () => {
-    it('should reset status and error message', () => {
+    it('should reset status', () => {
       authGatewayMock.signUp.mockReturnValueOnce(
         throwError(() => new ApplicationError('mockError')),
       );
@@ -116,12 +117,10 @@ describe('SignUpService', () => {
       service.signUp(signUpInputMock);
 
       expect(service.status()).toBe(AuthFlowStatus.Error);
-      expect(service.errorMessage()).toBe('mockError');
 
       service.reset();
 
       expect(service.status()).toBe(AuthFlowStatus.Idle);
-      expect(service.errorMessage()).toBeNull();
     });
   });
 });
