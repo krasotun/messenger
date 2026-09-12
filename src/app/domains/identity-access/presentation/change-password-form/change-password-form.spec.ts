@@ -8,7 +8,6 @@ import { ChangePasswordForm } from './change-password-form';
 
 let changePasswordServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  errorMessage: WritableSignal<string | null>;
   status: WritableSignal<AuthFlowStatus>;
   changePassword: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
@@ -34,7 +33,6 @@ describe('ChangePasswordForm', () => {
   beforeEach(async () => {
     changePasswordServiceMock = {
       isSubmitting: signal(false),
-      errorMessage: signal(null),
       status: signal(AuthFlowStatus.Idle),
       changePassword: vi.fn(),
       reset: vi.fn(),
@@ -182,32 +180,14 @@ describe('ChangePasswordForm', () => {
   });
 
   describe('error state', () => {
-    it('should render submit error', () => {
-      changePasswordServiceMock.errorMessage.set('Mock error');
-
+    it('should not render a submit error in the form', () => {
       fixture.detectChanges();
 
       const errorElement: HTMLElement | null = fixture.nativeElement.querySelector(
         '.change-password-form__error',
       );
 
-      expect(errorElement).not.toBeNull();
-      expect(errorElement?.textContent).toContain('Mock error');
-    });
-
-    it('should keep entered values in the form', () => {
-      fixture.detectChanges();
-
-      fillForm('typedOldPassword', 'typedNewPassword', 'typedNewPassword');
-
-      changePasswordServiceMock.errorMessage.set('Mock error');
-      fixture.detectChanges();
-
-      expect(component.changePasswordForm.getRawValue()).toEqual({
-        oldPassword: 'typedOldPassword',
-        newPassword: 'typedNewPassword',
-        repeatNewPassword: 'typedNewPassword',
-      });
+      expect(errorElement).toBeNull();
     });
   });
 

@@ -8,7 +8,6 @@ import { SignInForm } from './sign-in-form';
 
 let signInServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  errorMessage: WritableSignal<string | null>;
   status: WritableSignal<AuthFlowStatus>;
   signIn: ReturnType<typeof vi.fn>;
   reset: ReturnType<typeof vi.fn>;
@@ -21,7 +20,6 @@ describe('SignInForm', () => {
   beforeEach(async () => {
     signInServiceMock = {
       isSubmitting: signal(false),
-      errorMessage: signal(null),
       status: signal(AuthFlowStatus.Idle),
       signIn: vi.fn(),
       reset: vi.fn(),
@@ -69,17 +67,13 @@ describe('SignInForm', () => {
       }
     });
 
-    it('should render submit error', () => {
-      signInServiceMock.errorMessage.set('Mock error');
-
+    it('should not render a submit error in the form', () => {
       fixture.detectChanges();
 
       const errorElement: HTMLElement | null =
         fixture.nativeElement.querySelector('.sign-in-form__error');
 
-      expect(errorElement).not.toBeNull();
-      expect(errorElement?.textContent).toContain('Ошибка авторизации');
-      expect(errorElement?.textContent).toContain('Mock error');
+      expect(errorElement).toBeNull();
     });
   });
 

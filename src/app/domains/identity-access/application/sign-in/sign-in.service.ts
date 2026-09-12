@@ -9,6 +9,7 @@ import { CurrentSessionService } from '../current-session/current-session.servic
 import { SignInInput } from './sign-in-input.type';
 
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 
 @Injectable({
   providedIn: 'root',
@@ -16,11 +17,11 @@ import { ApplicationError } from '@shared/errors';
 export class SignInService {
   private readonly _authGateway = inject(AUTH_GATEWAY);
   private readonly _currentSessionService = inject(CurrentSessionService);
+  private readonly _notifier = inject(NOTIFIER);
 
   private readonly _flow = createAuthFlowState();
 
   readonly status = this._flow.status;
-  readonly errorMessage = this._flow.errorMessage;
 
   readonly isSubmitting = this._flow.isSubmitting;
 
@@ -37,10 +38,12 @@ export class SignInService {
             return;
           }
 
-          this._flow.markError('Login failed. Please try again later');
+          this._flow.markError();
+          this._notifier.error('Sign-in failed', 'Login failed. Please try again later');
         },
         error: ({ message }: ApplicationError) => {
-          this._flow.markError(message);
+          this._flow.markError();
+          this._notifier.error('Sign-in failed', message);
         },
       });
   }

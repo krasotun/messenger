@@ -24,19 +24,28 @@
 
 ## 4. Исход входа и регистрации
 
-- [ ] 4.1 Дописать падающие спеки `sign-in.service.spec.ts` и `sign-up.service.spec.ts`: ошибка отправки показывает **Уведомление** с текстом из `reason`, а без `reason` - с generic-сообщением
-- [ ] 4.2 Убрать сигнал с текстом ошибки из `src/app/domains/identity-access/application/create-auth-flow-state.ts` и вызвать порт в `sign-in.service.ts`, `sign-up.service.ts`; проверка: спеки из 4.1 зеленые
-- [ ] 4.3 Написать падающие component specs на то, что `sign-in-form` и `sign-up-form` не содержат текста ошибки отправки
-- [ ] 4.4 Убрать блоки ошибки из `sign-in-form.html`, `sign-in-form.ts`, `sign-up-form.html`, `sign-up-form.ts` и соответствующие правила из их `.scss`; проверка: спеки из 4.3 зеленые
-- [ ] 4.5 Прогнать `npm run lint` и `npm run test:ci`
+Объединено с блоком 5 в одной реализации: `errorMessage` в
+`create-auth-flow-state.ts` - общий сигнал для пяти сервисов
+(`sign-in`, `sign-up`, `update-profile`, `change-password`, `change-avatar`).
+Удаление сигнала только у первых двух ломает сборку остальных до блока 5, а
+блоки обязаны проходить `lint`/`test:ci` по отдельности - поэтому оба блока
+реализованы и закрыты вместе.
+
+- [x] 4.1 Дописать падающие спеки `sign-in.service.spec.ts` и `sign-up.service.spec.ts`: ошибка отправки показывает **Уведомление** с текстом из `reason`, а без `reason` - с generic-сообщением
+- [x] 4.2 Убрать сигнал с текстом ошибки из `src/app/domains/identity-access/application/create-auth-flow-state.ts` и вызвать порт в `sign-in.service.ts`, `sign-up.service.ts`; проверка: спеки из 4.1 зеленые
+- [x] 4.3 Написать падающие component specs на то, что `sign-in-form` и `sign-up-form` не содержат текста ошибки отправки
+- [x] 4.4 Убрать блоки ошибки из `sign-in-form.html`, `sign-in-form.ts`, `sign-up-form.html`, `sign-up-form.ts` и соответствующие правила из их `.scss`; проверка: спеки из 4.3 зеленые
+- [x] 4.5 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 5. Исход действий над профилем
 
-- [ ] 5.1 Дописать падающие спеки `update-profile.service.spec.ts`, `change-password.service.spec.ts`, `change-avatar.service.spec.ts`: успех показывает **Уведомление** об успехе, ошибка - **Уведомление** об ошибке
-- [ ] 5.2 Вызвать порт из этих трех сервисов; проверка: спеки из 5.1 зеленые
-- [ ] 5.3 Написать падающие component specs: `update-profile-form`, `change-password-form`, `change-avatar-form` не содержат текста ошибки отправки, а проверки файла в `change-avatar-form` остаются в форме
-- [ ] 5.4 Убрать блоки ошибки отправки из трех шаблонов и их компонентов, сохранив сообщения клиентских проверок; проверка: спеки из 5.3 зеленые
-- [ ] 5.5 Прогнать `npm run lint` и `npm run test:ci`
+Реализовано вместе с блоком 4 (см. примечание выше).
+
+- [x] 5.1 Дописать падающие спеки `update-profile.service.spec.ts`, `change-password.service.spec.ts`, `change-avatar.service.spec.ts`: успех показывает **Уведомление** об успехе, ошибка - **Уведомление** об ошибке
+- [x] 5.2 Вызвать порт из этих трех сервисов; проверка: спеки из 5.1 зеленые
+- [x] 5.3 Написать падающие component specs: `update-profile-form`, `change-password-form`, `change-avatar-form` не содержат текста ошибки отправки, а проверки файла в `change-avatar-form` остаются в форме
+- [x] 5.4 Убрать блоки ошибки отправки из трех шаблонов и их компонентов, сохранив сообщения клиентских проверок; проверка: спеки из 5.3 зеленые
+- [x] 5.5 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 6. Исход действий над чатами
 

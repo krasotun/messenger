@@ -41,9 +41,7 @@ export class ChangeAvatarForm {
     return this._previewUrl() ?? this._currentSessionService.currentUser()?.avatar ?? null;
   });
 
-  protected readonly errorMessage = computed<Nullable<string>>(() => {
-    return this._validationErrorMessage() ?? this._changeAvatarService.errorMessage();
-  });
+  protected readonly errorMessage = this._validationErrorMessage.asReadonly();
 
   constructor() {
     effect(() => {
