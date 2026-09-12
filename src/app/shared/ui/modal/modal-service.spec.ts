@@ -197,6 +197,24 @@ describe('ModalService', () => {
       expect(overlayContainers.length).toBe(1);
     });
 
+    it('should return a reference to the opened modal', () => {
+      const modalRef = service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(modalRef).toBeInstanceOf(ModalRef);
+    });
+
+    it('should not return a reference when a modal is already open', () => {
+      service.open(TestModalContent);
+
+      const secondModalRef = service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(secondModalRef).toBeNull();
+    });
+
     it('should leave the already open modal unaffected when open is called again', () => {
       service.open(TestModalContentWithInput, { inputs: { label: 'First' } });
       service.open(TestModalContentWithInput, { inputs: { label: 'Second' } });
@@ -315,6 +333,89 @@ describe('ModalService', () => {
       );
 
       expect(contentElAfterClick).toBeTruthy();
+    });
+
+    it('should notify the opener about closing exactly once', () => {
+      const modalRef = service.open(TestModalContent)!;
+      const closeSpy = vi.fn();
+
+      modalRef.closed$.subscribe(closeSpy);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(closeSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should deliver the result attached by content', () => {
+      const modalRef = service.open(TestModalContentCapturingRef)!;
+      const closeSpy = vi.fn();
+
+      modalRef.closed$.subscribe(closeSpy);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      capturedModalRef?.close(true);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(closeSpy).toHaveBeenCalledWith(true);
+    });
+
+    it('should deliver no result when closed by close button', () => {
+      const modalRef = service.open(TestModalContent)!;
+      const closeSpy = vi.fn();
+
+      modalRef.closed$.subscribe(closeSpy);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const closeButtonEl = document.querySelector<HTMLButtonElement>(
+        '.cdk-overlay-container .app-modal-shell__close-button',
+      );
+
+      closeButtonEl?.dispatchEvent(new MouseEvent('click'));
+
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(closeSpy).toHaveBeenCalledWith(undefined);
+    });
+
+    it('should deliver no result when closed on Escape', () => {
+      const modalRef = service.open(TestModalContent)!;
+      const closeSpy = vi.fn();
+
+      modalRef.closed$.subscribe(closeSpy);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(closeSpy).toHaveBeenCalledWith(undefined);
+    });
+
+    it('should deliver no result when closed on backdrop click', () => {
+      const modalRef = service.open(TestModalContent)!;
+      const closeSpy = vi.fn();
+
+      modalRef.closed$.subscribe(closeSpy);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const backdropEl = document.querySelector<HTMLElement>(
+        '.cdk-overlay-container .cdk-overlay-backdrop',
+      );
+
+      backdropEl?.dispatchEvent(new MouseEvent('click'));
+
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(closeSpy).toHaveBeenCalledWith(undefined);
     });
 
     it('should destroy overlay after modal is closed', () => {
