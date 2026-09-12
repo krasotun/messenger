@@ -1,10 +1,9 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { throwError } from 'rxjs';
+import { Subject, throwError } from 'rxjs';
 
 import { CHAT_GATEWAY } from '../../application/chat.gateway';
-import { CreateChatStatus } from '../../application/create-chat/create-chat-status.type';
 import { CreateChatService } from '../../application/create-chat/create-chat.service';
 import { CreateChatForm } from '../create-chat-form/create-chat-form';
 
@@ -16,9 +15,8 @@ import { ModalRef } from '@shared/ui/modal/modal-ref';
 
 let createChatServiceMock: {
   isSubmitting: WritableSignal<boolean>;
-  status: WritableSignal<CreateChatStatus>;
+  succeeded$: Subject<void>;
   createChat: ReturnType<typeof vi.fn>;
-  reset: ReturnType<typeof vi.fn>;
 };
 
 let modalRefMock: {
@@ -36,9 +34,8 @@ describe('CreateChatModalContent', () => {
   beforeEach(async () => {
     createChatServiceMock = {
       isSubmitting: signal(false),
-      status: signal(CreateChatStatus.Idle),
+      succeeded$: new Subject<void>(),
       createChat: vi.fn(),
-      reset: vi.fn(),
     };
 
     modalRefMock = {
@@ -84,12 +81,10 @@ describe('CreateChatModalContent', () => {
   });
 
   describe('successful creation', () => {
-    it('should close the modal', () => {
+    it('should close the modal without a manual application tick', () => {
       fixture.detectChanges();
 
-      createChatServiceMock.status.set(CreateChatStatus.Success);
-
-      fixture.detectChanges();
+      createChatServiceMock.succeeded$.next();
 
       expect(modalRefMock.close).toHaveBeenCalledOnce();
     });

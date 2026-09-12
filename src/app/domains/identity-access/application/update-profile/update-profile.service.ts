@@ -26,9 +26,9 @@ export class UpdateProfileService {
 
   private readonly _flow = createAuthFlowState();
 
-  readonly status = this._flow.status;
-
   readonly isSubmitting = this._flow.isSubmitting;
+
+  readonly succeeded$ = this._flow.succeeded$;
 
   readonly initialValues = computed<UpdateProfileInput>(() => {
     const currentUser = this._currentSessionService.currentUser();
@@ -63,9 +63,5 @@ export class UpdateProfileService {
         this._notifier.error('Failed to update profile', message);
       },
     });
-  }
-
-  reset(): void {
-    this._flow.reset();
   }
 }

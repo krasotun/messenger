@@ -1,7 +1,7 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Subject } from 'rxjs';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { UpdateProfileInput } from '../../application/update-profile/update-profile-input.type';
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 
@@ -19,9 +19,8 @@ const initialValuesMock: UpdateProfileInput = {
 let updateProfileServiceMock: {
   initialValues: WritableSignal<UpdateProfileInput>;
   isSubmitting: WritableSignal<boolean>;
-  status: WritableSignal<AuthFlowStatus>;
+  succeeded$: Subject<void>;
   updateProfile: ReturnType<typeof vi.fn>;
-  reset: ReturnType<typeof vi.fn>;
 };
 
 describe('UpdateProfileForm', () => {
@@ -32,9 +31,8 @@ describe('UpdateProfileForm', () => {
     updateProfileServiceMock = {
       initialValues: signal(initialValuesMock),
       isSubmitting: signal(false),
-      status: signal(AuthFlowStatus.Idle),
+      succeeded$: new Subject<void>(),
       updateProfile: vi.fn(),
-      reset: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -149,23 +147,13 @@ describe('UpdateProfileForm', () => {
   });
 
   describe('success state', () => {
-    it('should emit profileUpdated', () => {
+    it('should emit profileUpdated when the service reports success, without a manual application tick', () => {
       const profileUpdatedSpy = vi.fn();
       component.profileUpdated.subscribe(profileUpdatedSpy);
 
-      updateProfileServiceMock.status.set(AuthFlowStatus.Success);
-
-      fixture.detectChanges();
+      updateProfileServiceMock.succeeded$.next();
 
       expect(profileUpdatedSpy).toHaveBeenCalledOnce();
-    });
-
-    it('should reset submitting status', () => {
-      updateProfileServiceMock.status.set(AuthFlowStatus.Success);
-
-      fixture.detectChanges();
-
-      expect(updateProfileServiceMock.reset).toHaveBeenCalledOnce();
     });
   });
 });

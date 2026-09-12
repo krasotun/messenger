@@ -1,4 +1,3 @@
-import { AuthFlowStatus } from './auth-flow-status.type';
 import { createAuthFlowState } from './create-auth-flow-state';
 
 describe('createAuthFlowState', () => {
@@ -9,24 +8,12 @@ describe('createAuthFlowState', () => {
   });
 
   describe('initial state', () => {
-    it('should create initial idle state', () => {
-      expect(state.status()).toBe(AuthFlowStatus.Idle);
-    });
-
     it('isSubmitting should be false', () => {
       expect(state.isSubmitting()).toBe(false);
     });
   });
 
   describe('startSubmitting', () => {
-    it('status should switch to Submitting', () => {
-      state.markSuccess();
-
-      state.startSubmitting();
-
-      expect(state.status()).toBe(AuthFlowStatus.Submitting);
-    });
-
     it('isSubmitting should be true', () => {
       state.startSubmitting();
 
@@ -35,30 +22,34 @@ describe('createAuthFlowState', () => {
   });
 
   describe('markSuccess', () => {
-    it('should set success status', () => {
-      state.markSuccess();
-
-      expect(state.status()).toBe(AuthFlowStatus.Success);
-    });
-
     it('should reset isSubmitting', () => {
       state.startSubmitting();
 
       state.markSuccess();
 
       expect(state.isSubmitting()).toBe(false);
+    });
+
+    it('should emit succeeded$ once to a subscriber present at the time', () => {
+      const succeededSpy = vi.fn();
+      state.succeeded$.subscribe(succeededSpy);
+
+      state.markSuccess();
+
+      expect(succeededSpy).toHaveBeenCalledOnce();
+    });
+
+    it('should not replay succeeded$ to a subscriber that joins later', () => {
+      state.markSuccess();
+
+      const succeededSpy = vi.fn();
+      state.succeeded$.subscribe(succeededSpy);
+
+      expect(succeededSpy).not.toHaveBeenCalled();
     });
   });
 
   describe('markError', () => {
-    it('should set error status', () => {
-      state.startSubmitting();
-
-      state.markError();
-
-      expect(state.status()).toBe(AuthFlowStatus.Error);
-    });
-
     it('should reset isSubmitting', () => {
       state.startSubmitting();
 
@@ -66,23 +57,15 @@ describe('createAuthFlowState', () => {
 
       expect(state.isSubmitting()).toBe(false);
     });
-  });
 
-  describe('reset', () => {
-    it('should set status to Idle', () => {
+    it('should not emit succeeded$', () => {
+      const succeededSpy = vi.fn();
+      state.succeeded$.subscribe(succeededSpy);
+
       state.startSubmitting();
+      state.markError();
 
-      state.reset();
-
-      expect(state.status()).toBe(AuthFlowStatus.Idle);
-    });
-
-    it('should reset isSubmitting', () => {
-      state.startSubmitting();
-
-      state.reset();
-
-      expect(state.isSubmitting()).toBe(false);
+      expect(succeededSpy).not.toHaveBeenCalled();
     });
   });
 });

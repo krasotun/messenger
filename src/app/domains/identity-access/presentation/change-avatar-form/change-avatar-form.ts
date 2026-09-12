@@ -1,6 +1,6 @@
-import { Component, computed, DestroyRef, effect, inject, signal, untracked } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { ChangeAvatarService } from '../../application/change-avatar/change-avatar.service';
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
 
@@ -44,14 +44,8 @@ export class ChangeAvatarForm {
   protected readonly errorMessage = this._validationErrorMessage.asReadonly();
 
   constructor() {
-    effect(() => {
-      if (this._changeAvatarService.status() === AuthFlowStatus.Success) {
-        untracked(() => {
-          this._changeAvatarService.reset();
-
-          this._selectFile(null);
-        });
-      }
+    this._changeAvatarService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
+      this._selectFile(null);
     });
 
     inject(DestroyRef).onDestroy(() => {

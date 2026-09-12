@@ -5,7 +5,6 @@ import { ChatUsersService } from '../chat-users/chat-users.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
 import { AddChatUserResult } from './add-chat-user-result.type';
-import { AddChatUserStatus } from './add-chat-user-status.type';
 import { AddChatUserService } from './add-chat-user.service';
 
 import { ApplicationError } from '@shared/errors';
@@ -64,7 +63,6 @@ describe('AddChatUserService', () => {
 
   describe('initial state', () => {
     it('should be idle', () => {
-      expect(service.status()).toBe(AddChatUserStatus.Idle);
       expect(service.isSubmitting()).toBe(false);
     });
   });
@@ -84,7 +82,6 @@ describe('AddChatUserService', () => {
 
       service.addChatUser({ chatId: 1, userId: 2 });
 
-      expect(service.status()).toBe(AddChatUserStatus.Submitting);
       expect(service.isSubmitting()).toBe(true);
     });
 
@@ -93,10 +90,14 @@ describe('AddChatUserService', () => {
         chatGatewayMock.addChatUser.mockReturnValue(of(addChatUserResultMock));
       });
 
-      it('should set success state', () => {
+      it('should emit succeeded$ once', () => {
+        const succeededSpy = vi.fn();
+        service.succeeded$.subscribe(succeededSpy);
+
         service.addChatUser({ chatId: 1, userId: 2 });
 
-        expect(service.status()).toBe(AddChatUserStatus.Success);
+        expect(succeededSpy).toHaveBeenCalledOnce();
+        expect(service.isSubmitting()).toBe(false);
       });
 
       it('should reload the members of the given chat', () => {
@@ -121,10 +122,14 @@ describe('AddChatUserService', () => {
         );
       });
 
-      it('should set error state and notify with the reason', () => {
+      it('should notify with the reason and not emit succeeded$', () => {
+        const succeededSpy = vi.fn();
+        service.succeeded$.subscribe(succeededSpy);
+
         service.addChatUser({ chatId: 1, userId: 2 });
 
-        expect(service.status()).toBe(AddChatUserStatus.Error);
+        expect(succeededSpy).not.toHaveBeenCalled();
+        expect(service.isSubmitting()).toBe(false);
         expect(notifierMock.error).toHaveBeenCalledWith('Failed to add chat user', 'mockReason');
       });
 
@@ -133,22 +138,6 @@ describe('AddChatUserService', () => {
 
         expect(chatUsersServiceMock.loadChatUsers).not.toHaveBeenCalled();
       });
-    });
-  });
-
-  describe('reset', () => {
-    it('should reset status', () => {
-      chatGatewayMock.addChatUser.mockReturnValue(
-        throwError(() => new ApplicationError('mockReason')),
-      );
-
-      service.addChatUser({ chatId: 1, userId: 2 });
-
-      expect(service.status()).toBe(AddChatUserStatus.Error);
-
-      service.reset();
-
-      expect(service.status()).toBe(AddChatUserStatus.Idle);
     });
   });
 });

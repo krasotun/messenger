@@ -1,10 +1,10 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { Subject } from 'rxjs';
 
 import { ChatUsersService } from '../chat-users/chat-users.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
 import { AddChatUserInput } from './add-chat-user-input.type';
-import { AddChatUserStatus } from './add-chat-user-status.type';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
@@ -15,27 +15,26 @@ export class AddChatUserService {
   private readonly _chatUsersService = inject(ChatUsersService);
   private readonly _notifier = inject(NOTIFIER);
 
-  private readonly _status = signal<AddChatUserStatus>(AddChatUserStatus.Idle);
-  readonly status = this._status.asReadonly();
+  private readonly _isSubmitting = signal(false);
+  private readonly _succeeded = new Subject<void>();
 
-  readonly isSubmitting = computed(() => this._status() === AddChatUserStatus.Submitting);
+  readonly isSubmitting = this._isSubmitting.asReadonly();
+
+  readonly succeeded$ = this._succeeded.asObservable();
 
   addChatUser(addChatUserInput: AddChatUserInput): void {
-    this._status.set(AddChatUserStatus.Submitting);
+    this._isSubmitting.set(true);
 
     this._chatGateway.addChatUser(addChatUserInput).subscribe({
       next: () => {
         this._chatUsersService.loadChatUsers(addChatUserInput.chatId);
-        this._status.set(AddChatUserStatus.Success);
+        this._isSubmitting.set(false);
+        this._succeeded.next();
       },
       error: ({ message }: ApplicationError) => {
-        this._status.set(AddChatUserStatus.Error);
+        this._isSubmitting.set(false);
         this._notifier.error('Failed to add chat user', message);
       },
     });
-  }
-
-  reset(): void {
-    this._status.set(AddChatUserStatus.Idle);
   }
 }

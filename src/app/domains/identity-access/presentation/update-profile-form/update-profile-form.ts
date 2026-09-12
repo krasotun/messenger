@@ -1,4 +1,5 @@
 import { Component, effect, inject, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
@@ -7,7 +8,6 @@ import {
   Validators,
 } from '@angular/forms';
 
-import { AuthFlowStatus } from '../../application/auth-flow-status.type';
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 import { emailPattern, phonePattern } from '../sign-up-form/sign-up-form.constants';
 
@@ -68,12 +68,8 @@ export class UpdateProfileForm {
       }
     });
 
-    effect(() => {
-      if (this._updateProfileService.status() === AuthFlowStatus.Success) {
-        this._updateProfileService.reset();
-
-        this.profileUpdated.emit();
-      }
+    this._updateProfileService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.profileUpdated.emit();
     });
   }
 
