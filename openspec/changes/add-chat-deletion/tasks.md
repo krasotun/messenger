@@ -7,10 +7,10 @@
 
 ## 2. Подтверждение в shared/ui
 
-- [ ] 2.1 Написать падающие спеки `src/app/shared/ui/confirmation/confirmation-dialog/confirmation-dialog.spec.ts`: показаны заголовок, текст и подпись кнопки подтверждения из входных данных; опасное действие красит кнопку подтверждения цветом опасности
-- [ ] 2.2 Написать падающие спеки `src/app/shared/ui/confirmation/confirmation.service.spec.ts`: согласие дает `true`, отмена - `false`, закрытие окна без выбора - `false`, поток выдает ровно одно значение и завершается
-- [ ] 2.3 Реализовать `confirmation-data.type.ts`, `confirmation-dialog` и `confirmation.service.ts` поверх `ModalService`, проверив, что спеки блока зеленые
-- [ ] 2.4 Экспортировать подтверждение из `src/app/shared/ui` и прогнать `npm run lint` и `npm run test:ci`
+- [x] 2.1 Написать падающие спеки `src/app/shared/ui/confirmation/confirmation-dialog/confirmation-dialog.spec.ts`: показаны заголовок, текст и подпись кнопки подтверждения из входных данных; опасное действие красит кнопку подтверждения цветом опасности
+- [x] 2.2 Написать падающие спеки `src/app/shared/ui/confirmation/confirmation.service.spec.ts`: согласие дает `true`, отмена - `false`, закрытие окна без выбора - `false`, поток выдает ровно одно значение и завершается
+- [x] 2.3 Реализовать `confirmation-data.type.ts`, `confirmation-dialog` и `confirmation.service.ts` поверх `ModalService`, проверив, что спеки блока зеленые
+- [x] 2.4 Экспортировать подтверждение из `src/app/shared/ui` и прогнать `npm run lint` и `npm run test:ci`
 
 ## 3. Создатель чата в модели Чата
 

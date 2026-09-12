@@ -1,0 +1,14 @@
+.app-confirmation-dialog {
+  &__message {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-text-primary);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+  }
+}
