@@ -1,9 +1,10 @@
-import { Component, effect, inject, output } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { CreateChatService } from '../../application/create-chat/create-chat.service';
 
+import { createSubmitAvailability, lockFormWhileSubmitting } from '@shared/forms';
 import { Button } from '@shared/ui/button/button';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
@@ -29,14 +30,10 @@ export class CreateChatForm {
 
   protected readonly isSubmitting = this._createChatService.isSubmitting;
 
+  protected readonly canSubmit = createSubmitAvailability(this.createChatForm);
+
   constructor() {
-    effect(() => {
-      if (this.isSubmitting()) {
-        this.createChatForm.disable({ emitEvent: false });
-      } else {
-        this.createChatForm.enable({ emitEvent: false });
-      }
-    });
+    lockFormWhileSubmitting(this.createChatForm, this.isSubmitting);
 
     this._createChatService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
       this.chatCreated.emit();
@@ -45,7 +42,6 @@ export class CreateChatForm {
 
   protected onSubmit(): void {
     if (this.createChatForm.invalid) {
-      this.createChatForm.markAllAsTouched();
       return;
     }
 

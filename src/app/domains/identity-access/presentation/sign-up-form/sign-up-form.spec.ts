@@ -16,6 +16,21 @@ describe('SignUpForm', () => {
   let component: SignUpForm;
   let fixture: ComponentFixture<SignUpForm>;
 
+  const validFormValue = {
+    firstName: 'Mock',
+    secondName: 'Mock',
+    login: 'Mock',
+    email: 'mock@mock.ru',
+    password: 'qfndjkjnk&(YY',
+    phone: '+79991234567',
+  };
+
+  const getSubmitButton = (): HTMLButtonElement =>
+    fixture.nativeElement.querySelector('button[type="submit"]');
+
+  const getFieldErrors = (): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll('.form-field__error'));
+
   beforeEach(async () => {
     signUpServiceMock = {
       isSubmitting: signal(false),
@@ -51,18 +66,42 @@ describe('SignUpForm', () => {
 
       expect(signUpServiceMock.signUp).not.toHaveBeenCalled();
     });
+  });
 
-    it('all controls should be touched', () => {
+  describe('submit button availability', () => {
+    it('should disable the submit button when the sign-up form has invalid fields', () => {
       fixture.detectChanges();
 
-      const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
-      formElement.dispatchEvent(new Event('submit'));
+      expect(getSubmitButton().disabled).toBe(true);
+    });
 
-      const formControls = Object.values(component.signUpForm.controls);
+    it('should not show field errors on an untouched form', () => {
+      fixture.detectChanges();
 
-      for (const { touched } of formControls) {
-        expect(touched).toBe(true);
-      }
+      expect(getFieldErrors()).toHaveLength(0);
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+
+    it('should show a field error after the field loses focus while it stays invalid', () => {
+      fixture.detectChanges();
+
+      component.signUpForm.controls.email.markAsTouched();
+      fixture.detectChanges();
+
+      const fieldErrors = getFieldErrors();
+
+      expect(fieldErrors.length).toBeGreaterThan(0);
+      expect(fieldErrors.some((error) => error.textContent?.trim())).toBe(true);
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+
+    it('should enable the submit button once the form becomes valid', () => {
+      fixture.detectChanges();
+
+      component.signUpForm.setValue(validFormValue);
+      fixture.detectChanges();
+
+      expect(getSubmitButton().disabled).toBe(false);
     });
   });
 
@@ -79,22 +118,13 @@ describe('SignUpForm', () => {
     it('should call signUp with form value when submitted form is valid', () => {
       fixture.detectChanges();
 
-      const mockFormValue = {
-        firstName: 'Mock',
-        secondName: 'Mock',
-        login: 'Mock',
-        email: 'mock@mock.ru',
-        password: 'qfndjkjnk&(YY',
-        phone: '+79991234567',
-      };
-
-      component.signUpForm.setValue(mockFormValue);
+      component.signUpForm.setValue(validFormValue);
 
       const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
       formElement.dispatchEvent(new Event('submit'));
 
       expect(signUpServiceMock.signUp).toHaveBeenCalledOnce();
-      expect(signUpServiceMock.signUp).toHaveBeenCalledWith(mockFormValue);
+      expect(signUpServiceMock.signUp).toHaveBeenCalledWith(validFormValue);
     });
   });
 

@@ -25,6 +25,12 @@ describe('CreateChatForm', () => {
     component.createChatForm.setValue({ title });
   };
 
+  const getSubmitButton = (): HTMLButtonElement =>
+    fixture.nativeElement.querySelector('button[type="submit"]');
+
+  const getFieldError = (): HTMLElement | null =>
+    fixture.nativeElement.querySelector('.form-field__error');
+
   beforeEach(async () => {
     createChatServiceMock = {
       isSubmitting: signal(false),
@@ -67,21 +73,46 @@ describe('CreateChatForm', () => {
 
       expect(createChatServiceMock.createChat).not.toHaveBeenCalled();
     });
+  });
 
-    it('should mark the title control as touched and show a field error', () => {
+  describe('submit button availability', () => {
+    it('should disable the submit button when the title is empty', () => {
       fixture.detectChanges();
 
-      submitForm();
+      expect(getSubmitButton().disabled).toBe(true);
+    });
 
+    it('should not show a field error on an untouched form', () => {
       fixture.detectChanges();
 
-      expect(component.createChatForm.controls.title.touched).toBe(true);
+      expect(getFieldError()).toBeNull();
+      expect(getSubmitButton().disabled).toBe(true);
+    });
 
-      const fieldError: HTMLElement | null =
-        fixture.nativeElement.querySelector('.form-field__error');
+    it('should show a field error after the field loses focus while it stays empty', () => {
+      fixture.detectChanges();
+
+      component.createChatForm.controls.title.markAsTouched();
+      fixture.detectChanges();
+
+      const fieldError = getFieldError();
 
       expect(fieldError).not.toBeNull();
       expect(fieldError?.textContent?.trim()).toBeTruthy();
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+
+    it('should disable the submit button again after the title is cleared', () => {
+      fixture.detectChanges();
+
+      fillForm('Analytics Q3');
+      fixture.detectChanges();
+      expect(getSubmitButton().disabled).toBe(false);
+
+      fillForm('');
+      fixture.detectChanges();
+
+      expect(getSubmitButton().disabled).toBe(true);
     });
   });
 

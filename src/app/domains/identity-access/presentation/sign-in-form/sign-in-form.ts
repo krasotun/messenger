@@ -1,4 +1,4 @@
-import { Component, effect, inject, output } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
@@ -10,6 +10,7 @@ import {
 
 import { SignInService } from '../../application/sign-in/sign-in.service';
 
+import { createSubmitAvailability, lockFormWhileSubmitting } from '@shared/forms';
 import { Button } from '@shared/ui/button/button';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
@@ -37,14 +38,10 @@ export class SignInForm {
 
   protected readonly isSubmitting = this._signInService.isSubmitting;
 
+  protected readonly canSubmit = createSubmitAvailability(this.signInForm);
+
   constructor() {
-    effect(() => {
-      if (this.isSubmitting()) {
-        this.signInForm.disable({ emitEvent: false });
-      } else {
-        this.signInForm.enable({ emitEvent: false });
-      }
-    });
+    lockFormWhileSubmitting(this.signInForm, this.isSubmitting);
 
     this._signInService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
       this.signInSucceeded.emit();
@@ -53,7 +50,6 @@ export class SignInForm {
 
   protected onSubmit() {
     if (this.signInForm.invalid) {
-      this.signInForm.markAllAsTouched();
       return;
     }
     const signInFormValue = this.signInForm.getRawValue();

@@ -74,6 +74,6 @@
   </div>
 
   <div class="sign-up-form__actions">
-    <button appButton [disabled]="isSubmitting()" type="submit">Register</button>
+    <button appButton [disabled]="isSubmitting() || !canSubmit()" type="submit">Register</button>
   </div>
 </form>

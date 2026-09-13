@@ -4,6 +4,6 @@
   </app-form-field>
 
   <div class="create-chat-form__actions">
-    <button appButton [disabled]="isSubmitting()" type="submit">Create</button>
+    <button appButton [disabled]="isSubmitting() || !canSubmit()" type="submit">Create</button>
   </div>
 </form>
