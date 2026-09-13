@@ -26,5 +26,5 @@ test('restores current session for authenticated user opening home', async ({ pa
 
   await page.goto('/');
 
-  await expect(page.getByText('Chats')).toBeVisible();
+  await expect(page.getByText('Chats', { exact: true })).toBeVisible();
 });
