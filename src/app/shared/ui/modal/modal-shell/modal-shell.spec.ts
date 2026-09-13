@@ -58,6 +58,14 @@ describe('ModalShell', () => {
     expect(closeButtonEl).toBeTruthy();
   });
 
+  it('should name the close button for a screen reader', () => {
+    const closeButtonEl: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.app-modal-shell__close-button',
+    );
+
+    expect(closeButtonEl.getAttribute('aria-label')).toBe('Close');
+  });
+
   it('should call ModalRef.close() when close button is clicked', () => {
     const modalRef = TestBed.inject(ModalRef);
 

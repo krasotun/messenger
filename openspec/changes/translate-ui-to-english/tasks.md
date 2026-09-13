@@ -16,9 +16,9 @@
 
 ## 3. Доступное имя модального окна
 
-- [ ] 3.1 Перевести ожидание доступного имени кнопки закрытия в `src/app/shared/ui/modal/modal-shell/modal-shell.spec.ts` на `Close` и убедиться, что спека красная
-- [ ] 3.2 Перевести `aria-label` в `modal-shell.html`; проверка - спека из 3.1 зеленая, обращения по имени `Закрыть` в `src` и `e2e` не осталось (`grep -rn 'Закрыть' src e2e` пуст)
-- [ ] 3.3 Quality gates блока: `npm run lint`, `npm run test:ci`, `npm run e2e`
+- [x] 3.1 Завести в `src/app/shared/ui/modal/modal-shell/modal-shell.spec.ts` ожидание доступного имени `Close` и убедиться, что спека красная: ожидания на `aria-label` там не было, кнопка проверялась по классу
+- [x] 3.2 Перевести `aria-label` в `modal-shell.html`; проверка - спека из 3.1 зеленая, обращения по имени `Закрыть` в `src` и `e2e` не осталось (`grep -rn 'Закрыть' src e2e` пуст)
+- [x] 3.3 Quality gates блока: `npm run lint`, `npm run test:ci`, `npm run e2e`
 
 ## 4. Страж языка в линтере
 
