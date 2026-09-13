@@ -1,13 +1,4 @@
-import {
-  computed,
-  Directive,
-  inject,
-  Injector,
-  OnInit,
-  runInInjectionContext,
-  signal,
-  Signal,
-} from '@angular/core';
+import { computed, DestroyRef, Directive, inject, OnInit, signal, Signal } from '@angular/core';
 import { NgControl } from '@angular/forms';
 
 import { ControlState, createControlState } from '@shared/forms';
@@ -19,23 +10,19 @@ import { ControlState, createControlState } from '@shared/forms';
   },
 })
 export class Input implements OnInit {
-  private readonly ngControl = inject(NgControl, { optional: true, self: true });
-  private readonly injector = inject(Injector);
-  private readonly controlState = signal<Signal<ControlState> | null>(null);
+  private readonly _ngControl = inject(NgControl, { optional: true, self: true });
+  private readonly _destroyRef = inject(DestroyRef);
 
-  readonly invalid = computed(() => {
-    const state = this.controlState();
+  private readonly _stateSource = signal<Signal<ControlState> | null>(null);
+  private readonly _controlState = computed(() => this._stateSource()?.() ?? null);
 
-    return state !== null && state().touched && !!state().errors;
-  });
+  readonly invalid = computed(() => this._controlState()?.showMessage ?? false);
 
   ngOnInit(): void {
-    const control = this.ngControl?.control;
+    const control = this._ngControl?.control;
 
     if (control) {
-      this.controlState.set(
-        runInInjectionContext(this.injector, () => createControlState(control)),
-      );
+      this._stateSource.set(createControlState(control, this._destroyRef));
     }
   }
 }

@@ -18,7 +18,7 @@
 
 - [ ] 3.1 Написать падающий спек `src/app/shared/ui/form-field/form-field.spec.ts`: текст сообщения по виду нарушения приходит из резолвера; сообщения нет, пока по полю не побывал фокус; сообщение исчезает после исправления; щелчок по подписи переводит фокус в поле; поле объявляется своей подписью
 - [ ] 3.2 Реализовать в `src/app/shared/ui/form-field/form-field.ts` и `.html` вход с контролом вместо `htmlFor` и `error`, подпись оборачивает проекцию поля; спек 3.1 зеленый
-- [ ] 3.3 Перевести на новый вход пять шаблонов форм: убрать `htmlFor`, `error`, `id` у полей, передать контрол
+- [ ] 3.3 Перевести на новый вход пять шаблонов форм: убрать `htmlFor`, `error`, `id` у полей, передать контрол по ссылке (`[formControl]` вместо `formControlName`)
 - [ ] 3.4 Удалить из `sign-in-form.ts`, `sign-up-form.ts`, `update-profile-form.ts`, `change-password-form.ts`, `create-chat-form.ts` методы `getControlError`, `hasControlError` и `_getErrorMessage`; спеки этих компонентов переписать на проверку видимого сообщения, а не вызова метода
 - [ ] 3.5 Quality gates секции: `npm run lint`, `npm run test:ci`
 
@@ -38,10 +38,11 @@
 
 ## 6. Пять форм на примитивах
 
-- [ ] 6.1 Перевести `sign-in-form`, `sign-up-form`, `update-profile-form`, `change-password-form`, `create-chat-form` на примитив формы: поля уходят в проекцию под контейнер с привязкой группы, конструктор сводится к подключению флоу отправки, `onSubmit` теряет отказ от отправки; спеки компонентов зеленые
-- [ ] 6.2 Удалить `sign-in-form.scss`, `sign-up-form.scss`, `update-profile-form.scss`, `change-password-form.scss`, `create-chat-form.scss` и ссылки на них; проверить, что раскладка форм не изменилась визуально
-- [ ] 6.3 Проверить, что в пяти компонентах не осталось русских строк и обращений к `ValidationErrors` (`grep`), а `update-profile-form` сохранил предзаполнение и требование изменений
-- [ ] 6.4 Quality gates секции: `npm run lint`, `npm run test:ci`
+- [ ] 6.1 Перевести `sign-in-form`, `sign-up-form`, `update-profile-form`, `change-password-form`, `create-chat-form` на примитив формы: поля уходят в проекцию, конструктор сводится к подключению флоу отправки, `onSubmit` теряет отказ от отправки; спеки компонентов зеленые
+- [ ] 6.2 Описать поля каждой формы списком (подпись, тип, контрол) и рендерить их через `@for`; поле с собственной разметкой оставить вне цикла, если такое найдется
+- [ ] 6.3 Удалить `sign-in-form.scss`, `sign-up-form.scss`, `update-profile-form.scss`, `change-password-form.scss`, `create-chat-form.scss` и ссылки на них; проверить, что раскладка форм не изменилась визуально
+- [ ] 6.4 Проверить, что в пяти компонентах не осталось русских строк и обращений к `ValidationErrors` (`grep`), а `update-profile-form` сохранил предзаполнение и требование изменений
+- [ ] 6.5 Quality gates секции: `npm run lint`, `npm run test:ci`
 
 ## 7. Сквозная проверка и снимки
 

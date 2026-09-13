@@ -1,3 +1,4 @@
+import { DestroyRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FormControl, Validators } from '@angular/forms';
 
@@ -13,7 +14,7 @@ describe('createControlState', () => {
   });
 
   const createState = (control: FormControl<string>) =>
-    TestBed.runInInjectionContext(() => createControlState(control));
+    createControlState(control, TestBed.inject(DestroyRef));
 
   it('should report no errors and no message for a valid untouched control', () => {
     const control = new FormControl('a value', {
