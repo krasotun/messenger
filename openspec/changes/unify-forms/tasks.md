@@ -9,10 +9,10 @@
 
 ## 2. Поле ввода узнает свое состояние само
 
-- [ ] 2.1 Написать падающий спек в `src/app/shared/ui/input/input.spec.ts`: поле с невалидным контролом, по которому побывал фокус, объявляется как содержащее неверное значение; после исправления признак снимается; поле без контрола признак не получает
-- [ ] 2.2 Реализовать в `src/app/shared/ui/input/input.ts` инжект `NgControl` и вычисление признака через состояние контрола из 1.2; удалить входы `invalid` и `disabled`; спек 2.1 зеленый
-- [ ] 2.3 Убрать `[invalid]` из шаблонов `sign-in-form.html`, `sign-up-form.html`, `update-profile-form.html`, `change-password-form.html`, `create-chat-form.html`, `add-chat-user-panel.html`; спеки этих компонентов остаются зелеными
-- [ ] 2.4 Quality gates секции: `npm run lint`, `npm run test:ci`
+- [x] 2.1 Написать падающий спек в `src/app/shared/ui/input/input.spec.ts`: поле с невалидным контролом, по которому побывал фокус, объявляется как содержащее неверное значение; после исправления признак снимается; поле без контрола признак не получает
+- [x] 2.2 Реализовать в `src/app/shared/ui/input/input.ts` инжект `NgControl` и вычисление признака через состояние контрола из 1.2; удалить входы `invalid` и `disabled`; спек 2.1 зеленый
+- [x] 2.3 Убрать `[invalid]` из шаблонов `sign-in-form.html`, `sign-up-form.html`, `update-profile-form.html`, `change-password-form.html`, `create-chat-form.html`, `add-chat-user-panel.html`; спеки этих компонентов остаются зелеными
+- [x] 2.4 Quality gates секции: `npm run lint`, `npm run test:ci`
 
 ## 3. Примитив поля получает контрол
 
