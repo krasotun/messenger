@@ -22,11 +22,10 @@ interface ChangePasswordFormModel {
   repeatNewPassword: FormControl<string>;
 }
 
-const repeatMatchesNewPassword = (changePasswordForm: AbstractControl): ValidationErrors | null => {
-  const newPassword = changePasswordForm.get('newPassword')?.value;
-  const repeatNewPassword = changePasswordForm.get('repeatNewPassword')?.value;
+const matchesNewPassword = (repeatNewPassword: AbstractControl): ValidationErrors | null => {
+  const newPassword = repeatNewPassword.parent?.get('newPassword')?.value;
 
-  return newPassword === repeatNewPassword ? null : { repeatMismatch: true };
+  return newPassword === repeatNewPassword.value ? null : { mismatch: true };
 };
 
 @Component({
@@ -36,17 +35,14 @@ const repeatMatchesNewPassword = (changePasswordForm: AbstractControl): Validati
   styleUrl: './change-password-form.scss',
 })
 export class ChangePasswordForm {
-  readonly changePasswordForm = new FormGroup<ChangePasswordFormModel>(
-    {
-      oldPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      newPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      repeatNewPassword: new FormControl('', {
-        nonNullable: true,
-        validators: [Validators.required],
-      }),
-    },
-    { validators: [repeatMatchesNewPassword] },
-  );
+  readonly changePasswordForm = new FormGroup<ChangePasswordFormModel>({
+    oldPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    newPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    repeatNewPassword: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, matchesNewPassword],
+    }),
+  });
 
   readonly passwordChanged = output<void>();
 
@@ -58,6 +54,12 @@ export class ChangePasswordForm {
 
   constructor() {
     lockFormWhileSubmitting(this.changePasswordForm, this.isSubmitting);
+
+    this.changePasswordForm.controls.newPassword.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.changePasswordForm.controls.repeatNewPassword.updateValueAndValidity();
+      });
 
     this._changePasswordService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
       this.passwordChanged.emit();
