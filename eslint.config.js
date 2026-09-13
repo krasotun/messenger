@@ -75,6 +75,19 @@ module.exports = defineConfig([
       'prettier/prettier': 'error',
       'import/no-unresolved': 'error',
       'import/no-duplicates': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          // Комментарии узлом литерала не являются, поэтому под селектор не
+          // попадают: объяснения для разработчика остаются русскими.
+          selector: 'Literal[value=/[\\p{Script=Cyrillic}]/u]',
+          message: 'User-facing text must be written in English.',
+        },
+        {
+          selector: 'TemplateElement[value.raw=/[\\p{Script=Cyrillic}]/u]',
+          message: 'User-facing text must be written in English.',
+        },
+      ],
       'import/order': [
         'error',
         {
@@ -181,6 +194,24 @@ module.exports = defineConfig([
   {
     files: ['**/*.html'],
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
-    rules: {},
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Text[value=/[\\p{Script=Cyrillic}]/u]',
+          message: 'User-facing text must be written in English.',
+        },
+        {
+          // У BoundText в `value` лежит разобранное выражение, а исходный
+          // текст узла вместе с интерполяцией - в `value.source`.
+          selector: 'BoundText[value.source=/[\\p{Script=Cyrillic}]/u]',
+          message: 'User-facing text must be written in English.',
+        },
+        {
+          selector: 'TextAttribute[value=/[\\p{Script=Cyrillic}]/u]',
+          message: 'User-facing text must be written in English.',
+        },
+      ],
+    },
   },
 ]);
