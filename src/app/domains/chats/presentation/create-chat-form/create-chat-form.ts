@@ -49,18 +49,4 @@ export class CreateChatForm {
 
     this._createChatService.createChat({ title });
   }
-
-  protected getControlError(): string | undefined {
-    if (!this.hasControlError()) {
-      return undefined;
-    }
-
-    return 'Обязательное поле';
-  }
-
-  protected hasControlError(): boolean {
-    const { errors, touched } = this.createChatForm.controls.title;
-
-    return touched && !!errors;
-  }
 }

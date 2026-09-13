@@ -73,36 +73,4 @@ export class ChangePasswordForm {
 
     this._changePasswordService.changePassword({ oldPassword, newPassword });
   }
-
-  protected getControlError(controlName: keyof ChangePasswordFormModel): string | undefined {
-    if (!this.hasControlError(controlName)) {
-      return undefined;
-    }
-
-    if (this._hasRepeatMismatch(controlName)) {
-      return 'Пароли не совпадают';
-    }
-
-    return this._getErrorMessage(this.changePasswordForm.controls[controlName].errors!);
-  }
-
-  protected hasControlError(controlName: keyof ChangePasswordFormModel): boolean {
-    const { errors, touched } = this.changePasswordForm.controls[controlName];
-
-    return touched && (!!errors || this._hasRepeatMismatch(controlName));
-  }
-
-  private _hasRepeatMismatch(controlName: keyof ChangePasswordFormModel): boolean {
-    return (
-      controlName === 'repeatNewPassword' && !!this.changePasswordForm.errors?.['repeatMismatch']
-    );
-  }
-
-  private _getErrorMessage(errors: ValidationErrors): string {
-    if (errors['required']) {
-      return 'Обязательное поле';
-    }
-
-    return 'Неверное значение';
-  }
 }

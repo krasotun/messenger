@@ -1,12 +1,6 @@
 import { Component, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 import { emailPattern, phonePattern } from '../sign-up-form/sign-up-form.constants';
@@ -78,39 +72,5 @@ export class UpdateProfileForm {
     }
     const updateProfileFormValue = this.updateProfileForm.getRawValue();
     this._updateProfileService.updateProfile(updateProfileFormValue);
-  }
-
-  protected getControlError(controlName: keyof UpdateProfileFormModel): string | undefined {
-    if (!this.hasControlError(controlName)) {
-      return undefined;
-    }
-
-    return this._getErrorMessage(this.updateProfileForm.controls[controlName].errors!);
-  }
-
-  protected hasControlError(controlName: keyof UpdateProfileFormModel): boolean {
-    const { errors, touched } = this.updateProfileForm.controls[controlName];
-
-    return !!errors && touched;
-  }
-
-  private _getErrorMessage(errors: ValidationErrors): string {
-    if (errors['required']) {
-      return 'Обязательное поле';
-    }
-
-    if (errors['minlength']) {
-      return 'Меньше минимальной длины';
-    }
-
-    if (errors['maxlength']) {
-      return 'Больше максимальной длины';
-    }
-
-    if (errors['pattern']) {
-      return 'Неверный формат';
-    }
-
-    return 'Неверное значение';
   }
 }

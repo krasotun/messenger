@@ -1,12 +1,6 @@
 import { Component, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { SignUpService } from '@domains/identity-access/application/sign-up/sign-up.service';
 import {
@@ -76,39 +70,5 @@ export class SignUpForm {
     }
     const signUpFormValue = this.signUpForm.getRawValue();
     this._signUpService.signUp(signUpFormValue);
-  }
-
-  protected getControlError(controlName: keyof SignUpFormModel): string | undefined {
-    if (!this.hasControlError(controlName)) {
-      return undefined;
-    }
-
-    return this._getErrorMessage(this.signUpForm.controls[controlName].errors!);
-  }
-
-  protected hasControlError(controlName: keyof SignUpFormModel): boolean {
-    const { errors, touched } = this.signUpForm.controls[controlName];
-
-    return !!errors && touched;
-  }
-
-  private _getErrorMessage(errors: ValidationErrors): string {
-    if (errors['required']) {
-      return 'Обязательное поле';
-    }
-
-    if (errors['minlength']) {
-      return 'Меньше минимальной длины';
-    }
-
-    if (errors['maxlength']) {
-      return 'Больше максимальной длины';
-    }
-
-    if (errors['pattern']) {
-      return 'Неверный формат';
-    }
-
-    return 'Неверное значение';
   }
 }
