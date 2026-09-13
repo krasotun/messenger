@@ -1,12 +1,11 @@
 import {
   Component,
   computed,
+  DestroyRef,
   inject,
-  Injector,
   input,
   OnInit,
   output,
-  runInInjectionContext,
   signal,
   Signal,
 } from '@angular/core';
@@ -29,7 +28,7 @@ export class Form implements OnInit {
 
   readonly submitted = output<void>();
 
-  private readonly _injector = inject(Injector);
+  private readonly _destroyRef = inject(DestroyRef);
 
   private readonly _canSubmitSource = signal<Signal<boolean> | null>(null);
   private readonly _canSubmit = computed(() => this._canSubmitSource()?.() ?? false);
@@ -37,11 +36,11 @@ export class Form implements OnInit {
   protected readonly disabled = computed(() => this.isSubmitting() || !this._canSubmit());
 
   ngOnInit(): void {
-    const canSubmit = runInInjectionContext(this._injector, () =>
-      createSubmitAvailability(this.group(), { requireChanges: this.requireChanges() }),
+    this._canSubmitSource.set(
+      createSubmitAvailability(this.group(), this._destroyRef, {
+        requireChanges: this.requireChanges(),
+      }),
     );
-
-    this._canSubmitSource.set(canSubmit);
   }
 
   protected onSubmit(): void {

@@ -1,4 +1,4 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, DestroyRef, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -46,11 +46,16 @@ export class ChangePasswordForm {
 
   readonly passwordChanged = output<void>();
 
+  private readonly _destroyRef = inject(DestroyRef);
+
   private readonly _changePasswordService = inject(ChangePasswordService);
 
   protected readonly isSubmitting = this._changePasswordService.isSubmitting;
 
-  protected readonly canSubmit = createSubmitAvailability(this.changePasswordForm);
+  protected readonly canSubmit = createSubmitAvailability(
+    this.changePasswordForm,
+    this._destroyRef,
+  );
 
   constructor() {
     lockFormWhileSubmitting(this.changePasswordForm, this.isSubmitting);

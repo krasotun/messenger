@@ -1,4 +1,4 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, DestroyRef, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -28,11 +28,13 @@ export class SignInForm {
 
   readonly signInSucceeded = output<void>();
 
+  private readonly _destroyRef = inject(DestroyRef);
+
   private readonly _signInService = inject(SignInService);
 
   protected readonly isSubmitting = this._signInService.isSubmitting;
 
-  protected readonly canSubmit = createSubmitAvailability(this.signInForm);
+  protected readonly canSubmit = createSubmitAvailability(this.signInForm, this._destroyRef);
 
   constructor() {
     lockFormWhileSubmitting(this.signInForm, this.isSubmitting);
