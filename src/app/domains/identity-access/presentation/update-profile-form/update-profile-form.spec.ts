@@ -27,6 +27,17 @@ describe('UpdateProfileForm', () => {
   let component: UpdateProfileForm;
   let fixture: ComponentFixture<UpdateProfileForm>;
 
+  const submitForm = () => {
+    const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
+    formElement.dispatchEvent(new Event('submit'));
+  };
+
+  const getSubmitButton = (): HTMLButtonElement =>
+    fixture.nativeElement.querySelector('button[type="submit"]');
+
+  const getFieldErrors = (): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll('.form-field__error'));
+
   beforeEach(async () => {
     updateProfileServiceMock = {
       initialValues: signal(initialValuesMock),
@@ -62,52 +73,82 @@ describe('UpdateProfileForm', () => {
     });
   });
 
+  describe('submit availability', () => {
+    it('should disable the submit button until the form is changed', () => {
+      fixture.detectChanges();
+
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+
+    it('should not show field errors on an untouched prefilled form', () => {
+      fixture.detectChanges();
+
+      expect(getFieldErrors()).toHaveLength(0);
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+
+    it('should enable the submit button once a field changes and the form stays valid', () => {
+      fixture.detectChanges();
+
+      component.updateProfileForm.controls.firstName.markAsDirty();
+      component.updateProfileForm.controls.firstName.setValue('changed');
+      fixture.detectChanges();
+
+      expect(getSubmitButton().disabled).toBe(false);
+    });
+  });
+
   describe('invalid submit', () => {
     it('should not call updateProfile when form is invalid', () => {
       fixture.detectChanges();
 
+      component.updateProfileForm.controls.email.markAsDirty();
       component.updateProfileForm.controls.email.setValue('not-an-email');
 
-      const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
-      formElement.dispatchEvent(new Event('submit'));
+      submitForm();
 
       expect(updateProfileServiceMock.updateProfile).not.toHaveBeenCalled();
     });
 
-    it('should mark all controls as touched and show field errors', () => {
+    it('should disable the submit button when a changed field becomes invalid', () => {
+      fixture.detectChanges();
+
+      component.updateProfileForm.controls.email.markAsDirty();
+      component.updateProfileForm.controls.email.setValue('not-an-email');
+      fixture.detectChanges();
+
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+
+    it('should show a field error after the field loses focus while it stays invalid', () => {
       fixture.detectChanges();
 
       component.updateProfileForm.controls.email.setValue('not-an-email');
-
-      const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
-      formElement.dispatchEvent(new Event('submit'));
-
+      component.updateProfileForm.controls.email.markAsTouched();
       fixture.detectChanges();
 
-      const formControls = Object.values(component.updateProfileForm.controls);
-
-      for (const { touched } of formControls) {
-        expect(touched).toBe(true);
-      }
-
-      const fieldErrors: HTMLElement[] = Array.from(
-        fixture.nativeElement.querySelectorAll('.form-field__error'),
-      );
+      const fieldErrors = getFieldErrors();
 
       expect(fieldErrors.length).toBeGreaterThan(0);
       expect(fieldErrors.some((error) => error.textContent?.trim())).toBe(true);
+      expect(getSubmitButton().disabled).toBe(true);
     });
   });
 
   describe('valid submit', () => {
-    it('should call updateProfile with form value when submitted form is valid', () => {
+    it('should call updateProfile with form value when a changed valid form is submitted', () => {
       fixture.detectChanges();
 
-      const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
-      formElement.dispatchEvent(new Event('submit'));
+      component.updateProfileForm.controls.firstName.markAsDirty();
+      component.updateProfileForm.controls.firstName.setValue('changed');
+
+      submitForm();
 
       expect(updateProfileServiceMock.updateProfile).toHaveBeenCalledOnce();
-      expect(updateProfileServiceMock.updateProfile).toHaveBeenCalledWith(initialValuesMock);
+      expect(updateProfileServiceMock.updateProfile).toHaveBeenCalledWith({
+        ...initialValuesMock,
+        firstName: 'changed',
+      });
     });
   });
 
@@ -131,6 +172,17 @@ describe('UpdateProfileForm', () => {
       inputEls.forEach((inputEl) => {
         expect(inputEl.disabled).toBe(true);
       });
+    });
+
+    it('should not treat the lock while submitting as a form change', () => {
+      fixture.detectChanges();
+
+      updateProfileServiceMock.isSubmitting.set(true);
+      fixture.detectChanges();
+      updateProfileServiceMock.isSubmitting.set(false);
+      fixture.detectChanges();
+
+      expect(getSubmitButton().disabled).toBe(true);
     });
   });
 
