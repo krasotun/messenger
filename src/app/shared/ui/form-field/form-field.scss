@@ -4,6 +4,12 @@
   gap: 6px;
 
   &__label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__label-text {
     font-size: 12px;
     line-height: 1.2;
     font-weight: 500;
