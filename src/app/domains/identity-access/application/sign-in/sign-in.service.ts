@@ -2,7 +2,6 @@ import { inject, Injectable } from '@angular/core';
 import { switchMap } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
-import { createAuthFlowState } from '../create-auth-flow-state';
 import { CurrentSessionStatus } from '../current-session/current-session-status.type';
 import { CurrentSessionService } from '../current-session/current-session.service';
 
@@ -10,6 +9,7 @@ import { SignInInput } from './sign-in-input.type';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { createFormSubmitFlowState } from '@shared/submit-flow';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +19,7 @@ export class SignInService {
   private readonly _currentSessionService = inject(CurrentSessionService);
   private readonly _notifier = inject(NOTIFIER);
 
-  private readonly _flow = createAuthFlowState();
+  private readonly _flow = createFormSubmitFlowState();
 
   readonly isSubmitting = this._flow.isSubmitting;
 

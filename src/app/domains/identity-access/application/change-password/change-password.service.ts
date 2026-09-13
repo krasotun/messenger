@@ -1,19 +1,19 @@
 import { inject, Injectable } from '@angular/core';
 
-import { createAuthFlowState } from '../create-auth-flow-state';
 import { USER_GATEWAY } from '../user.gateway';
 
 import { ChangePasswordInput } from './change-password-input.type';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { createFormSubmitFlowState } from '@shared/submit-flow';
 
 @Injectable()
 export class ChangePasswordService {
   private readonly _userGateway = inject(USER_GATEWAY);
   private readonly _notifier = inject(NOTIFIER);
 
-  private readonly _flow = createAuthFlowState();
+  private readonly _flow = createFormSubmitFlowState();
 
   readonly isSubmitting = this._flow.isSubmitting;
 

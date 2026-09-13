@@ -1,11 +1,11 @@
 ## 1. Флоу отправки переезжает в shared
 
-- [ ] 1.1 Перенести спеку фабрики в `src/app/shared/submit-flow/create-form-submit-flow-state.spec.ts`, переименовав в ней `createAuthFlowState` в `createFormSubmitFlowState`; убедиться, что спека падает на отсутствующем модуле
-- [ ] 1.2 Перенести фабрику в `src/app/shared/submit-flow/create-form-submit-flow-state.ts` под новым именем и завести `src/app/shared/submit-flow/index.ts`; проверить, что спека из 1.1 зеленая
-- [ ] 1.3 Удалить `src/app/domains/identity-access/application/create-auth-flow-state.ts` и его спеку, убрать экспорт из публичного API домена `identity-access`
-- [ ] 1.4 Перевести `sign-in`, `sign-up`, `update-profile`, `change-password` и `change-avatar` сервисы в `identity-access/application` на `createFormSubmitFlowState` из `@shared/submit-flow`; проверить, что их существующие application specs зеленые без правок ожиданий
-- [ ] 1.5 Добавить в `eslint.config.js` запрет на `@shared/forms/*` из `domains/*/application` рядом с существующим запретом на `@shared/ui/*`; проверить `npm run lint`
-- [ ] 1.6 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 1.1 Перенести спеку фабрики в `src/app/shared/submit-flow/create-form-submit-flow-state.spec.ts`, переименовав в ней `createAuthFlowState` в `createFormSubmitFlowState`; убедиться, что спека падает на отсутствующем модуле
+- [x] 1.2 Перенести фабрику в `src/app/shared/submit-flow/create-form-submit-flow-state.ts` под новым именем и завести `src/app/shared/submit-flow/index.ts`; проверить, что спека из 1.1 зеленая
+- [x] 1.3 Удалить `src/app/domains/identity-access/application/create-auth-flow-state.ts` и его спеку, убрать экспорт из публичного API домена `identity-access`
+- [x] 1.4 Перевести `sign-in`, `sign-up`, `update-profile`, `change-password` и `change-avatar` сервисы в `identity-access/application` на `createFormSubmitFlowState` из `@shared/submit-flow`; проверить, что их существующие application specs зеленые без правок ожиданий
+- [x] 1.5 Добавить в `eslint.config.js` запрет на `@shared/forms/*` из `domains/*/application` рядом с существующим запретом на `@shared/ui/*`; проверить `npm run lint`
+- [x] 1.6 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 2. Сервисы chats переходят на общий Флоу отправки
 
