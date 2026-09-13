@@ -1,5 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
-import { Subject } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
 
 import { ChatUsersService } from '../chat-users/chat-users.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
@@ -8,6 +7,7 @@ import { AddChatUserInput } from './add-chat-user-input.type';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { createFormSubmitFlowState } from '@shared/submit-flow';
 
 @Injectable()
 export class AddChatUserService {
@@ -15,24 +15,22 @@ export class AddChatUserService {
   private readonly _chatUsersService = inject(ChatUsersService);
   private readonly _notifier = inject(NOTIFIER);
 
-  private readonly _isSubmitting = signal(false);
-  private readonly _succeeded = new Subject<void>();
+  private readonly _flow = createFormSubmitFlowState();
 
-  readonly isSubmitting = this._isSubmitting.asReadonly();
+  readonly isSubmitting = this._flow.isSubmitting;
 
-  readonly succeeded$ = this._succeeded.asObservable();
+  readonly succeeded$ = this._flow.succeeded$;
 
   addChatUser(addChatUserInput: AddChatUserInput): void {
-    this._isSubmitting.set(true);
+    this._flow.startSubmitting();
 
     this._chatGateway.addChatUser(addChatUserInput).subscribe({
       next: () => {
         this._chatUsersService.loadChatUsers(addChatUserInput.chatId);
-        this._isSubmitting.set(false);
-        this._succeeded.next();
+        this._flow.markSuccess();
       },
       error: ({ message }: ApplicationError) => {
-        this._isSubmitting.set(false);
+        this._flow.markError();
         this._notifier.error('Failed to add chat user', message);
       },
     });
