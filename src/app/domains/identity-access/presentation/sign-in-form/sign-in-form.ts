@@ -1,11 +1,10 @@
-import { Component, DestroyRef, inject, output } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, inject, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { SignInService } from '../../application/sign-in/sign-in.service';
 
-import { createSubmitAvailability, lockFormWhileSubmitting } from '@shared/forms';
-import { Button } from '@shared/ui/button/button';
+import { connectSubmitFlow } from '@shared/forms';
+import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
 
@@ -16,9 +15,8 @@ interface SignInFormModel {
 
 @Component({
   selector: 'app-sign-in-form',
-  imports: [Input, FormField, Button, ReactiveFormsModule],
+  imports: [Input, FormField, Form, ReactiveFormsModule],
   templateUrl: './sign-in-form.html',
-  styleUrl: './sign-in-form.scss',
 })
 export class SignInForm {
   readonly signInForm = new FormGroup<SignInFormModel>({
@@ -28,26 +26,20 @@ export class SignInForm {
 
   readonly signInSucceeded = output<void>();
 
-  private readonly _destroyRef = inject(DestroyRef);
-
   private readonly _signInService = inject(SignInService);
 
   protected readonly isSubmitting = this._signInService.isSubmitting;
 
-  protected readonly canSubmit = createSubmitAvailability(this.signInForm, this._destroyRef);
+  protected readonly fields = [
+    { label: 'Login', type: 'text', control: this.signInForm.controls.login },
+    { label: 'Password', type: 'password', control: this.signInForm.controls.password },
+  ];
 
   constructor() {
-    lockFormWhileSubmitting(this.signInForm, this.isSubmitting);
-
-    this._signInService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
-      this.signInSucceeded.emit();
-    });
+    connectSubmitFlow(this.signInForm, this._signInService, this.signInSucceeded);
   }
 
-  protected onSubmit() {
-    if (this.signInForm.invalid) {
-      return;
-    }
+  protected onSubmit(): void {
     const signInFormValue = this.signInForm.getRawValue();
     this._signInService.signIn(signInFormValue);
   }

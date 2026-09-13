@@ -1,31 +1,12 @@
-<form class="sign-up-form" [formGroup]="signUpForm" (ngSubmit)="onSubmit()">
-  <div class="sign-up-form__fields">
-    <app-form-field [label]="'First name'" [control]="signUpForm.controls.firstName">
-      <input [formControl]="signUpForm.controls.firstName" appInput type="text" />
-    </app-form-field>
-
-    <app-form-field [label]="'Second name'" [control]="signUpForm.controls.secondName">
-      <input [formControl]="signUpForm.controls.secondName" appInput type="text" />
-    </app-form-field>
-
-    <app-form-field [label]="'Login'" [control]="signUpForm.controls.login">
-      <input [formControl]="signUpForm.controls.login" appInput type="text" />
-    </app-form-field>
-
-    <app-form-field [label]="'Email'" [control]="signUpForm.controls.email">
-      <input [formControl]="signUpForm.controls.email" appInput type="email" />
-    </app-form-field>
-
-    <app-form-field [label]="'Password'" [control]="signUpForm.controls.password">
-      <input [formControl]="signUpForm.controls.password" appInput type="password" />
-    </app-form-field>
-
-    <app-form-field [label]="'Mobile phone'" [control]="signUpForm.controls.phone">
-      <input [formControl]="signUpForm.controls.phone" appInput type="text" />
-    </app-form-field>
-  </div>
-
-  <div class="sign-up-form__actions">
-    <button appButton [disabled]="isSubmitting() || !canSubmit()" type="submit">Register</button>
-  </div>
-</form>
+<app-form
+  [group]="signUpForm"
+  submitLabel="Register"
+  [isSubmitting]="isSubmitting()"
+  (submitted)="onSubmit()"
+>
+  @for (field of fields; track field.label) {
+  <app-form-field [label]="field.label" [control]="field.control">
+    <input [formControl]="field.control" appInput [type]="field.type" />
+  </app-form-field>
+  }
+</app-form>

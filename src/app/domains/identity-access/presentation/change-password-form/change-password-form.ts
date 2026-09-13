@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, output } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -11,8 +11,8 @@ import {
 
 import { ChangePasswordService } from '../../application/change-password/change-password.service';
 
-import { createSubmitAvailability, lockFormWhileSubmitting } from '@shared/forms';
-import { Button } from '@shared/ui/button/button';
+import { connectSubmitFlow } from '@shared/forms';
+import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
 
@@ -30,9 +30,8 @@ const matchesNewPassword = (repeatNewPassword: AbstractControl): ValidationError
 
 @Component({
   selector: 'app-change-password-form',
-  imports: [Input, FormField, Button, ReactiveFormsModule],
+  imports: [Input, FormField, Form, ReactiveFormsModule],
   templateUrl: './change-password-form.html',
-  styleUrl: './change-password-form.scss',
 })
 export class ChangePasswordForm {
   readonly changePasswordForm = new FormGroup<ChangePasswordFormModel>({
@@ -46,36 +45,34 @@ export class ChangePasswordForm {
 
   readonly passwordChanged = output<void>();
 
-  private readonly _destroyRef = inject(DestroyRef);
-
   private readonly _changePasswordService = inject(ChangePasswordService);
 
   protected readonly isSubmitting = this._changePasswordService.isSubmitting;
 
-  protected readonly canSubmit = createSubmitAvailability(
-    this.changePasswordForm,
-    this._destroyRef,
-  );
+  protected readonly fields = [
+    {
+      label: 'Old password',
+      type: 'password',
+      control: this.changePasswordForm.controls.oldPassword,
+    },
+    {
+      label: 'New password',
+      type: 'password',
+      control: this.changePasswordForm.controls.newPassword,
+    },
+  ];
 
   constructor() {
-    lockFormWhileSubmitting(this.changePasswordForm, this.isSubmitting);
+    connectSubmitFlow(this.changePasswordForm, this._changePasswordService, this.passwordChanged);
 
     this.changePasswordForm.controls.newPassword.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
         this.changePasswordForm.controls.repeatNewPassword.updateValueAndValidity();
       });
-
-    this._changePasswordService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
-      this.passwordChanged.emit();
-    });
   }
 
-  protected onSubmit() {
-    if (this.changePasswordForm.invalid) {
-      return;
-    }
-
+  protected onSubmit(): void {
     const { oldPassword, newPassword } = this.changePasswordForm.getRawValue();
 
     this._changePasswordService.changePassword({ oldPassword, newPassword });

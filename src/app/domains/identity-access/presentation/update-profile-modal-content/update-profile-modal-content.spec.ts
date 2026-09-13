@@ -70,7 +70,7 @@ const getChangeAvatarFormElement = (
 
 const getUpdateProfileFormElement = (
   fixture: ComponentFixture<UpdateProfileModalContent>,
-): HTMLFormElement => fixture.nativeElement.querySelector('.update-profile-form');
+): HTMLFormElement => fixture.nativeElement.querySelector('app-update-profile-form form');
 
 const selectAvatarFile = (fixture: ComponentFixture<UpdateProfileModalContent>): void => {
   const fileInput: HTMLInputElement = fixture.nativeElement.querySelector(

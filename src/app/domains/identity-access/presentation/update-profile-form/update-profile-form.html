@@ -1,31 +1,13 @@
-<form class="update-profile-form" [formGroup]="updateProfileForm" (ngSubmit)="onSubmit()">
-  <div class="update-profile-form__fields">
-    <app-form-field [label]="'First name'" [control]="updateProfileForm.controls.firstName">
-      <input [formControl]="updateProfileForm.controls.firstName" appInput type="text" />
-    </app-form-field>
-
-    <app-form-field [label]="'Second name'" [control]="updateProfileForm.controls.secondName">
-      <input [formControl]="updateProfileForm.controls.secondName" appInput type="text" />
-    </app-form-field>
-
-    <app-form-field [label]="'Display name'" [control]="updateProfileForm.controls.displayName">
-      <input [formControl]="updateProfileForm.controls.displayName" appInput type="text" />
-    </app-form-field>
-
-    <app-form-field [label]="'Login'" [control]="updateProfileForm.controls.login">
-      <input [formControl]="updateProfileForm.controls.login" appInput type="text" />
-    </app-form-field>
-
-    <app-form-field [label]="'Email'" [control]="updateProfileForm.controls.email">
-      <input [formControl]="updateProfileForm.controls.email" appInput type="email" />
-    </app-form-field>
-
-    <app-form-field [label]="'Mobile phone'" [control]="updateProfileForm.controls.phone">
-      <input [formControl]="updateProfileForm.controls.phone" appInput type="text" />
-    </app-form-field>
-  </div>
-
-  <div class="update-profile-form__actions">
-    <button appButton [disabled]="isSubmitting() || !canSubmit()" type="submit">Save</button>
-  </div>
-</form>
+<app-form
+  [group]="updateProfileForm"
+  submitLabel="Save"
+  [requireChanges]="true"
+  [isSubmitting]="isSubmitting()"
+  (submitted)="onSubmit()"
+>
+  @for (field of fields; track field.label) {
+  <app-form-field [label]="field.label" [control]="field.control">
+    <input [formControl]="field.control" appInput [type]="field.type" />
+  </app-form-field>
+  }
+</app-form>

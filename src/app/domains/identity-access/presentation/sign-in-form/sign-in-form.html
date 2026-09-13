@@ -1,14 +1,12 @@
-<form class="sign-in-form" [formGroup]="signInForm" (ngSubmit)="onSubmit()">
-  <div class="sign-in-form__fields">
-    <app-form-field [label]="'Login'" [control]="signInForm.controls.login">
-      <input [formControl]="signInForm.controls.login" appInput type="text" />
-    </app-form-field>
-    <app-form-field [label]="'Password'" [control]="signInForm.controls.password">
-      <input [formControl]="signInForm.controls.password" appInput type="password" />
-    </app-form-field>
-  </div>
-
-  <div class="sign-in-form__actions">
-    <button appButton [disabled]="isSubmitting() || !canSubmit()" type="submit">Log in</button>
-  </div>
-</form>
+<app-form
+  [group]="signInForm"
+  submitLabel="Log in"
+  [isSubmitting]="isSubmitting()"
+  (submitted)="onSubmit()"
+>
+  @for (field of fields; track field.label) {
+  <app-form-field [label]="field.label" [control]="field.control">
+    <input [formControl]="field.control" appInput [type]="field.type" />
+  </app-form-field>
+  }
+</app-form>

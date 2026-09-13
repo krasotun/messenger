@@ -11,7 +11,8 @@ import {
 } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { createSubmitAvailability } from '@shared/forms';
+import { createSubmitAvailability } from './create-submit-availability';
+
 import { Button } from '@shared/ui/button/button';
 
 @Component({
