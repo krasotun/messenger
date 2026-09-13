@@ -29,6 +29,6 @@
 
 ## 5. Завершение change
 
-- [ ] 5.1 `npx openspec validate translate-ui-to-english --strict` зеленый
-- [ ] 5.2 Полный прогон: `npm run lint`, `npm run test:ci`, `npm run e2e`, `npm run e2e:visual`
-- [ ] 5.3 `grep -rnP '[А-Яа-яЁё]' src e2e` не показывает ничего, кроме комментариев и `*.contract.md`
+- [x] 5.1 `npx openspec validate translate-ui-to-english --strict` зеленый
+- [x] 5.2 Полный прогон: `npm run lint`, `npm run test:ci`, `npm run e2e`, `npm run e2e:visual`
+- [x] 5.3 `grep -rnP '[А-Яа-яЁё]' src e2e` не показывает ничего, кроме комментариев и `*.contract.md`
