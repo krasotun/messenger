@@ -74,6 +74,6 @@
   </div>
 
   <div class="update-profile-form__actions">
-    <button appButton [disabled]="isSubmitting()" type="submit">Save</button>
+    <button appButton [disabled]="isSubmitting() || !canSubmit()" type="submit">Save</button>
   </div>
 </form>

@@ -1,4 +1,4 @@
-import { Component, effect, inject, output } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
@@ -11,6 +11,7 @@ import {
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 import { emailPattern, phonePattern } from '../sign-up-form/sign-up-form.constants';
 
+import { createSubmitAvailability, lockFormWhileSubmitting } from '@shared/forms';
 import { Button } from '@shared/ui/button/button';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
@@ -57,16 +58,14 @@ export class UpdateProfileForm {
 
   protected readonly isSubmitting = this._updateProfileService.isSubmitting;
 
+  protected readonly canSubmit = createSubmitAvailability(this.updateProfileForm, {
+    requireChanges: true,
+  });
+
   constructor() {
     this.updateProfileForm.setValue(this._updateProfileService.initialValues());
 
-    effect(() => {
-      if (this.isSubmitting()) {
-        this.updateProfileForm.disable({ emitEvent: false });
-      } else {
-        this.updateProfileForm.enable({ emitEvent: false });
-      }
-    });
+    lockFormWhileSubmitting(this.updateProfileForm, this.isSubmitting);
 
     this._updateProfileService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
       this.profileUpdated.emit();
@@ -75,7 +74,6 @@ export class UpdateProfileForm {
 
   protected onSubmit() {
     if (this.updateProfileForm.invalid) {
-      this.updateProfileForm.markAllAsTouched();
       return;
     }
     const updateProfileFormValue = this.updateProfileForm.getRawValue();
