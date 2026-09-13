@@ -1,26 +1,14 @@
 <form class="sign-in-form" [formGroup]="signInForm" (ngSubmit)="onSubmit()">
   <div class="sign-in-form__fields">
     <app-form-field [label]="'Login'" [htmlFor]="'login'" [error]="getControlError('login')">
-      <input
-        formControlName="login"
-        appInput
-        [invalid]="hasControlError('login')"
-        type="text"
-        id="login"
-      />
+      <input formControlName="login" appInput type="text" id="login" />
     </app-form-field>
     <app-form-field
       [label]="'Password'"
       [htmlFor]="'password'"
       [error]="getControlError('password')"
     >
-      <input
-        formControlName="password"
-        appInput
-        [invalid]="hasControlError('password')"
-        type="password"
-        id="password"
-      />
+      <input formControlName="password" appInput type="password" id="password" />
     </app-form-field>
   </div>
 

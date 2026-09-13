@@ -5,13 +5,7 @@
       [htmlFor]="'firstName'"
       [error]="getControlError('firstName')"
     >
-      <input
-        formControlName="firstName"
-        appInput
-        [invalid]="hasControlError('firstName')"
-        type="text"
-        id="firstName"
-      />
+      <input formControlName="firstName" appInput type="text" id="firstName" />
     </app-form-field>
 
     <app-form-field
@@ -19,33 +13,15 @@
       [htmlFor]="'secondName'"
       [error]="getControlError('secondName')"
     >
-      <input
-        formControlName="secondName"
-        appInput
-        [invalid]="hasControlError('secondName')"
-        type="text"
-        id="secondName"
-      />
+      <input formControlName="secondName" appInput type="text" id="secondName" />
     </app-form-field>
 
     <app-form-field [label]="'Login'" [htmlFor]="'login'" [error]="getControlError('login')">
-      <input
-        formControlName="login"
-        appInput
-        [invalid]="hasControlError('login')"
-        type="text"
-        id="login"
-      />
+      <input formControlName="login" appInput type="text" id="login" />
     </app-form-field>
 
     <app-form-field [label]="'Email'" [htmlFor]="'email'" [error]="getControlError('email')">
-      <input
-        formControlName="email"
-        appInput
-        [invalid]="hasControlError('email')"
-        type="email"
-        id="email"
-      />
+      <input formControlName="email" appInput type="email" id="email" />
     </app-form-field>
 
     <app-form-field
@@ -53,23 +29,11 @@
       [htmlFor]="'password'"
       [error]="getControlError('password')"
     >
-      <input
-        formControlName="password"
-        appInput
-        [invalid]="hasControlError('password')"
-        type="password"
-        id="password"
-      />
+      <input formControlName="password" appInput type="password" id="password" />
     </app-form-field>
 
     <app-form-field [label]="'Mobile phone'" [htmlFor]="'phone'" [error]="getControlError('phone')">
-      <input
-        formControlName="phone"
-        appInput
-        [invalid]="hasControlError('phone')"
-        type="text"
-        id="phone"
-      />
+      <input formControlName="phone" appInput type="text" id="phone" />
     </app-form-field>
   </div>
 

@@ -1,20 +1,25 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { Input } from './input';
 
 @Component({
-  imports: [Input],
-  template: ` <input appInput [invalid]="invalid()" [disabled]="disabled()" /> `,
+  imports: [Input, ReactiveFormsModule],
+  template: ` <input appInput [formControl]="control" type="text" /> `,
 })
 class TestHost {
-  readonly invalid = signal(false);
-  readonly disabled = signal(false);
+  readonly control = new FormControl('', { nonNullable: true, validators: [Validators.required] });
 }
+
+@Component({
+  imports: [Input],
+  template: ` <input appInput type="text" /> `,
+})
+class PlainTestHost {}
 
 describe('Input', () => {
   let fixture: ComponentFixture<TestHost>;
-  let host: TestHost;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -22,20 +27,18 @@ describe('Input', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHost);
-    host = fixture.componentInstance;
 
     await fixture.whenStable();
   });
 
-  it('should render default state', () => {
+  it('should not mark an untouched invalid control as invalid', () => {
     const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
 
     expect(inputEl.getAttribute('aria-invalid')).toBe('false');
-    expect(inputEl.disabled).toBe(false);
   });
 
-  it('should set aria-invalid when invalid input is true', async () => {
-    host.invalid.set(true);
+  it('should mark a touched invalid control as invalid', async () => {
+    fixture.componentInstance.control.markAsTouched();
 
     await fixture.whenStable();
 
@@ -44,13 +47,30 @@ describe('Input', () => {
     expect(inputEl.getAttribute('aria-invalid')).toBe('true');
   });
 
-  it('should disable host input when disabled input is true', async () => {
-    host.disabled.set(true);
+  it('should clear the invalid state once the value is fixed', async () => {
+    fixture.componentInstance.control.markAsTouched();
+    await fixture.whenStable();
 
+    fixture.componentInstance.control.setValue('a value');
     await fixture.whenStable();
 
     const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
 
-    expect(inputEl.disabled).toBe(true);
+    expect(inputEl.getAttribute('aria-invalid')).toBe('false');
+  });
+});
+
+describe('Input without a control', () => {
+  it('should not mark the field as invalid', async () => {
+    await TestBed.configureTestingModule({
+      imports: [PlainTestHost],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(PlainTestHost);
+    await fixture.whenStable();
+
+    const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
+
+    expect(inputEl.getAttribute('aria-invalid')).toBe('false');
   });
 });
