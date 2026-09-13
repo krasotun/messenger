@@ -31,6 +31,8 @@ export class ChangeAvatarForm {
 
   protected readonly isSubmitting = this._changeAvatarService.isSubmitting;
 
+  protected readonly canSubmit = computed<boolean>(() => this._selectedFile() !== null);
+
   protected readonly previewUrl = this._previewUrl.asReadonly();
 
   protected readonly selectedFileName = computed<string>(() => {

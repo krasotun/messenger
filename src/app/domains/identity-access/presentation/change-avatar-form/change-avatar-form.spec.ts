@@ -124,6 +124,12 @@ describe('ChangeAvatarForm', () => {
       expect(getAvatarImage()?.getAttribute('src')).toBe(currentUserMock.avatar);
       expect(getErrorMessage()).toBe('');
     });
+
+    it('should disable the submit button while no file is selected', () => {
+      fixture.detectChanges();
+
+      expect(getSubmitButton().disabled).toBe(true);
+    });
   });
 
   describe('supported file selected', () => {
@@ -157,6 +163,14 @@ describe('ChangeAvatarForm', () => {
       expect(getErrorMessage()).toContain('JPEG');
     });
 
+    it('should disable the submit button', () => {
+      fixture.detectChanges();
+
+      selectFile(pdfFileMock);
+
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+
     it('should not call changeAvatar on submit', () => {
       fixture.detectChanges();
 
@@ -169,6 +183,12 @@ describe('ChangeAvatarForm', () => {
   });
 
   describe('submit without a selected file', () => {
+    it('should disable the submit button', () => {
+      fixture.detectChanges();
+
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+
     it('should not call changeAvatar and should ask to select a file', () => {
       fixture.detectChanges();
 

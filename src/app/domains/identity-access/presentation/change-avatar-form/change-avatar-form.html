@@ -30,6 +30,8 @@
   }
 
   <div class="change-avatar-form__actions">
-    <button appButton [disabled]="isSubmitting()" type="submit">Change avatar</button>
+    <button appButton [disabled]="isSubmitting() || !canSubmit()" type="submit">
+      Change avatar
+    </button>
   </div>
 </form>

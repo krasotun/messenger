@@ -1,4 +1,4 @@
-import { Component, effect, inject, output } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
@@ -13,6 +13,7 @@ import {
   emailPattern,
   phonePattern,
 } from '@domains/identity-access/presentation/sign-up-form/sign-up-form.constants';
+import { createSubmitAvailability, lockFormWhileSubmitting } from '@shared/forms';
 import { Button } from '@shared/ui/button/button';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
@@ -59,14 +60,10 @@ export class SignUpForm {
 
   protected readonly isSubmitting = this._signUpService.isSubmitting;
 
+  protected readonly canSubmit = createSubmitAvailability(this.signUpForm);
+
   constructor() {
-    effect(() => {
-      if (this.isSubmitting()) {
-        this.signUpForm.disable({ emitEvent: false });
-      } else {
-        this.signUpForm.enable({ emitEvent: false });
-      }
-    });
+    lockFormWhileSubmitting(this.signUpForm, this.isSubmitting);
 
     this._signUpService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
       this.signUpSucceeded.emit();
@@ -75,7 +72,6 @@ export class SignUpForm {
 
   protected onSubmit() {
     if (this.signUpForm.invalid) {
-      this.signUpForm.markAllAsTouched();
       return;
     }
     const signUpFormValue = this.signUpForm.getRawValue();
