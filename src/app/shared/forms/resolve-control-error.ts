@@ -1,14 +1,8 @@
 import { ValidationErrors } from '@angular/forms';
 
-const ERROR_MESSAGES: Record<string, string> = {
-  required: 'This field is required',
-  minlength: 'Value is too short',
-  maxlength: 'Value is too long',
-  pattern: 'Value has an invalid format',
-  mismatch: 'Values do not match',
-};
+import { CONTROL_ERROR_MESSAGES } from './control-error-messages.constants';
 
-const DEFAULT_ERROR_MESSAGE = 'Value is invalid';
+const messagesByErrorKey: Record<string, string | undefined> = CONTROL_ERROR_MESSAGES;
 
 export const resolveControlError = (errors: ValidationErrors | null): string | undefined => {
   if (!errors) {
@@ -17,5 +11,5 @@ export const resolveControlError = (errors: ValidationErrors | null): string | u
 
   const [errorKey] = Object.keys(errors);
 
-  return ERROR_MESSAGES[errorKey] ?? DEFAULT_ERROR_MESSAGE;
+  return messagesByErrorKey[errorKey] ?? CONTROL_ERROR_MESSAGES.default;
 };

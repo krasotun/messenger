@@ -3,7 +3,7 @@
 - [x] 1.1 Написать падающий спек `src/app/shared/forms/create-control-state.spec.ts`: сигнал отдает нарушения контрола, признак «трогали» и признак «показывать сообщение»; значения обновляются после смены значения, статуса и `markAsTouched()`; проверить, что обновление приходит без ручного вызова change detection
 - [x] 1.2 Реализовать `src/app/shared/forms/create-control-state.ts` на потоке событий контрола по образцу `create-submit-availability.ts`; спек 1.1 зеленый
 - [x] 1.3 Написать падающий спек `src/app/shared/forms/resolve-control-error.spec.ts`: обязательность, слишком короткое, слишком длинное, неверный формат, несовпадение с парным полем, нарушение неизвестного вида - каждый со своим английским текстом, нет нарушений - текста нет
-- [x] 1.4 Реализовать `src/app/shared/forms/resolve-control-error.ts` с английскими текстами внутри файла; спек 1.3 зеленый
+- [x] 1.4 Реализовать `src/app/shared/forms/resolve-control-error.ts`, английские тексты - в `src/app/shared/forms/control-error-messages.constants.ts`, как `error-messages.constants.ts` в доменах; спек 1.3 зеленый
 - [x] 1.5 Экспортировать оба хелпера из `src/app/shared/forms/index.ts` и проверить, что импорт по `@shared/forms` собирается (`npm run build`)
 - [x] 1.6 Quality gates секции: `npm run lint`, `npm run test:ci`
 

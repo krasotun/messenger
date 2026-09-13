@@ -10,8 +10,7 @@ export interface ControlState {
 
 export const createControlState = (control: AbstractControl): Signal<ControlState> => {
   const computeState = (): ControlState => {
-    const errors = control.errors;
-    const touched = control.touched;
+    const { errors, touched } = control;
 
     return { errors, touched, showMessage: touched && !!errors };
   };
