@@ -81,9 +81,8 @@ test('does not send an unsupported file format', async ({ page, request }) => {
 
   await modal.locator('.change-avatar-form__file-input').setInputFiles(pdfFile);
 
-  await modal.getByRole('button', { name: 'Change avatar' }).click();
-
   await expect(modal.getByText('Допустимые форматы')).toBeVisible();
+  await expect(modal.getByRole('button', { name: 'Change avatar' })).toBeDisabled();
 
   expect(avatarRequests).toHaveLength(0);
 });
