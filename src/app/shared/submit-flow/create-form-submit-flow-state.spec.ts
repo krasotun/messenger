@@ -1,10 +1,10 @@
-import { createAuthFlowState } from './create-auth-flow-state';
+import { createFormSubmitFlowState } from './create-form-submit-flow-state';
 
-describe('createAuthFlowState', () => {
-  let state: ReturnType<typeof createAuthFlowState>;
+describe('createFormSubmitFlowState', () => {
+  let state: ReturnType<typeof createFormSubmitFlowState>;
 
   beforeEach(() => {
-    state = createAuthFlowState();
+    state = createFormSubmitFlowState();
   });
 
   describe('initial state', () => {

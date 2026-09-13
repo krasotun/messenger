@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { Subject } from 'rxjs';
 
-export const createAuthFlowState = () => {
+export const createFormSubmitFlowState = () => {
   const isSubmitting = signal(false);
   const succeeded = new Subject<void>();
 
