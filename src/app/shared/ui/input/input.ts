@@ -10,19 +10,19 @@ import { ControlState, createControlState } from '@shared/forms';
   },
 })
 export class Input implements OnInit {
-  private readonly ngControl = inject(NgControl, { optional: true, self: true });
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly _ngControl = inject(NgControl, { optional: true, self: true });
+  private readonly _destroyRef = inject(DestroyRef);
 
-  private readonly controlState = signal<Signal<ControlState> | null>(null);
-  private readonly state = computed(() => this.controlState()?.() ?? null);
+  private readonly _stateSource = signal<Signal<ControlState> | null>(null);
+  private readonly _controlState = computed(() => this._stateSource()?.() ?? null);
 
-  readonly invalid = computed(() => this.state()?.showMessage ?? false);
+  readonly invalid = computed(() => this._controlState()?.showMessage ?? false);
 
   ngOnInit(): void {
-    const control = this.ngControl?.control;
+    const control = this._ngControl?.control;
 
     if (control) {
-      this.controlState.set(createControlState(control, this.destroyRef));
+      this._stateSource.set(createControlState(control, this._destroyRef));
     }
   }
 }
