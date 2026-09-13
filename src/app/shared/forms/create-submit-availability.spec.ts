@@ -1,3 +1,4 @@
+import { DestroyRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FormControl, Validators } from '@angular/forms';
 
@@ -18,7 +19,7 @@ describe('createSubmitAvailability', () => {
   const createAvailability = (
     control: FormControl<string>,
     options?: CreateSubmitAvailabilityOptions,
-  ) => TestBed.runInInjectionContext(() => createSubmitAvailability(control, options));
+  ) => createSubmitAvailability(control, TestBed.inject(DestroyRef), options);
 
   describe('without requireChanges', () => {
     it('should be false while the form is invalid', () => {

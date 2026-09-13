@@ -1,4 +1,4 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, DestroyRef, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -26,11 +26,13 @@ export class CreateChatForm {
 
   readonly chatCreated = output<void>();
 
+  private readonly _destroyRef = inject(DestroyRef);
+
   private readonly _createChatService = inject(CreateChatService);
 
   protected readonly isSubmitting = this._createChatService.isSubmitting;
 
-  protected readonly canSubmit = createSubmitAvailability(this.createChatForm);
+  protected readonly canSubmit = createSubmitAvailability(this.createChatForm, this._destroyRef);
 
   constructor() {
     lockFormWhileSubmitting(this.createChatForm, this.isSubmitting);
