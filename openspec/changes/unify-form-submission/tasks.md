@@ -9,10 +9,10 @@
 
 ## 2. Сервисы chats переходят на общий Флоу отправки
 
-- [ ] 2.1 Перевести `src/app/domains/chats/application/create-chat/create-chat.service.ts` на `createFormSubmitFlowState`, убрав собственные `_isSubmitting` и `_succeeded`; проверить, что `create-chat.service.spec.ts` зеленая без правок ожиданий
-- [ ] 2.2 То же для `src/app/domains/chats/application/add-chat-user/add-chat-user.service.ts`; проверить `add-chat-user.service.spec.ts`
-- [ ] 2.3 То же для `src/app/domains/chats/application/delete-chat/delete-chat.service.ts`; проверить `delete-chat.service.spec.ts`
-- [ ] 2.4 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 2.1 Перевести `src/app/domains/chats/application/create-chat/create-chat.service.ts` на `createFormSubmitFlowState`, убрав собственные `_isSubmitting` и `_succeeded`; проверить, что `create-chat.service.spec.ts` зеленая без правок ожиданий
+- [x] 2.2 То же для `src/app/domains/chats/application/add-chat-user/add-chat-user.service.ts`; проверить `add-chat-user.service.spec.ts`
+- [x] 2.3 То же для `src/app/domains/chats/application/delete-chat/delete-chat.service.ts`; проверить `delete-chat.service.spec.ts`
+- [x] 2.4 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 3. Доступность кнопки отправки как общая фабрика
 
