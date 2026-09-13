@@ -1,18 +1,11 @@
 import { Component, inject, output } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 import { emailPattern, phonePattern } from '../sign-up-form/sign-up-form.constants';
 
-import { createSubmitAvailability, lockFormWhileSubmitting } from '@shared/forms';
-import { Button } from '@shared/ui/button/button';
+import { connectSubmitFlow } from '@shared/forms';
+import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
 
@@ -27,9 +20,8 @@ interface UpdateProfileFormModel {
 
 @Component({
   selector: 'app-update-profile-form',
-  imports: [Input, FormField, Button, ReactiveFormsModule],
+  imports: [Input, FormField, Form, ReactiveFormsModule],
   templateUrl: './update-profile-form.html',
-  styleUrl: './update-profile-form.scss',
 })
 export class UpdateProfileForm {
   readonly updateProfileForm = new FormGroup<UpdateProfileFormModel>({
@@ -58,59 +50,23 @@ export class UpdateProfileForm {
 
   protected readonly isSubmitting = this._updateProfileService.isSubmitting;
 
-  protected readonly canSubmit = createSubmitAvailability(this.updateProfileForm, {
-    requireChanges: true,
-  });
+  protected readonly fields = [
+    { label: 'First name', type: 'text', control: this.updateProfileForm.controls.firstName },
+    { label: 'Second name', type: 'text', control: this.updateProfileForm.controls.secondName },
+    { label: 'Display name', type: 'text', control: this.updateProfileForm.controls.displayName },
+    { label: 'Login', type: 'text', control: this.updateProfileForm.controls.login },
+    { label: 'Email', type: 'email', control: this.updateProfileForm.controls.email },
+    { label: 'Mobile phone', type: 'text', control: this.updateProfileForm.controls.phone },
+  ];
 
   constructor() {
     this.updateProfileForm.setValue(this._updateProfileService.initialValues());
 
-    lockFormWhileSubmitting(this.updateProfileForm, this.isSubmitting);
-
-    this._updateProfileService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
-      this.profileUpdated.emit();
-    });
+    connectSubmitFlow(this.updateProfileForm, this._updateProfileService, this.profileUpdated);
   }
 
-  protected onSubmit() {
-    if (this.updateProfileForm.invalid) {
-      return;
-    }
+  protected onSubmit(): void {
     const updateProfileFormValue = this.updateProfileForm.getRawValue();
     this._updateProfileService.updateProfile(updateProfileFormValue);
-  }
-
-  protected getControlError(controlName: keyof UpdateProfileFormModel): string | undefined {
-    if (!this.hasControlError(controlName)) {
-      return undefined;
-    }
-
-    return this._getErrorMessage(this.updateProfileForm.controls[controlName].errors!);
-  }
-
-  protected hasControlError(controlName: keyof UpdateProfileFormModel): boolean {
-    const { errors, touched } = this.updateProfileForm.controls[controlName];
-
-    return !!errors && touched;
-  }
-
-  private _getErrorMessage(errors: ValidationErrors): string {
-    if (errors['required']) {
-      return 'Обязательное поле';
-    }
-
-    if (errors['minlength']) {
-      return 'Меньше минимальной длины';
-    }
-
-    if (errors['maxlength']) {
-      return 'Больше максимальной длины';
-    }
-
-    if (errors['pattern']) {
-      return 'Неверный формат';
-    }
-
-    return 'Неверное значение';
   }
 }

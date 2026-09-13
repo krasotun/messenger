@@ -1,0 +1,9 @@
+<form class="form" [formGroup]="group()" (ngSubmit)="onSubmit()">
+  <div class="form__fields">
+    <ng-content></ng-content>
+  </div>
+
+  <div class="form__actions">
+    <button appButton [disabled]="disabled()" type="submit">{{ submitLabel() }}</button>
+  </div>
+</form>

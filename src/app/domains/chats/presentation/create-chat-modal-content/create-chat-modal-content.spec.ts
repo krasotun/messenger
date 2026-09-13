@@ -182,7 +182,7 @@ describe('CreateChatModalContent', () => {
       const reopenedFixture = await openModal();
 
       const reopenedTitleInput: HTMLInputElement =
-        reopenedFixture.nativeElement.querySelector('#title');
+        reopenedFixture.nativeElement.querySelector('input');
 
       expect(reopenedTitleInput.value).toBe('');
 

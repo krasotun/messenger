@@ -1,17 +1,10 @@
 import { Component, inject, output } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { SignInService } from '../../application/sign-in/sign-in.service';
 
-import { createSubmitAvailability, lockFormWhileSubmitting } from '@shared/forms';
-import { Button } from '@shared/ui/button/button';
+import { connectSubmitFlow } from '@shared/forms';
+import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
 
@@ -22,9 +15,8 @@ interface SignInFormModel {
 
 @Component({
   selector: 'app-sign-in-form',
-  imports: [Input, FormField, Button, ReactiveFormsModule],
+  imports: [Input, FormField, Form, ReactiveFormsModule],
   templateUrl: './sign-in-form.html',
-  styleUrl: './sign-in-form.scss',
 })
 export class SignInForm {
   readonly signInForm = new FormGroup<SignInFormModel>({
@@ -38,43 +30,17 @@ export class SignInForm {
 
   protected readonly isSubmitting = this._signInService.isSubmitting;
 
-  protected readonly canSubmit = createSubmitAvailability(this.signInForm);
+  protected readonly fields = [
+    { label: 'Login', type: 'text', control: this.signInForm.controls.login },
+    { label: 'Password', type: 'password', control: this.signInForm.controls.password },
+  ];
 
   constructor() {
-    lockFormWhileSubmitting(this.signInForm, this.isSubmitting);
-
-    this._signInService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
-      this.signInSucceeded.emit();
-    });
+    connectSubmitFlow(this.signInForm, this._signInService, this.signInSucceeded);
   }
 
-  protected onSubmit() {
-    if (this.signInForm.invalid) {
-      return;
-    }
+  protected onSubmit(): void {
     const signInFormValue = this.signInForm.getRawValue();
     this._signInService.signIn(signInFormValue);
-  }
-
-  protected getControlError(controlName: keyof SignInFormModel): string | undefined {
-    if (!this.hasControlError(controlName)) {
-      return undefined;
-    }
-
-    return this._getErrorMessage(this.signInForm.controls[controlName].errors!);
-  }
-
-  hasControlError(controlName: keyof SignInFormModel): boolean {
-    const { errors, touched } = this.signInForm.controls[controlName];
-
-    return !!errors && touched;
-  }
-
-  private _getErrorMessage(errors: ValidationErrors): string {
-    if (errors['required']) {
-      return 'Обязательное поле';
-    }
-
-    return 'Неверное значение';
   }
 }

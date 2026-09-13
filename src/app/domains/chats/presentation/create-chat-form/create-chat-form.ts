@@ -1,11 +1,10 @@
 import { Component, inject, output } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { CreateChatService } from '../../application/create-chat/create-chat.service';
 
-import { createSubmitAvailability, lockFormWhileSubmitting } from '@shared/forms';
-import { Button } from '@shared/ui/button/button';
+import { connectSubmitFlow } from '@shared/forms';
+import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
 
@@ -15,9 +14,8 @@ interface CreateChatFormModel {
 
 @Component({
   selector: 'app-create-chat-form',
-  imports: [Input, FormField, Button, ReactiveFormsModule],
+  imports: [Input, FormField, Form, ReactiveFormsModule],
   templateUrl: './create-chat-form.html',
-  styleUrl: './create-chat-form.scss',
 })
 export class CreateChatForm {
   readonly createChatForm = new FormGroup<CreateChatFormModel>({
@@ -30,37 +28,17 @@ export class CreateChatForm {
 
   protected readonly isSubmitting = this._createChatService.isSubmitting;
 
-  protected readonly canSubmit = createSubmitAvailability(this.createChatForm);
+  protected readonly fields = [
+    { label: 'Title', type: 'text', control: this.createChatForm.controls.title },
+  ];
 
   constructor() {
-    lockFormWhileSubmitting(this.createChatForm, this.isSubmitting);
-
-    this._createChatService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
-      this.chatCreated.emit();
-    });
+    connectSubmitFlow(this.createChatForm, this._createChatService, this.chatCreated);
   }
 
   protected onSubmit(): void {
-    if (this.createChatForm.invalid) {
-      return;
-    }
-
     const { title } = this.createChatForm.getRawValue();
 
     this._createChatService.createChat({ title });
-  }
-
-  protected getControlError(): string | undefined {
-    if (!this.hasControlError()) {
-      return undefined;
-    }
-
-    return 'Обязательное поле';
-  }
-
-  protected hasControlError(): boolean {
-    const { errors, touched } = this.createChatForm.controls.title;
-
-    return touched && !!errors;
   }
 }

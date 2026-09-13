@@ -1,79 +1,13 @@
-<form class="update-profile-form" [formGroup]="updateProfileForm" (ngSubmit)="onSubmit()">
-  <div class="update-profile-form__fields">
-    <app-form-field
-      [label]="'First name'"
-      [htmlFor]="'firstName'"
-      [error]="getControlError('firstName')"
-    >
-      <input
-        formControlName="firstName"
-        appInput
-        [invalid]="hasControlError('firstName')"
-        type="text"
-        id="firstName"
-      />
-    </app-form-field>
-
-    <app-form-field
-      [label]="'Second name'"
-      [htmlFor]="'secondName'"
-      [error]="getControlError('secondName')"
-    >
-      <input
-        formControlName="secondName"
-        appInput
-        [invalid]="hasControlError('secondName')"
-        type="text"
-        id="secondName"
-      />
-    </app-form-field>
-
-    <app-form-field
-      [label]="'Display name'"
-      [htmlFor]="'displayName'"
-      [error]="getControlError('displayName')"
-    >
-      <input
-        formControlName="displayName"
-        appInput
-        [invalid]="hasControlError('displayName')"
-        type="text"
-        id="displayName"
-      />
-    </app-form-field>
-
-    <app-form-field [label]="'Login'" [htmlFor]="'login'" [error]="getControlError('login')">
-      <input
-        formControlName="login"
-        appInput
-        [invalid]="hasControlError('login')"
-        type="text"
-        id="login"
-      />
-    </app-form-field>
-
-    <app-form-field [label]="'Email'" [htmlFor]="'email'" [error]="getControlError('email')">
-      <input
-        formControlName="email"
-        appInput
-        [invalid]="hasControlError('email')"
-        type="email"
-        id="email"
-      />
-    </app-form-field>
-
-    <app-form-field [label]="'Mobile phone'" [htmlFor]="'phone'" [error]="getControlError('phone')">
-      <input
-        formControlName="phone"
-        appInput
-        [invalid]="hasControlError('phone')"
-        type="text"
-        id="phone"
-      />
-    </app-form-field>
-  </div>
-
-  <div class="update-profile-form__actions">
-    <button appButton [disabled]="isSubmitting() || !canSubmit()" type="submit">Save</button>
-  </div>
-</form>
+<app-form
+  [group]="updateProfileForm"
+  submitLabel="Save"
+  [requireChanges]="true"
+  [isSubmitting]="isSubmitting()"
+  (submitted)="onSubmit()"
+>
+  @for (field of fields; track field.label) {
+  <app-form-field [label]="field.label" [control]="field.control">
+    <input [formControl]="field.control" appInput [type]="field.type" />
+  </app-form-field>
+  }
+</app-form>

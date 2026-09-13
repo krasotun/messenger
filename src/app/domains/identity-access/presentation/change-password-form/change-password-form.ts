@@ -11,8 +11,8 @@ import {
 
 import { ChangePasswordService } from '../../application/change-password/change-password.service';
 
-import { createSubmitAvailability, lockFormWhileSubmitting } from '@shared/forms';
-import { Button } from '@shared/ui/button/button';
+import { connectSubmitFlow } from '@shared/forms';
+import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
 
@@ -22,31 +22,26 @@ interface ChangePasswordFormModel {
   repeatNewPassword: FormControl<string>;
 }
 
-const repeatMatchesNewPassword = (changePasswordForm: AbstractControl): ValidationErrors | null => {
-  const newPassword = changePasswordForm.get('newPassword')?.value;
-  const repeatNewPassword = changePasswordForm.get('repeatNewPassword')?.value;
+const matchesNewPassword = (repeatNewPassword: AbstractControl): ValidationErrors | null => {
+  const newPassword = repeatNewPassword.parent?.get('newPassword')?.value;
 
-  return newPassword === repeatNewPassword ? null : { repeatMismatch: true };
+  return newPassword === repeatNewPassword.value ? null : { mismatch: true };
 };
 
 @Component({
   selector: 'app-change-password-form',
-  imports: [Input, FormField, Button, ReactiveFormsModule],
+  imports: [Input, FormField, Form, ReactiveFormsModule],
   templateUrl: './change-password-form.html',
-  styleUrl: './change-password-form.scss',
 })
 export class ChangePasswordForm {
-  readonly changePasswordForm = new FormGroup<ChangePasswordFormModel>(
-    {
-      oldPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      newPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      repeatNewPassword: new FormControl('', {
-        nonNullable: true,
-        validators: [Validators.required],
-      }),
-    },
-    { validators: [repeatMatchesNewPassword] },
-  );
+  readonly changePasswordForm = new FormGroup<ChangePasswordFormModel>({
+    oldPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    newPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    repeatNewPassword: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, matchesNewPassword],
+    }),
+  });
 
   readonly passwordChanged = output<void>();
 
@@ -54,55 +49,32 @@ export class ChangePasswordForm {
 
   protected readonly isSubmitting = this._changePasswordService.isSubmitting;
 
-  protected readonly canSubmit = createSubmitAvailability(this.changePasswordForm);
+  protected readonly fields = [
+    {
+      label: 'Old password',
+      type: 'password',
+      control: this.changePasswordForm.controls.oldPassword,
+    },
+    {
+      label: 'New password',
+      type: 'password',
+      control: this.changePasswordForm.controls.newPassword,
+    },
+  ];
 
   constructor() {
-    lockFormWhileSubmitting(this.changePasswordForm, this.isSubmitting);
+    connectSubmitFlow(this.changePasswordForm, this._changePasswordService, this.passwordChanged);
 
-    this._changePasswordService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
-      this.passwordChanged.emit();
-    });
+    this.changePasswordForm.controls.newPassword.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.changePasswordForm.controls.repeatNewPassword.updateValueAndValidity();
+      });
   }
 
-  protected onSubmit() {
-    if (this.changePasswordForm.invalid) {
-      return;
-    }
-
+  protected onSubmit(): void {
     const { oldPassword, newPassword } = this.changePasswordForm.getRawValue();
 
     this._changePasswordService.changePassword({ oldPassword, newPassword });
-  }
-
-  protected getControlError(controlName: keyof ChangePasswordFormModel): string | undefined {
-    if (!this.hasControlError(controlName)) {
-      return undefined;
-    }
-
-    if (this._hasRepeatMismatch(controlName)) {
-      return 'Пароли не совпадают';
-    }
-
-    return this._getErrorMessage(this.changePasswordForm.controls[controlName].errors!);
-  }
-
-  protected hasControlError(controlName: keyof ChangePasswordFormModel): boolean {
-    const { errors, touched } = this.changePasswordForm.controls[controlName];
-
-    return touched && (!!errors || this._hasRepeatMismatch(controlName));
-  }
-
-  private _hasRepeatMismatch(controlName: keyof ChangePasswordFormModel): boolean {
-    return (
-      controlName === 'repeatNewPassword' && !!this.changePasswordForm.errors?.['repeatMismatch']
-    );
-  }
-
-  private _getErrorMessage(errors: ValidationErrors): string {
-    if (errors['required']) {
-      return 'Обязательное поле';
-    }
-
-    return 'Неверное значение';
   }
 }

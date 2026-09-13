@@ -1,4 +1,4 @@
-import { signal, Signal } from '@angular/core';
+import { DestroyRef, signal, Signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl } from '@angular/forms';
 
@@ -8,6 +8,7 @@ export interface CreateSubmitAvailabilityOptions {
 
 export const createSubmitAvailability = (
   form: AbstractControl,
+  destroyRef: DestroyRef,
   options: CreateSubmitAvailabilityOptions = {},
 ): Signal<boolean> => {
   const { requireChanges = false } = options;
@@ -16,7 +17,7 @@ export const createSubmitAvailability = (
 
   const canSubmit = signal(computeCanSubmit());
 
-  form.events.pipe(takeUntilDestroyed()).subscribe(() => {
+  form.events.pipe(takeUntilDestroyed(destroyRef)).subscribe(() => {
     canSubmit.set(computeCanSubmit());
   });
 

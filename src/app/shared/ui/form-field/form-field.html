@@ -1,12 +1,10 @@
 <div class="form-field">
-  <label
-    class="form-field__label"
-    [attr.for]="htmlFor()"
-  >
-    {{ label() }}
+  <!-- eslint-disable-next-line @angular-eslint/template/label-has-associated-control -- the control is projected content, invisible to static analysis -->
+  <label class="form-field__label">
+    <span class="form-field__label-text">{{ label() }}</span>
+    <ng-content></ng-content>
   </label>
-  <ng-content></ng-content>
-  @if (error()) {
-    <span class="form-field__error"> {{ error() }}</span>
+  @if (message()) {
+  <span class="form-field__error"> {{ message() }}</span>
   }
 </div>
