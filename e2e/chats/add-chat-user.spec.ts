@@ -47,7 +47,7 @@ test('adds a found user to the chat and shows them in the header', async ({ page
 
   await page.getByRole('button', { name: 'Add member' }).click();
 
-  await page.getByRole('textbox', { name: 'Поиск пользователя' }).fill(invitedUser.login);
+  await page.getByRole('textbox', { name: 'Search users' }).fill(invitedUser.login);
 
   await page.getByRole('button', { name: invitedUser.first_name }).click();
 

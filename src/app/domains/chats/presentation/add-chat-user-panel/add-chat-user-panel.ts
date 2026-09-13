@@ -11,8 +11,8 @@ import { Nullable } from '@shared/types';
 import { Avatar } from '@shared/ui/avatar/avatar';
 import { Input } from '@shared/ui/input/input';
 
-const notStartedHint = 'Начните вводить логин';
-const nobodyFoundHint = 'Никого не нашли';
+const notStartedHint = 'Start typing a login';
+const nobodyFoundHint = 'No users found';
 
 @Component({
   selector: 'app-add-chat-user-panel',
