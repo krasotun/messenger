@@ -11,7 +11,7 @@
 - [x] 2.1 Перевести ожидания в `change-avatar-form.spec.ts` и `update-profile-modal-content.spec.ts` на `Select a file`, `No file selected`, `Allowed formats: JPEG, JPG, PNG, GIF, WebP` и убедиться, что спеки красные
 - [x] 2.2 Перевести `formatErrorMessage`, `missingFileErrorMessage` и подпись отсутствующего файла в `change-avatar-form.ts`, текст ошибки отправки в `change-avatar-form.html` на `Avatar change failed:`; проверка - спеки из 2.1 зеленые
 - [x] 2.3 Перевести ожидания в `e2e/profile/change-avatar.spec.ts` на `No file selected` и `Allowed formats`; проверка - `npm run e2e` зеленый
-- [ ] 2.4 Обновить эталон `e2e/profile/update-profile.screenshot.spec.ts-snapshots/profile-modal-chromium-darwin.png`: форма смены аватара в модалке теперь английская; линуксовый эталон взять из артефакта прогона `visual`; проверка - `npm run e2e:visual` зеленый
+- [x] 2.4 Обновить эталон `e2e/profile/update-profile.screenshot.spec.ts-snapshots/profile-modal-chromium-darwin.png`: форма смены аватара в модалке теперь английская; линуксовый эталон взять из артефакта прогона `visual`; проверка - `npm run e2e:visual` зеленый
 - [x] 2.5 Quality gates блока: `npm run lint`, `npm run test:ci`, `npm run e2e`, `npm run e2e:visual`
 
 ## 3. Доступное имя модального окна
