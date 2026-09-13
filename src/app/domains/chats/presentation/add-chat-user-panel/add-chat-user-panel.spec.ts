@@ -82,15 +82,15 @@ describe('AddChatUserPanel', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('поле пустое', () => {
+  describe('empty field', () => {
     it('should show a hint to start typing a login', () => {
       fixture.detectChanges();
 
-      expect(getText()).toContain('Начните вводить логин');
+      expect(getText()).toContain('Start typing a login');
     });
   });
 
-  describe('запрос идет', () => {
+  describe('request in flight', () => {
     it('should keep the previous results visible while the new request is pending', () => {
       fixture.detectChanges();
 
@@ -107,11 +107,11 @@ describe('AddChatUserPanel', () => {
       fixture.detectChanges();
 
       expect(getText()).toContain('Janie');
-      expect(getText()).not.toContain('Никого не нашли');
+      expect(getText()).not.toContain('No users found');
     });
   });
 
-  describe('нашли', () => {
+  describe('found', () => {
     it('should show the found users', () => {
       fixture.detectChanges();
 
@@ -141,7 +141,7 @@ describe('AddChatUserPanel', () => {
     });
   });
 
-  describe('ответ пуст', () => {
+  describe('empty response', () => {
     it('should show that nobody was found, distinct from the not-started hint', () => {
       fixture.detectChanges();
 
@@ -150,12 +150,12 @@ describe('AddChatUserPanel', () => {
       search('nobody');
       fixture.detectChanges();
 
-      expect(getText()).toContain('Никого не нашли');
-      expect(getText()).not.toContain('Начните вводить логин');
+      expect(getText()).toContain('No users found');
+      expect(getText()).not.toContain('Start typing a login');
     });
   });
 
-  describe('400 на добавлении', () => {
+  describe('400 on add', () => {
     it('should not render a submit error and keep the panel open', () => {
       fixture.detectChanges();
 
@@ -173,7 +173,7 @@ describe('AddChatUserPanel', () => {
     });
   });
 
-  describe('успешное добавление', () => {
+  describe('successful add', () => {
     it('should emit userAdded when the service reports success, without a manual application tick', () => {
       fixture.detectChanges();
 

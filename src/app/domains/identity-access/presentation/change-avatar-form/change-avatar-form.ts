@@ -10,8 +10,8 @@ import { Button } from '@shared/ui/button/button';
 
 const acceptedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-const formatErrorMessage = 'Допустимые форматы: JPEG, JPG, PNG, GIF, WebP';
-const missingFileErrorMessage = 'Выберите файл';
+const formatErrorMessage = 'Allowed formats: JPEG, JPG, PNG, GIF, WebP';
+const missingFileErrorMessage = 'Select a file';
 
 @Component({
   selector: 'app-change-avatar-form',
@@ -36,7 +36,7 @@ export class ChangeAvatarForm {
   protected readonly previewUrl = this._previewUrl.asReadonly();
 
   protected readonly selectedFileName = computed<string>(() => {
-    return this._selectedFile()?.name ?? 'Файл не выбран';
+    return this._selectedFile()?.name ?? 'No file selected';
   });
 
   protected readonly avatarUrl = computed<Nullable<string>>(() => {

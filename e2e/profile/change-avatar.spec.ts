@@ -52,7 +52,7 @@ test('shows the new avatar without page reload', async ({ page, request }) => {
 
   await modal.getByRole('button', { name: 'Change avatar' }).click();
 
-  await expect(modal.getByText('Файл не выбран')).toBeVisible();
+  await expect(modal.getByText('No file selected')).toBeVisible();
   await expect(modal).toBeVisible();
 
   const headerAvatar = page
@@ -81,7 +81,7 @@ test('does not send an unsupported file format', async ({ page, request }) => {
 
   await modal.locator('.change-avatar-form__file-input').setInputFiles(pdfFile);
 
-  await expect(modal.getByText('Допустимые форматы')).toBeVisible();
+  await expect(modal.getByText('Allowed formats')).toBeVisible();
   await expect(modal.getByRole('button', { name: 'Change avatar' })).toBeDisabled();
 
   expect(avatarRequests).toHaveLength(0);

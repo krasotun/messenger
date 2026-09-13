@@ -195,7 +195,7 @@ describe('ChangeAvatarForm', () => {
       submitForm();
 
       expect(changeAvatarServiceMock.changeAvatar).not.toHaveBeenCalled();
-      expect(getErrorMessage()).toContain('Выберите файл');
+      expect(getErrorMessage()).toContain('Select a file');
     });
   });
 
@@ -249,7 +249,7 @@ describe('ChangeAvatarForm', () => {
       submitForm();
 
       expect(changeAvatarServiceMock.changeAvatar).not.toHaveBeenCalled();
-      expect(getErrorMessage()).toContain('Выберите файл');
+      expect(getErrorMessage()).toContain('Select a file');
     });
   });
 

@@ -46,7 +46,7 @@ describe('createUserSearchState', () => {
     TestBed.resetTestingModule();
   });
 
-  describe('поиск не начат', () => {
+  describe('search not started', () => {
     it('should expose no users and send no request', () => {
       expect(state.result()).toEqual({ status: UserSearchStatus.NotStarted });
       expect(searchUsersServiceMock.searchUsers).not.toHaveBeenCalled();
@@ -65,7 +65,7 @@ describe('createUserSearchState', () => {
     });
   });
 
-  describe('пользователи найдены', () => {
+  describe('users found', () => {
     it('should expose the found users after the debounce delay', () => {
       vi.mocked(searchUsersServiceMock.searchUsers).mockReturnValue(
         new Subject<SearchUsersResult>(),
@@ -84,7 +84,7 @@ describe('createUserSearchState', () => {
     });
   });
 
-  describe('никого не нашли', () => {
+  describe('nobody found', () => {
     it('should expose a nobody found result, distinct from not started', () => {
       vi.mocked(searchUsersServiceMock.searchUsers).mockReturnValue(of({ users: [] }));
 
@@ -94,7 +94,7 @@ describe('createUserSearchState', () => {
     });
   });
 
-  describe('ввод продолжился до ответа', () => {
+  describe('input continued before the response', () => {
     it('should show the result of the last query and ignore a late response to a previous one', () => {
       const firstResponse$ = new Subject<SearchUsersResult>();
       const secondResponse$ = new Subject<SearchUsersResult>();
