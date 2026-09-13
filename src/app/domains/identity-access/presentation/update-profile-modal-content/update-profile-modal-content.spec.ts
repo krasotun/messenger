@@ -332,7 +332,7 @@ describe('UpdateProfileModalContent', () => {
         reopenedFixture.nativeElement
           .querySelector('.change-avatar-form__error')
           ?.textContent?.trim(),
-      ).toContain('Выберите файл');
+      ).toContain('Select a file');
     });
   });
 });
