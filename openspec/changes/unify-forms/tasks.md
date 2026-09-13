@@ -16,11 +16,11 @@
 
 ## 3. Примитив поля получает контрол
 
-- [ ] 3.1 Написать падающий спек `src/app/shared/ui/form-field/form-field.spec.ts`: текст сообщения по виду нарушения приходит из резолвера; сообщения нет, пока по полю не побывал фокус; сообщение исчезает после исправления; щелчок по подписи переводит фокус в поле; поле объявляется своей подписью
-- [ ] 3.2 Реализовать в `src/app/shared/ui/form-field/form-field.ts` и `.html` вход с контролом вместо `htmlFor` и `error`, подпись оборачивает проекцию поля; спек 3.1 зеленый
-- [ ] 3.3 Перевести на новый вход пять шаблонов форм: убрать `htmlFor`, `error`, `id` у полей, передать контрол по ссылке (`[formControl]` вместо `formControlName`)
-- [ ] 3.4 Удалить из `sign-in-form.ts`, `sign-up-form.ts`, `update-profile-form.ts`, `change-password-form.ts`, `create-chat-form.ts` методы `getControlError`, `hasControlError` и `_getErrorMessage`; спеки этих компонентов переписать на проверку видимого сообщения, а не вызова метода
-- [ ] 3.5 Quality gates секции: `npm run lint`, `npm run test:ci`
+- [x] 3.1 Написать падающий спек `src/app/shared/ui/form-field/form-field.spec.ts`: текст сообщения по виду нарушения приходит из резолвера; сообщения нет, пока по полю не побывал фокус; сообщение исчезает после исправления; щелчок по подписи переводит фокус в поле; поле объявляется своей подписью
+- [x] 3.2 Реализовать в `src/app/shared/ui/form-field/form-field.ts` и `.html` вход с контролом вместо `htmlFor` и `error`, подпись оборачивает проекцию поля; спек 3.1 зеленый
+- [x] 3.3 Перевести на новый вход пять шаблонов форм: убрать `htmlFor`, `error`, `id` у полей, передать контрол по ссылке (`[formControl]` вместо `formControlName`)
+- [x] 3.4 Удалить из `sign-in-form.ts`, `sign-up-form.ts`, `update-profile-form.ts`, `change-password-form.ts`, `create-chat-form.ts` методы `getControlError`, `hasControlError` и `_getErrorMessage`; спеки этих компонентов переписать на проверку видимого сообщения, а не вызова метода
+- [x] 3.5 Quality gates секции: `npm run lint`, `npm run test:ci`
 
 ## 4. Совпадение нового пароля и повтора
 

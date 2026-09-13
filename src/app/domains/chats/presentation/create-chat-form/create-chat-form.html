@@ -1,6 +1,6 @@
 <form class="create-chat-form" [formGroup]="createChatForm" (ngSubmit)="onSubmit()">
-  <app-form-field [label]="'Title'" [htmlFor]="'title'" [error]="getControlError()">
-    <input formControlName="title" appInput type="text" id="title" />
+  <app-form-field [label]="'Title'" [control]="createChatForm.controls.title">
+    <input [formControl]="createChatForm.controls.title" appInput type="text" />
   </app-form-field>
 
   <div class="create-chat-form__actions">

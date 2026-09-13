@@ -1,39 +1,27 @@
 <form class="update-profile-form" [formGroup]="updateProfileForm" (ngSubmit)="onSubmit()">
   <div class="update-profile-form__fields">
-    <app-form-field
-      [label]="'First name'"
-      [htmlFor]="'firstName'"
-      [error]="getControlError('firstName')"
-    >
-      <input formControlName="firstName" appInput type="text" id="firstName" />
+    <app-form-field [label]="'First name'" [control]="updateProfileForm.controls.firstName">
+      <input [formControl]="updateProfileForm.controls.firstName" appInput type="text" />
     </app-form-field>
 
-    <app-form-field
-      [label]="'Second name'"
-      [htmlFor]="'secondName'"
-      [error]="getControlError('secondName')"
-    >
-      <input formControlName="secondName" appInput type="text" id="secondName" />
+    <app-form-field [label]="'Second name'" [control]="updateProfileForm.controls.secondName">
+      <input [formControl]="updateProfileForm.controls.secondName" appInput type="text" />
     </app-form-field>
 
-    <app-form-field
-      [label]="'Display name'"
-      [htmlFor]="'displayName'"
-      [error]="getControlError('displayName')"
-    >
-      <input formControlName="displayName" appInput type="text" id="displayName" />
+    <app-form-field [label]="'Display name'" [control]="updateProfileForm.controls.displayName">
+      <input [formControl]="updateProfileForm.controls.displayName" appInput type="text" />
     </app-form-field>
 
-    <app-form-field [label]="'Login'" [htmlFor]="'login'" [error]="getControlError('login')">
-      <input formControlName="login" appInput type="text" id="login" />
+    <app-form-field [label]="'Login'" [control]="updateProfileForm.controls.login">
+      <input [formControl]="updateProfileForm.controls.login" appInput type="text" />
     </app-form-field>
 
-    <app-form-field [label]="'Email'" [htmlFor]="'email'" [error]="getControlError('email')">
-      <input formControlName="email" appInput type="email" id="email" />
+    <app-form-field [label]="'Email'" [control]="updateProfileForm.controls.email">
+      <input [formControl]="updateProfileForm.controls.email" appInput type="email" />
     </app-form-field>
 
-    <app-form-field [label]="'Mobile phone'" [htmlFor]="'phone'" [error]="getControlError('phone')">
-      <input formControlName="phone" appInput type="text" id="phone" />
+    <app-form-field [label]="'Mobile phone'" [control]="updateProfileForm.controls.phone">
+      <input [formControl]="updateProfileForm.controls.phone" appInput type="text" />
     </app-form-field>
   </div>
 

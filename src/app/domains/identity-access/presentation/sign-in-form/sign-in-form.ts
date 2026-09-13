@@ -1,12 +1,6 @@
 import { Component, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { SignInService } from '../../application/sign-in/sign-in.service';
 
@@ -54,27 +48,5 @@ export class SignInForm {
     }
     const signInFormValue = this.signInForm.getRawValue();
     this._signInService.signIn(signInFormValue);
-  }
-
-  protected getControlError(controlName: keyof SignInFormModel): string | undefined {
-    if (!this.hasControlError(controlName)) {
-      return undefined;
-    }
-
-    return this._getErrorMessage(this.signInForm.controls[controlName].errors!);
-  }
-
-  hasControlError(controlName: keyof SignInFormModel): boolean {
-    const { errors, touched } = this.signInForm.controls[controlName];
-
-    return !!errors && touched;
-  }
-
-  private _getErrorMessage(errors: ValidationErrors): string {
-    if (errors['required']) {
-      return 'Обязательное поле';
-    }
-
-    return 'Неверное значение';
   }
 }

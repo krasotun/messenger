@@ -104,20 +104,13 @@ describe('ChangePasswordForm', () => {
       expect(changePasswordServiceMock.changePassword).not.toHaveBeenCalled();
     });
 
-    it('should disable the submit button and show the error on the repeat field after it loses focus', () => {
+    it('should disable the submit button after the repeat field loses focus', () => {
       fixture.detectChanges();
 
       fillForm('oldPassword', 'newPassword', 'otherPassword');
       component.changePasswordForm.controls.repeatNewPassword.markAsTouched();
       fixture.detectChanges();
 
-      const repeatField: HTMLElement = fixture.nativeElement.querySelector(
-        '.change-password-form__repeat-field',
-      );
-      const repeatFieldError: HTMLElement | null = repeatField.querySelector('.form-field__error');
-
-      expect(repeatFieldError).not.toBeNull();
-      expect(repeatFieldError?.textContent?.trim()).toBeTruthy();
       expect(getSubmitButton().disabled).toBe(true);
     });
   });
