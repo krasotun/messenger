@@ -1,6 +1,5 @@
 import { inject, Injectable } from '@angular/core';
 
-import { createAuthFlowState } from '../create-auth-flow-state';
 import { CurrentSessionService } from '../current-session/current-session.service';
 import { USER_GATEWAY } from '../user.gateway';
 
@@ -8,6 +7,7 @@ import { ChangeAvatarInput } from './change-avatar-input.type';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { createFormSubmitFlowState } from '@shared/submit-flow';
 
 @Injectable()
 export class ChangeAvatarService {
@@ -15,7 +15,7 @@ export class ChangeAvatarService {
   private readonly _currentSessionService = inject(CurrentSessionService);
   private readonly _notifier = inject(NOTIFIER);
 
-  private readonly _flow = createAuthFlowState();
+  private readonly _flow = createFormSubmitFlowState();
 
   readonly isSubmitting = this._flow.isSubmitting;
 

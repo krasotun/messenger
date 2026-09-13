@@ -21,6 +21,12 @@ describe('ChangePasswordForm', () => {
     formElement.dispatchEvent(new Event('submit'));
   };
 
+  const getSubmitButton = (): HTMLButtonElement =>
+    fixture.nativeElement.querySelector('button[type="submit"]');
+
+  const getFieldErrors = (): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll('.form-field__error'));
+
   const fillForm = (oldPassword: string, newPassword: string, repeatNewPassword: string) => {
     component.changePasswordForm.setValue({
       oldPassword,
@@ -85,27 +91,6 @@ describe('ChangePasswordForm', () => {
 
       expect(changePasswordServiceMock.changePassword).not.toHaveBeenCalled();
     });
-
-    it('should mark all controls as touched and show field errors', () => {
-      fixture.detectChanges();
-
-      submitForm();
-
-      fixture.detectChanges();
-
-      const formControls = Object.values(component.changePasswordForm.controls);
-
-      for (const { touched } of formControls) {
-        expect(touched).toBe(true);
-      }
-
-      const fieldErrors: HTMLElement[] = Array.from(
-        fixture.nativeElement.querySelectorAll('.form-field__error'),
-      );
-
-      expect(fieldErrors.length).toBeGreaterThan(0);
-      expect(fieldErrors.some((error) => error.textContent?.trim())).toBe(true);
-    });
   });
 
   describe('repeat does not match the new password', () => {
@@ -119,13 +104,11 @@ describe('ChangePasswordForm', () => {
       expect(changePasswordServiceMock.changePassword).not.toHaveBeenCalled();
     });
 
-    it('should show the error on the repeat field', () => {
+    it('should disable the submit button and show the error on the repeat field after it loses focus', () => {
       fixture.detectChanges();
 
       fillForm('oldPassword', 'newPassword', 'otherPassword');
-
-      submitForm();
-
+      component.changePasswordForm.controls.repeatNewPassword.markAsTouched();
       fixture.detectChanges();
 
       const repeatField: HTMLElement = fixture.nativeElement.querySelector(
@@ -135,6 +118,44 @@ describe('ChangePasswordForm', () => {
 
       expect(repeatFieldError).not.toBeNull();
       expect(repeatFieldError?.textContent?.trim()).toBeTruthy();
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+  });
+
+  describe('submit button availability', () => {
+    it('should disable the submit button when fields are empty', () => {
+      fixture.detectChanges();
+
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+
+    it('should not show field errors on an untouched form', () => {
+      fixture.detectChanges();
+
+      expect(getFieldErrors()).toHaveLength(0);
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+
+    it('should show a field error after the field loses focus while it stays empty', () => {
+      fixture.detectChanges();
+
+      component.changePasswordForm.controls.oldPassword.markAsTouched();
+      fixture.detectChanges();
+
+      const fieldErrors = getFieldErrors();
+
+      expect(fieldErrors.length).toBeGreaterThan(0);
+      expect(fieldErrors.some((error) => error.textContent?.trim())).toBe(true);
+      expect(getSubmitButton().disabled).toBe(true);
+    });
+
+    it('should enable the submit button once the form becomes valid', () => {
+      fixture.detectChanges();
+
+      fillForm('oldPassword', 'newPassword', 'newPassword');
+      fixture.detectChanges();
+
+      expect(getSubmitButton().disabled).toBe(false);
     });
   });
 

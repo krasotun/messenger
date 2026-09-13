@@ -1,5 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
-import { Subject } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
 
 import { ChatListService } from '../chat-list/chat-list.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
@@ -8,6 +7,7 @@ import { DeleteChatInput } from './delete-chat-input.type';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { createFormSubmitFlowState } from '@shared/submit-flow';
 
 @Injectable()
 export class DeleteChatService {
@@ -15,25 +15,23 @@ export class DeleteChatService {
   private readonly _chatListService = inject(ChatListService);
   private readonly _notifier = inject(NOTIFIER);
 
-  private readonly _isSubmitting = signal(false);
-  private readonly _succeeded = new Subject<void>();
+  private readonly _flow = createFormSubmitFlowState();
 
-  readonly isSubmitting = this._isSubmitting.asReadonly();
+  readonly isSubmitting = this._flow.isSubmitting;
 
-  readonly succeeded$ = this._succeeded.asObservable();
+  readonly succeeded$ = this._flow.succeeded$;
 
   deleteChat(deleteChatInput: DeleteChatInput): void {
-    this._isSubmitting.set(true);
+    this._flow.startSubmitting();
 
     this._chatGateway.deleteChat(deleteChatInput).subscribe({
       next: () => {
         this._chatListService.loadChats();
-        this._isSubmitting.set(false);
-        this._succeeded.next();
+        this._flow.markSuccess();
         this._notifier.success('Delete chat', 'Chat deleted successfully');
       },
       error: ({ message }: ApplicationError) => {
-        this._isSubmitting.set(false);
+        this._flow.markError();
         this._notifier.error('Failed to delete chat', message);
       },
     });

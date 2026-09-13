@@ -1,4 +1,4 @@
-import { Component, effect, inject, output } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -11,6 +11,7 @@ import {
 
 import { ChangePasswordService } from '../../application/change-password/change-password.service';
 
+import { createSubmitAvailability, lockFormWhileSubmitting } from '@shared/forms';
 import { Button } from '@shared/ui/button/button';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
@@ -53,14 +54,10 @@ export class ChangePasswordForm {
 
   protected readonly isSubmitting = this._changePasswordService.isSubmitting;
 
+  protected readonly canSubmit = createSubmitAvailability(this.changePasswordForm);
+
   constructor() {
-    effect(() => {
-      if (this.isSubmitting()) {
-        this.changePasswordForm.disable({ emitEvent: false });
-      } else {
-        this.changePasswordForm.enable({ emitEvent: false });
-      }
-    });
+    lockFormWhileSubmitting(this.changePasswordForm, this.isSubmitting);
 
     this._changePasswordService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
       this.passwordChanged.emit();
@@ -69,7 +66,6 @@ export class ChangePasswordForm {
 
   protected onSubmit() {
     if (this.changePasswordForm.invalid) {
-      this.changePasswordForm.markAllAsTouched();
       return;
     }
 

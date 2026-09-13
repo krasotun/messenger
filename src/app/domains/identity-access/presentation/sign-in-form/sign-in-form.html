@@ -25,6 +25,6 @@
   </div>
 
   <div class="sign-in-form__actions">
-    <button appButton [disabled]="isSubmitting()" type="submit">Log in</button>
+    <button appButton [disabled]="isSubmitting() || !canSubmit()" type="submit">Log in</button>
   </div>
 </form>

@@ -146,6 +146,10 @@ module.exports = defineConfig([
               message: 'Application must not know about UI primitives such as ModalRef.',
             },
             {
+              group: ['@shared/forms/*'],
+              message: 'Application must not know about Angular forms.',
+            },
+            {
               group: ['**/infrastructure/*', '@domains/*/infrastructure/*'],
               message: 'Application reaches the outside world through a gateway token only.',
             },
