@@ -38,11 +38,11 @@
 
 ## 6. Пять форм на примитивах
 
-- [ ] 6.1 Перевести `sign-in-form`, `sign-up-form`, `update-profile-form`, `change-password-form`, `create-chat-form` на примитив формы: поля уходят в проекцию, конструктор сводится к подключению флоу отправки, `onSubmit` теряет отказ от отправки; последний прямой вызов `createSubmitAvailability` уходит из доменных форм, файл `create-submit-availability.ts` (+спек) физически переезжает из `shared/forms` в `shared/ui/form`, экспорт из `shared/forms/index.ts` убирается; спеки компонентов зеленые
-- [ ] 6.2 Описать поля каждой формы списком (подпись, тип, контрол) и рендерить их через `@for`; поле с собственной разметкой оставить вне цикла, если такое найдется
-- [ ] 6.3 Удалить `sign-in-form.scss`, `sign-up-form.scss`, `update-profile-form.scss`, `change-password-form.scss`, `create-chat-form.scss` и ссылки на них; проверить, что раскладка форм не изменилась визуально
-- [ ] 6.4 Проверить, что в пяти компонентах не осталось русских строк и обращений к `ValidationErrors` (`grep`), а `update-profile-form` сохранил предзаполнение и требование изменений
-- [ ] 6.5 Quality gates секции: `npm run lint`, `npm run test:ci`
+- [x] 6.1 Перевести `sign-in-form`, `sign-up-form`, `update-profile-form`, `change-password-form`, `create-chat-form` на примитив формы: поля уходят в проекцию, конструктор сводится к подключению флоу отправки, `onSubmit` теряет отказ от отправки; последний прямой вызов `createSubmitAvailability` уходит из доменных форм, файл `create-submit-availability.ts` (+спек) физически переезжает из `shared/forms` в `shared/ui/form`, экспорт из `shared/forms/index.ts` убирается; спеки компонентов зеленые
+- [x] 6.2 Описать поля каждой формы списком (подпись, тип, контрол) и рендерить их через `@for`; поле с собственной разметкой оставить вне цикла, если такое найдется
+- [x] 6.3 Удалить `sign-in-form.scss`, `sign-up-form.scss`, `update-profile-form.scss`, `change-password-form.scss`, `create-chat-form.scss` и ссылки на них; проверить, что раскладка форм не изменилась визуально
+- [x] 6.4 Проверить, что в пяти компонентах не осталось русских строк и обращений к `ValidationErrors` (`grep`), а `update-profile-form` сохранил предзаполнение и требование изменений
+- [x] 6.5 Quality gates секции: `npm run lint`, `npm run test:ci`
 
 ## 7. Сквозная проверка и снимки
 
