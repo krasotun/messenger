@@ -1,14 +1,15 @@
+@use 'layout';
+
 :host {
+  @include layout.row();
   flex-grow: 1;
-  display: flex;
   min-height: 0;
 }
 
 .chats-page {
   &__selected-chat {
+    @include layout.column();
     flex-grow: 1;
-    display: flex;
-    flex-direction: column;
     min-width: 0;
     background: var(--color-surface-softer);
   }
