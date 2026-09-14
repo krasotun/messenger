@@ -1,3 +1,5 @@
+@use 'layout';
+
 :host {
   display: block;
 }
@@ -16,9 +18,7 @@
   }
 
   &__actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
+    @include layout.row(12px, $justify: flex-end);
     margin-top: 24px;
   }
 }

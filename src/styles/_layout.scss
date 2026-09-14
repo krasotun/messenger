@@ -1,0 +1,24 @@
+// Миксины flex-раскладки.
+//
+// Задают направление и то, что передали явно. Значения по умолчанию - null, и
+// Sass выбрасывает объявление с таким значением: миксин не навязывает ни
+// выравнивания, ни промежутка. Это сознательно, а не для краткости. Дефолт
+// `align: center` выглядел бы удобнее - выравнивание по центру встречается
+// чаще всего, - но тогда перевод существующих стилей менял бы раскладку в
+// местах, где `align-items` не задавали вовсе и работал `stretch`.
+
+@mixin row($gap: null, $align: null, $justify: null, $inline: false) {
+  display: if($inline, inline-flex, flex);
+  flex-direction: row;
+  gap: $gap;
+  align-items: $align;
+  justify-content: $justify;
+}
+
+@mixin column($gap: null, $align: null, $justify: null, $inline: false) {
+  display: if($inline, inline-flex, flex);
+  flex-direction: column;
+  gap: $gap;
+  align-items: $align;
+  justify-content: $justify;
+}

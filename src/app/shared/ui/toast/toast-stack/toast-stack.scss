@@ -1,7 +1,7 @@
+@use 'layout';
+
 :host {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  @include layout.column(8px);
   // Верхний отступ больше бокового: он уводит стек из-под шапки приложения,
   // где в том же углу живет меню текущего пользователя.
   padding: 72px 16px 16px;
