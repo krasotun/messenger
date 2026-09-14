@@ -1,7 +1,7 @@
+@use 'layout';
+
 .current-user-avatar-menu__trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  @include layout.row($align: center, $justify: center, $inline: true);
   padding: 0;
   border: 0;
   background: transparent;

@@ -1,15 +1,11 @@
+@use 'layout';
+
 .change-avatar-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: center;
+  @include layout.column(16px, $align: center);
 
   &__file-field {
+    @include layout.column(8px, $align: center);
     position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
     width: 100%;
   }
 
@@ -52,9 +48,7 @@
   }
 
   &__actions {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    @include layout.column(16px);
     width: 100%;
   }
 

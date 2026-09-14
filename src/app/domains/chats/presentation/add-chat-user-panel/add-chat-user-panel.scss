@@ -1,7 +1,7 @@
+@use 'layout';
+
 :host {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  @include layout.column(8px);
   width: 240px;
 }
 
@@ -21,9 +21,7 @@
   }
 
   &__user {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    @include layout.row(8px, $align: center);
     width: 100%;
     padding: 6px 4px;
     border: 0;
