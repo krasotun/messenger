@@ -1,6 +1,7 @@
+@use 'layout';
+
 :host {
-  display: flex;
-  align-items: center;
+  @include layout.row($align: center);
 }
 
 .chat-user-stack {

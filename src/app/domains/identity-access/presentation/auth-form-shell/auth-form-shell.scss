@@ -1,3 +1,5 @@
+@use 'layout';
+
 :host {
   display: block;
   width: 100%;
@@ -5,9 +7,7 @@
 }
 
 .auth-form-shell {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  @include layout.column(16px);
 
   &__title {
     margin: 0;

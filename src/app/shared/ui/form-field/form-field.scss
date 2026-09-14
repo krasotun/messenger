@@ -1,12 +1,10 @@
+@use 'layout';
+
 .form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  @include layout.column(6px);
 
   &__label {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    @include layout.column(6px);
   }
 
   &__label-text {
