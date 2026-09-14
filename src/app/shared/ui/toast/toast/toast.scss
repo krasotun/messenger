@@ -1,10 +1,10 @@
+@use 'layout';
+
 // Класс вида висит на host-элементе, поэтому стили карточки и цвета видов
 // пишутся через :host: правило вида `.app-toast` компилируется с атрибутом
 // содержимого и до host-элемента не достает.
 :host {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  @include layout.row(12px, $align: flex-start);
   width: 320px;
   padding: 12px 16px;
   background: var(--color-surface);
@@ -23,9 +23,7 @@
 
 .app-toast {
   &__body {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    @include layout.column(4px);
     min-width: 0;
   }
 

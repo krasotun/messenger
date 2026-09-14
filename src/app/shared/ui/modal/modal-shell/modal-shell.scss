@@ -1,7 +1,7 @@
+@use 'layout';
+
 .app-modal-shell {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  @include layout.column(16px);
   padding: 24px;
   background: var(--color-surface);
   border-radius: 8px;
@@ -30,9 +30,7 @@
   // Заголовок необязателен, поэтому кнопку прижимает к правому краю сам
   // header, а не margin у заголовка: без заголовка прижимать было бы нечем.
   &__header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+    @include layout.row(16px, $align: center);
     min-height: 32px;
   }
 
