@@ -1,4 +1,6 @@
+@use 'layout';
+
 :host {
+  @include layout.row();
   flex: 1;
-  display: flex;
 }
