@@ -53,3 +53,6 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 
+
+# Teaching workspace (/teach): лично мое, в историю проекта не идет
+/learning/
