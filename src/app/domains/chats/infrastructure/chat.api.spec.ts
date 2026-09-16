@@ -55,10 +55,22 @@ describe('ChatApi', () => {
       const request = httpTestingController.expectOne('/chats');
 
       expect(request.request.method).toBe('GET');
+      expect(request.request.params.keys()).toHaveLength(0);
 
       request.flush([chatDtoMock]);
 
       expect(results).toEqual([[chatDtoMock]]);
+    });
+
+    it('should send the title as a query param when given', () => {
+      service.chats({ title: 'Analytics' }).subscribe();
+
+      const request = httpTestingController.expectOne('/chats?title=Analytics');
+
+      expect(request.request.method).toBe('GET');
+      expect(request.request.params.get('title')).toBe('Analytics');
+
+      request.flush([chatDtoMock]);
     });
   });
 

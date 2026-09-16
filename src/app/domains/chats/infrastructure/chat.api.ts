@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { ChatsQuery } from '../application/chats-query.type';
+
 import {
   AddChatUserRequestDto,
   ChatDto,
@@ -17,8 +19,10 @@ import {
 export class ChatApi {
   private readonly _httpClient = inject(HttpClient);
 
-  chats(): Observable<ChatDto[]> {
-    return this._httpClient.get<ChatDto[]>('/chats');
+  chats(query?: ChatsQuery): Observable<ChatDto[]> {
+    return this._httpClient.get<ChatDto[]>('/chats', {
+      params: query?.title ? { title: query.title } : {},
+    });
   }
 
   createChat(request: CreateChatRequestDto): Observable<CreateChatResponseDto> {
