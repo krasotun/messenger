@@ -4,6 +4,7 @@ import { Directive, ElementRef, inject, input, OnDestroy, TemplateRef } from '@a
 import { filter, merge, takeUntil } from 'rxjs';
 
 import { PopoverCoordinator } from './popover-coordinator.service';
+import { PopoverOpening } from './popover-opening.type';
 import { PopoverPanel } from './popover-panel/popover-panel';
 
 import { Nullable } from '@shared/types';
@@ -16,7 +17,7 @@ import { Nullable } from '@shared/types';
 })
 export class Popover implements OnDestroy {
   readonly content = input.required<TemplateRef<unknown>>({ alias: 'appPopover' });
-  readonly mode = input<'click' | 'manual'>('click');
+  readonly opening = input<PopoverOpening>(PopoverOpening.OnHostClick);
 
   private readonly _popoverCoordinator = inject(PopoverCoordinator);
 
@@ -27,7 +28,7 @@ export class Popover implements OnDestroy {
   private _overlayRef: Nullable<OverlayRef> = null;
 
   onClick(): void {
-    if (this.mode() === 'manual') {
+    if (this.opening() === PopoverOpening.ByOwner) {
       return;
     }
 

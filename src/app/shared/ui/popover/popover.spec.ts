@@ -2,6 +2,7 @@ import { Component, viewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Popover } from '../popover/popover';
+import { PopoverOpening } from '../popover/popover-opening.type';
 
 @Component({
   imports: [Popover],
@@ -34,13 +35,14 @@ class TestHostWithTwoTriggers {}
 @Component({
   imports: [Popover],
   template: `
-    <input data-testid="manual-popover-trigger" [appPopover]="content" mode="manual" />
+    <input data-testid="owner-popover-trigger" [appPopover]="content" [opening]="opening" />
     <ng-template #content>
-      <div data-testid="manual-popover-content">Manual popover content</div>
+      <div data-testid="owner-popover-content">Owner popover content</div>
     </ng-template>
   `,
 })
-class ManualTestHost {
+class OwnerOpenedTestHost {
+  readonly opening = PopoverOpening.ByOwner;
   readonly popover = viewChild.required(Popover);
 }
 
@@ -266,23 +268,23 @@ describe('Popover', () => {
   });
 });
 
-describe('Popover in manual mode', () => {
-  let fixture: ComponentFixture<ManualTestHost>;
-  let host: ManualTestHost;
+describe('Popover opened by its owner', () => {
+  let fixture: ComponentFixture<OwnerOpenedTestHost>;
+  let host: OwnerOpenedTestHost;
   let hostEl: HTMLInputElement;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ManualTestHost],
+      imports: [OwnerOpenedTestHost],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ManualTestHost);
+    fixture = TestBed.createComponent(OwnerOpenedTestHost);
     host = fixture.componentInstance;
 
     fixture.detectChanges();
     await fixture.whenStable();
 
-    hostEl = fixture.nativeElement.querySelector('[data-testid="manual-popover-trigger"]');
+    hostEl = fixture.nativeElement.querySelector('[data-testid="owner-popover-trigger"]');
   });
 
   afterEach(() => {
