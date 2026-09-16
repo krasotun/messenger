@@ -19,9 +19,9 @@ import {
 export class ChatApi {
   private readonly _httpClient = inject(HttpClient);
 
-  chats(query?: ChatsQuery): Observable<ChatDto[]> {
+  chats({ title }: ChatsQuery = {}): Observable<ChatDto[]> {
     return this._httpClient.get<ChatDto[]>('/chats', {
-      params: query?.title ? { title: query.title } : {},
+      params: title ? { title } : {},
     });
   }
 

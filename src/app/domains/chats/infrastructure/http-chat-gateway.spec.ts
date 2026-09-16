@@ -108,7 +108,7 @@ describe('HttpChatGateway', () => {
       service.chats().subscribe();
 
       expect(chatApiMock.chats).toHaveBeenCalledOnce();
-      expect(chatApiMock.chats).toHaveBeenCalledWith(undefined);
+      expect(chatApiMock.chats).toHaveBeenCalledWith({ title: undefined });
     });
 
     it('should pass the title query through to the api', () => {

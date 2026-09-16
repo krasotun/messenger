@@ -23,8 +23,8 @@ export class HttpChatGateway implements ChatGateway {
   private readonly _chatApi = inject(ChatApi);
   private readonly _resourcesBaseUrl = inject(RESOURCES_BASE_URL);
 
-  chats(query?: ChatsQuery): Observable<Chat[]> {
-    return this._chatApi.chats(query).pipe(
+  chats({ title }: ChatsQuery = {}): Observable<Chat[]> {
+    return this._chatApi.chats({ title }).pipe(
       map((response) => {
         return response.map((chatDto) => chatMapper(chatDto, this._resourcesBaseUrl));
       }),
