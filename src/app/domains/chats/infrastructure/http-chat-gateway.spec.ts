@@ -108,6 +108,27 @@ describe('HttpChatGateway', () => {
       service.chats().subscribe();
 
       expect(chatApiMock.chats).toHaveBeenCalledOnce();
+      expect(chatApiMock.chats).toHaveBeenCalledWith({ title: undefined });
+    });
+
+    it('should pass the title query through to the api', () => {
+      chatApiMock.chats.mockReturnValue(of([chatDtoMock]));
+
+      service.chats({ title: 'Analytics' }).subscribe();
+
+      expect(chatApiMock.chats).toHaveBeenCalledWith({ title: 'Analytics' });
+    });
+
+    it('should map the response to chats the same way as without a query', () => {
+      chatApiMock.chats.mockReturnValue(of([chatDtoMock]));
+
+      const results: unknown[] = [];
+
+      service.chats({ title: 'Analytics' }).subscribe((chats) => {
+        results.push(chats);
+      });
+
+      expect(results).toEqual([[chatMock]]);
     });
 
     it('should map response to chats with resolved avatar url', () => {

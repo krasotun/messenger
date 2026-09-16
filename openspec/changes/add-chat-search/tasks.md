@@ -1,10 +1,10 @@
 ## 1. Запрос Чатов по названию
 
-- [ ] 1.1 Написать падающие спеки `src/app/domains/chats/infrastructure/chat.api.spec.ts`: `chats({ title })` шлет `GET /chats?title=<title>`, `chats()` без запроса - `GET /chats` без параметров
-- [ ] 1.2 Написать падающую спеку `src/app/domains/chats/infrastructure/http-chat-gateway.spec.ts`: `chats({ title })` передает название в `ChatApi` и маппит ответ так же, как без запроса
-- [ ] 1.3 Ввести `src/app/domains/chats/application/chats-query.type.ts`, необязательный запрос в `chat.gateway.ts`, `chat.api.ts` и `http-chat-gateway.ts`; проверить, что спеки блока зеленые, а `chat-list.service.spec.ts` не изменился и зеленый
-- [ ] 1.4 Научить `GET /chats` в `mock-backend/src/routes/chats.ts` фильтровать по `title` (подстрока без учета регистра) и проверить запросом к запущенному `mock-backend`, что без `title` приходит полный список
-- [ ] 1.5 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 1.1 Написать падающие спеки `src/app/domains/chats/infrastructure/chat.api.spec.ts`: `chats({ title })` шлет `GET /chats?title=<title>`, `chats()` без запроса - `GET /chats` без параметров
+- [x] 1.2 Написать падающую спеку `src/app/domains/chats/infrastructure/http-chat-gateway.spec.ts`: `chats({ title })` передает название в `ChatApi` и маппит ответ так же, как без запроса
+- [x] 1.3 Ввести `src/app/domains/chats/application/chats-query.type.ts`, необязательный запрос в `chat.gateway.ts`, `chat.api.ts` и `http-chat-gateway.ts`; проверить, что спеки блока зеленые, а `chat-list.service.spec.ts` не изменился и зеленый
+- [x] 1.4 Научить `GET /chats` в `mock-backend/src/routes/chats.ts` фильтровать по `title` (подстрока без учета регистра) и проверить запросом к запущенному `mock-backend`, что без `title` приходит полный список
+- [x] 1.5 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 2. Use case и состояние Поиска чата
 

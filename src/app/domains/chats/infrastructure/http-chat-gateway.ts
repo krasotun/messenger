@@ -6,6 +6,7 @@ import { AddChatUserResult } from '../application/add-chat-user/add-chat-user-re
 import { ChatUser } from '../application/chat-user.type';
 import { ChatGateway } from '../application/chat.gateway';
 import { Chat } from '../application/chat.type';
+import { ChatsQuery } from '../application/chats-query.type';
 import { CreateChatInput } from '../application/create-chat/create-chat-input.type';
 import { CreateChatResult } from '../application/create-chat/create-chat-result.type';
 import { DeleteChatInput } from '../application/delete-chat/delete-chat-input.type';
@@ -22,8 +23,8 @@ export class HttpChatGateway implements ChatGateway {
   private readonly _chatApi = inject(ChatApi);
   private readonly _resourcesBaseUrl = inject(RESOURCES_BASE_URL);
 
-  chats(): Observable<Chat[]> {
-    return this._chatApi.chats().pipe(
+  chats({ title }: ChatsQuery = {}): Observable<Chat[]> {
+    return this._chatApi.chats({ title }).pipe(
       map((response) => {
         return response.map((chatDto) => chatMapper(chatDto, this._resourcesBaseUrl));
       }),

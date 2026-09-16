@@ -32,8 +32,12 @@ chatsRouter.get('/chats', (request, response) => {
     return;
   }
 
-  const chats = [...chatsById.values()].filter((chat) =>
-    chatUserIdsByChatId.get(chat.id)?.has(user.id),
+  const title = typeof request.query.title === 'string' ? request.query.title.toLowerCase() : null;
+
+  const chats = [...chatsById.values()].filter(
+    (chat) =>
+      chatUserIdsByChatId.get(chat.id)?.has(user.id) &&
+      (title === null || chat.title.toLowerCase().includes(title)),
   );
 
   response.json(
