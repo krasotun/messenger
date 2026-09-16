@@ -8,10 +8,10 @@
 
 ## 2. Use case и состояние Поиска чата
 
-- [ ] 2.1 Написать падающую спеку `src/app/domains/chats/application/search-chats/search-chats.service.spec.ts`: название уходит в шлюз запросом `{ title }`, найденные **Чаты** возвращаются как есть
-- [ ] 2.2 Написать падающие спеки `src/app/domains/chats/application/chat-search/chat-search.state.spec.ts` по образцу `user-search.state.spec.ts`: пустой ввод - `NotStarted` без запроса; найденные - `Found` вместе с текстом, по которому они найдены; пустой ответ - `NothingFound`; отказ - `NothingFound`, и следующий ввод снова отправляет запрос; ответ на предыдущий ввод не подменяет результат последнего; запрос уходит после задержки
-- [ ] 2.3 Реализовать `search-chats.service.ts`, `chat-search-status.type.ts` и `chat-search.state.ts`; проверить, что спеки блока зеленые
-- [ ] 2.4 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 2.1 Написать падающую спеку `src/app/domains/chats/application/search-chats/search-chats.service.spec.ts`: название уходит в шлюз запросом `{ title }`, найденные **Чаты** возвращаются как есть
+- [x] 2.2 Написать падающие спеки `src/app/domains/chats/application/chat-search/chat-search.state.spec.ts` по образцу `user-search.state.spec.ts`: пустой ввод - `NotStarted` без запроса; найденные - `Found` вместе с текстом, по которому они найдены; пустой ответ - `NothingFound`; отказ - `NothingFound`, и следующий ввод снова отправляет запрос; ответ на предыдущий ввод не подменяет результат последнего; запрос уходит после задержки
+- [x] 2.3 Реализовать `search-chats.service.ts`, `chat-search-status.type.ts` и `chat-search.state.ts`; проверить, что спеки блока зеленые
+- [x] 2.4 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 3. Директива выделения в shared/ui
 
