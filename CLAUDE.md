@@ -83,6 +83,8 @@
   - `/opsx:explore` - разобраться в текущих спеках и коде;
   - `/opsx:propose` - создать change и все артефакты планирования;
   - `/opsx:update` - изменить артефакты существующего change;
+  - `/opsx:continue` - создать недостающий артефакт или файл дельты спеки
+    (например, новую capability) в существующем change;
   - `/opsx:apply` - реализовать change по `tasks.md`;
   - `/opsx:sync` - перенести дельту спеков в основные спеки;
   - `/opsx:archive` - закрыть завершенный change.
@@ -120,6 +122,11 @@
   `SHALL`/`MUST` остаются на английском.
 - Проверка: `npx openspec validate --strict`, статус - `npx openspec list` и
   `npx openspec status --change <id>`.
+- Набор команд `/opsx:*` задает глобальный профиль OpenSpec
+  (`~/.config/openspec/config.json`, `profile: custom`). `npx openspec update`
+  перегенерирует `.claude/commands/opsx` и `.claude/skills` и стирает
+  `model:` во frontmatter команд - после него верни строки из git и прогони
+  prettier по сгенерированным файлам.
 - Без change обходятся только правки, не меняющие поведение: рефакторинг,
   конфигурация, документация, исправление сборки.
 - Актуальный статус работ смотри в `openspec/changes/`, отдельного `TODO.md` нет.
