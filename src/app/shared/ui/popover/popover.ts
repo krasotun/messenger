@@ -16,6 +16,7 @@ import { Nullable } from '@shared/types';
 })
 export class Popover implements OnDestroy {
   readonly content = input.required<TemplateRef<unknown>>({ alias: 'appPopover' });
+  readonly mode = input<'click' | 'manual'>('click');
 
   private readonly _popoverCoordinator = inject(PopoverCoordinator);
 
@@ -26,6 +27,10 @@ export class Popover implements OnDestroy {
   private _overlayRef: Nullable<OverlayRef> = null;
 
   onClick(): void {
+    if (this.mode() === 'manual') {
+      return;
+    }
+
     if (this._overlayRef) {
       this.close();
     } else {

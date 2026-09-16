@@ -63,7 +63,6 @@ describe('createChatSearchState', () => {
       expect(state.result()).toEqual({
         status: ChatSearchStatus.Found,
         chats: [chatMock],
-        title: 'back',
       });
 
       search('');
@@ -73,7 +72,7 @@ describe('createChatSearchState', () => {
   });
 
   describe('chats found', () => {
-    it('should expose the found chats together with the matched title after the debounce delay', () => {
+    it('should expose the found chats after the debounce delay', () => {
       vi.mocked(searchChatsServiceMock.searchChats).mockReturnValue(new Subject<Chat[]>());
 
       title$.next('back');
@@ -88,7 +87,6 @@ describe('createChatSearchState', () => {
       expect(state.result()).toEqual({
         status: ChatSearchStatus.Found,
         chats: [chatMock],
-        title: 'back',
       });
     });
   });
@@ -123,7 +121,6 @@ describe('createChatSearchState', () => {
       expect(state.result()).toEqual({
         status: ChatSearchStatus.Found,
         chats: [chatMock],
-        title: 'backend',
       });
     });
   });
@@ -146,7 +143,6 @@ describe('createChatSearchState', () => {
       expect(state.result()).toEqual({
         status: ChatSearchStatus.Found,
         chats: [chatMock],
-        title: 'back',
       });
     });
   });

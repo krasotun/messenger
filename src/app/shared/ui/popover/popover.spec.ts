@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, viewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Popover } from '../popover/popover';
@@ -30,6 +30,19 @@ class TestHost {}
   `,
 })
 class TestHostWithTwoTriggers {}
+
+@Component({
+  imports: [Popover],
+  template: `
+    <input data-testid="manual-popover-trigger" [appPopover]="content" mode="manual" />
+    <ng-template #content>
+      <div data-testid="manual-popover-content">Manual popover content</div>
+    </ng-template>
+  `,
+})
+class ManualTestHost {
+  readonly popover = viewChild.required(Popover);
+}
 
 describe('Popover', () => {
   let fixture: ComponentFixture<TestHost>;
@@ -163,6 +176,55 @@ describe('Popover', () => {
       expect(secondPopoverPanel).toBeNull();
     });
 
+    it('should keep the popover open on a click inside its content', async () => {
+      const hostEl: HTMLDivElement = fixture.nativeElement.querySelector(
+        '[data-testid="popover-trigger"]',
+      );
+
+      hostEl.dispatchEvent(new Event('click'));
+
+      fixture.detectChanges();
+
+      await fixture.whenStable();
+
+      const overlayContainer = document.querySelector('.cdk-overlay-container');
+
+      const contentEl: HTMLDivElement | null = overlayContainer!.querySelector(
+        '[data-testid="popover-content"]',
+      );
+
+      contentEl!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const popoverPanel = overlayContainer?.querySelector('.app-popover-panel');
+
+      expect(popoverPanel).toBeTruthy();
+    });
+
+    it('should close the popover when its host is removed from the page', async () => {
+      const hostEl: HTMLDivElement = fixture.nativeElement.querySelector(
+        '[data-testid="popover-trigger"]',
+      );
+
+      hostEl.dispatchEvent(new Event('click'));
+
+      fixture.detectChanges();
+
+      await fixture.whenStable();
+
+      const overlayContainer = document.querySelector('.cdk-overlay-container');
+
+      expect(overlayContainer?.querySelector('.app-popover-panel')).toBeTruthy();
+
+      fixture.destroy();
+
+      const popoverPanel = document.querySelector('.cdk-overlay-container .app-popover-panel');
+
+      expect(popoverPanel).toBeNull();
+    });
+
     it('should render only one popover when another trigger is clicked', async () => {
       const fixtureWithTwoTriggers = TestBed.createComponent(TestHostWithTwoTriggers);
       fixtureWithTwoTriggers.detectChanges();
@@ -201,5 +263,119 @@ describe('Popover', () => {
       expect(secondPopoverContent).toBeTruthy();
       expect(popoverPanels).toHaveLength(1);
     });
+  });
+});
+
+describe('Popover in manual mode', () => {
+  let fixture: ComponentFixture<ManualTestHost>;
+  let host: ManualTestHost;
+  let hostEl: HTMLInputElement;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ManualTestHost],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ManualTestHost);
+    host = fixture.componentInstance;
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    hostEl = fixture.nativeElement.querySelector('[data-testid="manual-popover-trigger"]');
+  });
+
+  afterEach(() => {
+    document.body.querySelectorAll('.cdk-overlay-container').forEach((element) => element.remove());
+  });
+
+  const panel = (): Element | null =>
+    document.querySelector('.cdk-overlay-container .app-popover-panel');
+
+  it('should not react to a click on the host', async () => {
+    hostEl.dispatchEvent(new Event('click'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(panel()).toBeNull();
+
+    host.popover().open();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    hostEl.dispatchEvent(new Event('click'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(panel()).toBeTruthy();
+  });
+
+  it('should open and close on command from the owner', async () => {
+    host.popover().open();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(panel()).toBeTruthy();
+
+    host.popover().close();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(panel()).toBeNull();
+  });
+
+  it('should ignore a repeated open or close command', async () => {
+    host.popover().open();
+    host.popover().open();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(document.querySelectorAll('.cdk-overlay-container .app-popover-panel')).toHaveLength(1);
+
+    host.popover().close();
+    host.popover().close();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(panel()).toBeNull();
+  });
+
+  it('should close on Escape', async () => {
+    host.popover().open();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(panel()).toBeNull();
+  });
+
+  it('should close on an outside click', async () => {
+    host.popover().open();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(panel()).toBeNull();
+  });
+
+  it('should close on Escape from the focused host field and keep the focus there', async () => {
+    host.popover().open();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    hostEl.focus();
+
+    hostEl.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(panel()).toBeNull();
+    expect(document.activeElement).toBe(hostEl);
   });
 });

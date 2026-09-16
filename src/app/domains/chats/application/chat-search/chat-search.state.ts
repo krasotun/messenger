@@ -11,7 +11,7 @@ const searchDebounceMs = 300;
 
 export type ChatSearchResult =
   | { status: ChatSearchStatus.NotStarted }
-  | { status: ChatSearchStatus.Found; chats: Chat[]; title: string }
+  | { status: ChatSearchStatus.Found; chats: Chat[] }
   | { status: ChatSearchStatus.NothingFound };
 
 export interface ChatSearchState {
@@ -21,8 +21,8 @@ export interface ChatSearchState {
 const notStarted: ChatSearchResult = { status: ChatSearchStatus.NotStarted };
 const nothingFound: ChatSearchResult = { status: ChatSearchStatus.NothingFound };
 
-const toResult = (chats: Chat[], title: string): ChatSearchResult =>
-  chats.length === 0 ? nothingFound : { status: ChatSearchStatus.Found, chats, title };
+const toResult = (chats: Chat[]): ChatSearchResult =>
+  chats.length === 0 ? nothingFound : { status: ChatSearchStatus.Found, chats };
 
 export const createChatSearchState = (
   searchChatsService: SearchChatsService,
@@ -39,7 +39,7 @@ export const createChatSearchState = (
         }
 
         return searchChatsService.searchChats(title).pipe(
-          map((chats) => toResult(chats, title)),
+          map((chats) => toResult(chats)),
           // Отказ поиска здесь не показывается отдельно: chats-спека не
           // описывает такое состояние панели, поэтому он схлопывается в
           // «Чатов не найдено», не ломая последующий ввод.
