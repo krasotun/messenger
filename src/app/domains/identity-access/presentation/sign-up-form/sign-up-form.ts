@@ -24,6 +24,7 @@ interface SignUpFormModel {
   selector: 'app-sign-up-form',
   imports: [Input, FormField, Form, ReactiveFormsModule],
   templateUrl: './sign-up-form.html',
+  providers: [SignUpService],
 })
 export class SignUpForm {
   readonly signUpForm = new FormGroup<SignUpFormModel>({

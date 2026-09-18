@@ -7,9 +7,7 @@ import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { createFormSubmitFlowState } from '@shared/submit-flow';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class SignUpService {
   private readonly _authGateway = inject(AUTH_GATEWAY);
   private readonly _notifier = inject(NOTIFIER);

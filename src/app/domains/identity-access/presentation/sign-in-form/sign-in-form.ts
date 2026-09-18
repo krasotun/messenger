@@ -17,6 +17,7 @@ interface SignInFormModel {
   selector: 'app-sign-in-form',
   imports: [Input, FormField, Form, ReactiveFormsModule],
   templateUrl: './sign-in-form.html',
+  providers: [SignInService],
 })
 export class SignInForm {
   readonly signInForm = new FormGroup<SignInFormModel>({
