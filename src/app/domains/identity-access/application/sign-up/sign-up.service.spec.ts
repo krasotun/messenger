@@ -38,6 +38,8 @@ describe('SignUpService', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        SignUpService,
+
         {
           provide: AUTH_GATEWAY,
           useValue: authGatewayMock,

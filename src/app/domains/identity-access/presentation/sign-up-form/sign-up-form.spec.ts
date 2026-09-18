@@ -4,12 +4,21 @@ import { Subject } from 'rxjs';
 
 import { SignUpForm } from './sign-up-form';
 
+import { AUTH_GATEWAY } from '@domains/identity-access/application/auth.gateway';
+import { SignUpInput } from '@domains/identity-access/application/sign-up/sign-up-input.type';
 import { SignUpService } from '@domains/identity-access/application/sign-up/sign-up.service';
+import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 
 let signUpServiceMock: {
   isSubmitting: WritableSignal<boolean>;
   succeeded$: Subject<void>;
   signUp: ReturnType<typeof vi.fn>;
+};
+
+const notifierMock = {
+  success: vi.fn(),
+  error: vi.fn(),
 };
 
 describe('SignUpForm', () => {
@@ -38,15 +47,22 @@ describe('SignUpForm', () => {
       signUp: vi.fn(),
     };
 
-    await TestBed.configureTestingModule({
+    TestBed.configureTestingModule({
       imports: [SignUpForm],
-      providers: [
-        {
-          provide: SignUpService,
-          useValue: signUpServiceMock,
-        },
-      ],
-    }).compileComponents();
+    });
+
+    TestBed.overrideComponent(SignUpForm, {
+      set: {
+        providers: [
+          {
+            provide: SignUpService,
+            useValue: signUpServiceMock,
+          },
+        ],
+      },
+    });
+
+    await TestBed.compileComponents();
 
     fixture = TestBed.createComponent(SignUpForm);
     component = fixture.componentInstance;
@@ -159,6 +175,86 @@ describe('SignUpForm', () => {
       signUpServiceMock.succeeded$.next();
 
       expect(signUpSucceededSpy).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('flow lifetime', () => {
+    let authGatewayMock: {
+      signUp: ReturnType<typeof vi.fn>;
+    };
+
+    const mockSignUpValue: SignUpInput = validFormValue;
+
+    const openForm = async (): Promise<ComponentFixture<SignUpForm>> => {
+      const openedFixture = TestBed.createComponent(SignUpForm);
+      await openedFixture.whenStable();
+      openedFixture.detectChanges();
+
+      return openedFixture;
+    };
+
+    const submit = (openedFixture: ComponentFixture<SignUpForm>): void => {
+      openedFixture.componentInstance.signUpForm.setValue(mockSignUpValue);
+      openedFixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    };
+
+    beforeEach(async () => {
+      TestBed.resetTestingModule();
+
+      authGatewayMock = { signUp: vi.fn() };
+
+      notifierMock.success.mockReset();
+      notifierMock.error.mockReset();
+
+      TestBed.configureTestingModule({
+        imports: [SignUpForm],
+        providers: [
+          { provide: AUTH_GATEWAY, useValue: authGatewayMock },
+          { provide: NOTIFIER, useValue: notifierMock },
+        ],
+      });
+
+      await TestBed.compileComponents();
+    });
+
+    it('should keep the reopened form usable while the previous submit has not answered yet', async () => {
+      authGatewayMock.signUp.mockReturnValue(new Subject());
+
+      const firstFixture = await openForm();
+      submit(firstFixture);
+      await firstFixture.whenStable();
+
+      firstFixture.destroy();
+
+      const reopenedFixture = await openForm();
+      reopenedFixture.componentInstance.signUpForm.setValue(mockSignUpValue);
+      reopenedFixture.detectChanges();
+
+      const submitButton: HTMLButtonElement =
+        reopenedFixture.nativeElement.querySelector('button[type="submit"]');
+      const inputEls: HTMLInputElement[] = Array.from(
+        reopenedFixture.nativeElement.querySelectorAll('input'),
+      );
+
+      expect(submitButton.disabled).toBe(false);
+      inputEls.forEach((inputEl) => {
+        expect(inputEl.disabled).toBe(false);
+      });
+    });
+
+    it('should not cancel the submit when the form is closed before the gateway answers', async () => {
+      const signUp$ = new Subject<{ userId: number }>();
+      authGatewayMock.signUp.mockReturnValue(signUp$);
+
+      const openedFixture = await openForm();
+      submit(openedFixture);
+      await openedFixture.whenStable();
+
+      openedFixture.destroy();
+
+      signUp$.error(new ApplicationError('Mock error'));
+
+      expect(notifierMock.error).toHaveBeenCalledWith('Sign-up failed', 'Mock error');
     });
   });
 });
