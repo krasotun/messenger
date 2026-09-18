@@ -2,14 +2,25 @@ import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 
+import { AUTH_GATEWAY } from '../../application/auth.gateway';
+import { CurrentSessionService } from '../../application/current-session/current-session.service';
+import { SignInInput } from '../../application/sign-in/sign-in-input.type';
 import { SignInService } from '../../application/sign-in/sign-in.service';
 
 import { SignInForm } from './sign-in-form';
+
+import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
 
 let signInServiceMock: {
   isSubmitting: WritableSignal<boolean>;
   succeeded$: Subject<void>;
   signIn: ReturnType<typeof vi.fn>;
+};
+
+const notifierMock = {
+  success: vi.fn(),
+  error: vi.fn(),
 };
 
 describe('SignInForm', () => {
@@ -28,16 +39,22 @@ describe('SignInForm', () => {
       succeeded$: new Subject<void>(),
       signIn: vi.fn(),
     };
-    await TestBed.configureTestingModule({
+    TestBed.configureTestingModule({
       imports: [SignInForm],
+    });
 
-      providers: [
-        {
-          provide: SignInService,
-          useValue: signInServiceMock,
-        },
-      ],
-    }).compileComponents();
+    TestBed.overrideComponent(SignInForm, {
+      set: {
+        providers: [
+          {
+            provide: SignInService,
+            useValue: signInServiceMock,
+          },
+        ],
+      },
+    });
+
+    await TestBed.compileComponents();
 
     fixture = TestBed.createComponent(SignInForm);
     component = fixture.componentInstance;
@@ -155,6 +172,95 @@ describe('SignInForm', () => {
       signInServiceMock.succeeded$.next();
 
       expect(signInSucceededSpy).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('flow lifetime', () => {
+    let authGatewayMock: {
+      signIn: ReturnType<typeof vi.fn>;
+    };
+
+    let currentSessionServiceMock: {
+      restoreCurrentSession: ReturnType<typeof vi.fn>;
+    };
+
+    const mockSignInValue: SignInInput = {
+      login: 'Mock',
+      password: 'secret',
+    };
+
+    const openForm = async (): Promise<ComponentFixture<SignInForm>> => {
+      const openedFixture = TestBed.createComponent(SignInForm);
+      await openedFixture.whenStable();
+      openedFixture.detectChanges();
+
+      return openedFixture;
+    };
+
+    const submit = (openedFixture: ComponentFixture<SignInForm>): void => {
+      openedFixture.componentInstance.signInForm.setValue(mockSignInValue);
+      openedFixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    };
+
+    beforeEach(async () => {
+      TestBed.resetTestingModule();
+
+      authGatewayMock = { signIn: vi.fn() };
+      currentSessionServiceMock = { restoreCurrentSession: vi.fn() };
+
+      notifierMock.success.mockReset();
+      notifierMock.error.mockReset();
+
+      TestBed.configureTestingModule({
+        imports: [SignInForm],
+        providers: [
+          { provide: AUTH_GATEWAY, useValue: authGatewayMock },
+          { provide: CurrentSessionService, useValue: currentSessionServiceMock },
+          { provide: NOTIFIER, useValue: notifierMock },
+        ],
+      });
+
+      await TestBed.compileComponents();
+    });
+
+    it('should keep the reopened form usable while the previous submit has not answered yet', async () => {
+      authGatewayMock.signIn.mockReturnValue(new Subject());
+
+      const firstFixture = await openForm();
+      submit(firstFixture);
+      await firstFixture.whenStable();
+
+      firstFixture.destroy();
+
+      const reopenedFixture = await openForm();
+      reopenedFixture.componentInstance.signInForm.setValue(mockSignInValue);
+      reopenedFixture.detectChanges();
+
+      const submitButton: HTMLButtonElement =
+        reopenedFixture.nativeElement.querySelector('button[type="submit"]');
+      const inputEls: HTMLInputElement[] = Array.from(
+        reopenedFixture.nativeElement.querySelectorAll('input'),
+      );
+
+      expect(submitButton.disabled).toBe(false);
+      inputEls.forEach((inputEl) => {
+        expect(inputEl.disabled).toBe(false);
+      });
+    });
+
+    it('should not cancel the submit when the form is closed before the gateway answers', async () => {
+      const signIn$ = new Subject<{ authenticated: true }>();
+      authGatewayMock.signIn.mockReturnValue(signIn$);
+
+      const openedFixture = await openForm();
+      submit(openedFixture);
+      await openedFixture.whenStable();
+
+      openedFixture.destroy();
+
+      signIn$.error(new ApplicationError('Mock error'));
+
+      expect(notifierMock.error).toHaveBeenCalledWith('Sign-in failed', 'Mock error');
     });
   });
 });
