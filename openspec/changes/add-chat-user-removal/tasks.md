@@ -17,7 +17,7 @@
 ## 3. Состав чата по стеку аватаров
 
 - [ ] 3.1 Написать падающие спеки `src/app/domains/chats/presentation/chat-users-panel/chat-users-panel.spec.ts`: показаны **Аватар** и имя каждого **Участника чата** и заголовок с их числом; строка **Текущего пользователя** помечена `(you)`; без права исключать кнопок нет
-- [ ] 3.2 Реализовать `chat-users-panel.ts`, `chat-users-panel.html`, `chat-users-panel.scss` по артборду `ChatMembers`, проверив, что спеки 3.1 зеленые
+- [ ] 3.2 Реализовать `chat-users-panel.ts`, `chat-users-panel.html`, `chat-users-panel.scss` по артборду `ChatMembers`: список строк с `max-height: 240px` и `overflow-y: auto`, заголовок вне прокрутки; проверить, что спеки 3.1 зеленые
 - [ ] 3.3 Написать падающие спеки в `src/app/domains/chats/presentation/selected-chat-header/selected-chat-header.spec.ts`: нажатие на стек открывает состав, повторное закрывает; у кнопки стека доступное имя `Members: N`; `Add member` по-прежнему открывает и закрывает свою панель
 - [ ] 3.4 Обернуть `<app-chat-user-stack>` в кнопку с `appPopover` в `selected-chat-header.html`, развести два `Popover` по ссылкам шаблона в `selected-chat-header.ts`, стили кнопки стека - в `selected-chat-header.scss`, проверив, что спеки 3.3 зеленые
 - [ ] 3.5 Убрать `cursor: default` у `+K` в `src/app/domains/chats/presentation/chat-user-stack/chat-user-stack.scss` и прогнать `npm run lint` и `npm run test:ci`
@@ -33,6 +33,6 @@
 ## 5. Сквозной сценарий и макет
 
 - [ ] 5.1 Написать e2e `e2e/chats/remove-chat-user.spec.ts`: **Создатель чата** открывает состав, исключает **Участника чата**, подтверждает, видит **Уведомление** `Member removed`, а строки исключенного нет в открытом составе
-- [ ] 5.2 Добавить скриншотный e2e `chat users panel @visual` в `e2e/chats/chats.screenshot.spec.ts` на открытый состав у **Создателя чата** и снять linux-эталон в контейнере `mcr.microsoft.com/playwright` с `--platform linux/arm64`
-- [ ] 5.3 Сверить снимок с артбордом `ChatMembers`: порядок строк, пометка `(you)`, кнопки исключения и заголовок с числом совпадают с макетом
+- [ ] 5.2 Добавить скриншотный e2e `chat users panel @visual` в `e2e/chats/chats.screenshot.spec.ts` на открытый состав у **Создателя чата**, где **Участников чата** больше, чем помещается без прокрутки, и снять linux-эталон в контейнере `mcr.microsoft.com/playwright` с `--platform linux/arm64`
+- [ ] 5.3 Сверить снимок с артбордом `ChatMembers`: порядок строк, пометка `(you)`, кнопки исключения, заголовок с числом и прокрутка списка под ним совпадают с макетом
 - [ ] 5.4 Прогнать `npm run lint`, `npm run test:ci`, `npm run e2e` и `npm run e2e:visual`

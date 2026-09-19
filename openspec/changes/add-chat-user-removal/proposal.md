@@ -50,6 +50,6 @@ Issue: #96
   шапки и popover состава, spec `ModalService` на пару «popover + модалка»,
   e2e **Исключения участника**, скриншотный e2e на popover состава.
 - Макет: артборды `ChatMembers` и `RemoveMember` канваса экрана чатов,
-  https://claude.ai/artifact/YDqakVRTWPoZB7pTATbETE (версия 17).
+  https://claude.ai/artifact/YDqakVRTWPoZB7pTATbETE (версия 18).
 - Вне скоупа: состав грузится одним запросом без `offset`/`limit`, полная
   выгрузка - #213.
