@@ -1,4 +1,12 @@
-import { Component, computed, effect, inject, input, viewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  numberAttribute,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 
@@ -25,7 +33,9 @@ const DELETE_CHAT_MESSAGE =
   providers: [DeleteChatService],
 })
 export class SelectedChatHeader {
-  readonly chatId = input.required<string>();
+  readonly chatId = input.required({
+    transform: numberAttribute,
+  });
 
   private readonly _chatUsersService = inject(ChatUsersService);
   private readonly _chatListService = inject(ChatListService);
@@ -36,12 +46,10 @@ export class SelectedChatHeader {
 
   private readonly _addUserPopover = viewChild(Popover);
 
-  readonly numericChatId = computed(() => Number(this.chatId()));
-
   readonly chat = computed(() => {
-    const numericChatId = this.numericChatId();
+    const chatId = this.chatId();
 
-    return this._chatListService.chats().find((chat) => chat.id === numericChatId) ?? null;
+    return this._chatListService.chats().find((chat) => chat.id === chatId) ?? null;
   });
 
   readonly chatUsers = this._chatUsersService.chatUsers;
@@ -61,7 +69,7 @@ export class SelectedChatHeader {
     // Роут переиспользует этот компонент при переходе между чатами: без
     // effect на chatId состав участников остался бы от предыдущего чата.
     effect(() => {
-      this._chatUsersService.loadChatUsers(this.numericChatId());
+      this._chatUsersService.loadChatUsers(this.chatId());
     });
 
     this._deleteChatService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {

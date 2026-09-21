@@ -40,7 +40,7 @@
 
 <ng-template #addUserPopover>
   <app-add-chat-user-panel
-    [chatId]="numericChatId()"
+    [chatId]="chatId()"
     (userAdded)="closeAddUserPopover()"
   ></app-add-chat-user-panel>
 </ng-template>
