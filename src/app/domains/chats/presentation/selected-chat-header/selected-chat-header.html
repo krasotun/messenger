@@ -12,7 +12,15 @@
 
 <div class="selected-chat-header__title">{{ chat()?.title }}</div>
 
-<app-chat-user-stack [users]="chatUsers()"></app-chat-user-stack>
+<!-- PROTOTYPE: стек аватаров открывает состав по выбранному варианту -->
+<button
+  class="selected-chat-header__members"
+  type="button"
+  [attr.aria-label]="'Members: ' + prototypeMembers.members().length"
+  (click)="openMembers()"
+>
+  <app-chat-user-stack [users]="prototypeMembers.members()"></app-chat-user-stack>
+</button>
 
 <button
   class="selected-chat-header__add-user"
@@ -44,4 +52,30 @@
     (userAdded)="closeAddUserPopover()"
   ></app-add-chat-user-panel>
 </ng-template>
-}
+
+@if (membersOpen()) {
+<div
+  class="selected-chat-header__prototype-surface"
+  [class.selected-chat-header__prototype-surface_wide]="currentVariant() === 'C'"
+  [style.height.px]="membersHeight()"
+>
+  @if (currentVariant() === 'B') {
+  <app-variant-b-side-panel
+    [state]="prototypeMembers"
+    [chatTitle]="chat()?.title ?? ''"
+    (closed)="membersOpen.set(false)"
+  ></app-variant-b-side-panel>
+  } @else {
+  <app-variant-c-members-view
+    [state]="prototypeMembers"
+    [chatTitle]="chat()?.title ?? ''"
+    (closed)="membersOpen.set(false)"
+  ></app-variant-c-members-view>
+  }
+</div>
+} }
+
+<app-prototype-switcher
+  [variants]="prototypeVariants"
+  [current]="currentVariant()"
+></app-prototype-switcher>
