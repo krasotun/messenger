@@ -110,5 +110,77 @@ describe('ChatUsersService', () => {
         expect(service.chatUsers()).toEqual([chatUserMock]);
       });
     });
+
+    describe('when a newer request starts before the previous one responds', () => {
+      const previousChatUserMock: ChatUser = {
+        id: 3,
+        name: 'Previous',
+        avatar: null,
+      };
+
+      let previousResponse: Subject<ChatUser[]>;
+      let latestResponse: Subject<ChatUser[]>;
+
+      beforeEach(() => {
+        previousResponse = new Subject<ChatUser[]>();
+        latestResponse = new Subject<ChatUser[]>();
+
+        chatGatewayMock.chatUsers
+          .mockReturnValueOnce(previousResponse)
+          .mockReturnValueOnce(latestResponse);
+      });
+
+      it('should cancel the previous request', () => {
+        service.loadChatUsers(1);
+        service.loadChatUsers(2);
+
+        expect(previousResponse.observed).toBe(false);
+        expect(latestResponse.observed).toBe(true);
+      });
+
+      it('should keep loading when the previous chat responds first', () => {
+        service.loadChatUsers(1);
+        service.loadChatUsers(2);
+
+        previousResponse.next([previousChatUserMock]);
+
+        expect(service.status()).toBe(ChatUsersStatus.Loading);
+        expect(service.chatUsers()).toEqual([]);
+      });
+
+      it('should not let late previous chat users replace the latest ones', () => {
+        service.loadChatUsers(1);
+        service.loadChatUsers(2);
+
+        latestResponse.next([chatUserMock]);
+        previousResponse.next([previousChatUserMock]);
+
+        expect(service.status()).toBe(ChatUsersStatus.Loaded);
+        expect(service.chatUsers()).toEqual([chatUserMock]);
+      });
+
+      it('should not expose a late error of the previous chat', () => {
+        service.loadChatUsers(1);
+        service.loadChatUsers(2);
+
+        latestResponse.next([chatUserMock]);
+        previousResponse.error(new ApplicationError('mockReason'));
+
+        expect(service.status()).toBe(ChatUsersStatus.Loaded);
+        expect(service.errorMessage()).toBeNull();
+        expect(service.chatUsers()).toEqual([chatUserMock]);
+      });
+
+      it('should apply the latest response when reloading the same chat', () => {
+        service.loadChatUsers(1);
+        service.loadChatUsers(1);
+
+        latestResponse.next([chatUserMock]);
+        previousResponse.next([previousChatUserMock]);
+
+        expect(chatGatewayMock.chatUsers).toHaveBeenCalledTimes(2);
+        expect(service.chatUsers()).toEqual([chatUserMock]);
+      });
+    });
   });
 });
