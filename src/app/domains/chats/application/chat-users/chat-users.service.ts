@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY, Subject, switchMap, tap } from 'rxjs';
+import { catchError, EMPTY, Observable, Subject, switchMap, tap } from 'rxjs';
 
 import { ChatUser } from '../chat-user.type';
 import { CHAT_GATEWAY } from '../chat.gateway';
@@ -30,28 +30,9 @@ export class ChatUsersService {
   readonly isLoading = computed(() => this._status() === ChatUsersStatus.Loading);
 
   constructor() {
-    // switchMap отменяет незавершенный запрос: ответ по прежнему чату не
-    // подменяет состав последнего. Повторы не отсеиваются - перезагрузка
-    // после добавления участника идет по тому же chatId.
     this._requestedChatId$
       .pipe(
-        switchMap((chatId) =>
-          this._chatGateway.chatUsers(chatId).pipe(
-            tap({
-              next: (chatUsers) => {
-                this._chatUsers.set(chatUsers);
-                this._status.set(ChatUsersStatus.Loaded);
-              },
-              error: ({ message }: ApplicationError) => {
-                this._errorMessage.set(message);
-                this._status.set(ChatUsersStatus.Error);
-              },
-            }),
-            // Ошибка гасится внутри: дойдя до внешнего потока, она завершила
-            // бы его, и следующие loadChatUsers молча ничего бы не делали.
-            catchError(() => EMPTY),
-          ),
-        ),
+        switchMap((chatId) => this._requestChatUsers(chatId)),
         takeUntilDestroyed(),
       )
       .subscribe();
@@ -62,5 +43,21 @@ export class ChatUsersService {
     this._errorMessage.set(null);
 
     this._requestedChatId$.next(chatId);
+  }
+
+  private _requestChatUsers(chatId: number): Observable<ChatUser[]> {
+    return this._chatGateway.chatUsers(chatId).pipe(
+      tap({
+        next: (chatUsers) => {
+          this._chatUsers.set(chatUsers);
+          this._status.set(ChatUsersStatus.Loaded);
+        },
+        error: ({ message }: ApplicationError) => {
+          this._errorMessage.set(message);
+          this._status.set(ChatUsersStatus.Error);
+        },
+      }),
+      catchError(() => EMPTY),
+    );
   }
 }
