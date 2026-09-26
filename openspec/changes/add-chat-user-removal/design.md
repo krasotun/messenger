@@ -152,10 +152,21 @@
 становится цветом опасного действия. Скрытая до наведения кнопка не находится
 на тач-экранах, а e2e и скриншоту пришлось бы сначала наводить указатель.
 
-### Use case повторяет форму `DeleteChatService`
+### Исключение и удаление чата - на хелпере действия без формы
 
-`RemoveChatUserService` держит `isSubmitting` и `succeeded$` через
-`createFormSubmitFlowState()`, на успехе перезагружает состав и шлет
+`RemoveChatUserService` и `DeleteChatService` строятся на новом
+`createActionFlowState()` из `@shared/submit-flow` - паре к
+`createFormSubmitFlowState()` для действий без формы. Он отдает `succeeded$` и
+`markSuccess`, без `isSubmitting`: у обоих сервисов его никто не читает -
+кнопки на время запроса не блокируются, а повторное действие до ответа API
+перекрывает подтверждение. Имя «Form» у прежнего хелпера на них не ложилось, и
+`DeleteChatService` переводится на новый хелпер в этом же change, а его
+`isSubmitting` уходит. `createFormSubmitFlowState()` строится на
+`createActionFlowState()` и добавляет `isSubmitting`; его API не меняется.
+Наследование базового класса отвергнуто: в проекте состояние отправки
+везде держится полем-хелпером, и класс не смог бы взять и действие, и форму.
+
+`RemoveChatUserService` на успехе перезагружает состав и шлет
 `notifier.success('Remove member', 'Member removed')`, на отказе -
 `notifier.error('Failed to remove member', message)`.
 

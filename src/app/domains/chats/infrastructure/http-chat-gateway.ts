@@ -15,6 +15,7 @@ import { chatMapper, chatUserMapper } from './chat.mapper';
 import { CHAT_ERROR_MESSAGES } from './error-messages.constants';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
+import { RemoveChatUserInput } from '@domains/chats/application/remove-chat-user/remove-chat-user-input.type';
 import { toApplicationError } from '@shared/errors';
 
 @Injectable()
@@ -38,6 +39,12 @@ export class HttpChatGateway implements ChatGateway {
     );
   }
 
+  deleteChat({ chatId }: DeleteChatInput): Observable<void> {
+    return this._chatApi
+      .deleteChat({ chatId })
+      .pipe(toApplicationError(CHAT_ERROR_MESSAGES.deleteChat));
+  }
+
   chatUsers(chatId: number): Observable<ChatUser[]> {
     return this._chatApi.chatUsers(chatId).pipe(
       map((response) => {
@@ -47,16 +54,17 @@ export class HttpChatGateway implements ChatGateway {
     );
   }
 
-  deleteChat({ chatId }: DeleteChatInput): Observable<void> {
-    return this._chatApi
-      .deleteChat({ chatId })
-      .pipe(toApplicationError(CHAT_ERROR_MESSAGES.deleteChat));
-  }
-
   addChatUser({ chatId, userId }: AddChatUserInput): Observable<AddChatUserResult> {
     return this._chatApi.addChatUser({ chatId, users: [userId] }).pipe(
       map(() => ({ userAdded: true })),
       toApplicationError(CHAT_ERROR_MESSAGES.addChatUser),
+    );
+  }
+
+  removeChatUser({ chatId, userId }: RemoveChatUserInput): Observable<void> {
+    return this._chatApi.removeChatUser({ chatId, users: [userId] }).pipe(
+      map(() => undefined),
+      toApplicationError(CHAT_ERROR_MESSAGES.removeChatUser),
     );
   }
 }
