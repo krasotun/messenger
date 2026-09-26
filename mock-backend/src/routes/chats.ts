@@ -173,3 +173,30 @@ chatsRouter.put('/chats/users', (request, response) => {
 
   response.sendStatus(200);
 });
+
+chatsRouter.delete('/chats/users', (request, response) => {
+  const user = findUserBySession(request);
+
+  if (!user) {
+    response.sendStatus(401);
+    return;
+  }
+
+  const body = request.body as UsersRequest;
+  const chat = chatsById.get(body.chatId);
+
+  if (!chat) {
+    response.status(400).json({ reason: 'Chat not found' });
+    return;
+  }
+
+  const chatUserIds = chatUserIdsByChatId.get(chat.id) ?? new Set<number>();
+
+  for (const userId of body.users) {
+    chatUserIds.delete(userId);
+  }
+
+  chatUserIdsByChatId.set(chat.id, chatUserIds);
+
+  response.sendStatus(200);
+});

@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
-  AddChatUserRequestDto,
+  UsersRequestDto,
   ChatDto,
   ChatUserDto,
   CreateChatRequestDto,
@@ -33,8 +33,15 @@ export class ChatApi {
     return this._httpClient.delete<void>('/chats', { body: request });
   }
 
-  addChatUser(request: AddChatUserRequestDto): Observable<string> {
+  addChatUser(request: UsersRequestDto): Observable<string> {
     return this._httpClient.put('/chats/users', request, {
+      responseType: 'text',
+    });
+  }
+
+  removeChatUser(request: UsersRequestDto): Observable<string> {
+    return this._httpClient.delete('/chats/users', {
+      body: request,
       responseType: 'text',
     });
   }

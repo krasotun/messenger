@@ -1,12 +1,12 @@
 ## 1. Use case исключения участника
 
-- [ ] 1.1 Сверить `DELETE /chats/users` с `docs/api/swagger.json`, а передачу тела у `HttpClient.delete` - через Context7; записать расхождения с `design.md`, если есть
-- [ ] 1.2 Написать падающие спеки в `src/app/domains/chats/infrastructure/chat.api.spec.ts` и `http-chat-gateway.spec.ts`: `removeChatUser` шлет `DELETE /chats/users` с телом `{ users: [userId], chatId }` и принимает ответ без JSON; отказ превращается в **Ошибку приложения**
-- [ ] 1.3 Написать падающие спеки `src/app/domains/chats/application/remove-chat-user/remove-chat-user.service.spec.ts`: на успехе состав перезапрашивается, приходит `succeeded$` и **Уведомление** `Remove member` / `Member removed`; на отказе состав не трогается и показывается **Уведомление** `Failed to remove member` с текстом **Ошибки приложения**
-- [ ] 1.4 Реализовать `remove-chat-user-input.type.ts`, `removeChatUser` в `chat.gateway.ts`, `chat.api.ts`, `http-chat-gateway.ts`, ключ `removeChatUser` в `error-messages.constants.ts` и `remove-chat-user.service.ts`, проверив, что спеки 1.2 и 1.3 зеленые
-- [ ] 1.5 Добавить `DELETE /chats/users` в `mock-backend/src/routes/chats.ts`: неизвестный **Чат** - `400` с `reason`, иначе убрать пользователей из состава и ответить `200`
-- [ ] 1.6 Проверить живым запросом к учебному API, что `DELETE /chats/users` от **Создателя чата** отвечает `200` и **Участник чата** пропадает из `GET /chats/{id}/users`; ответ отличается от ожидаемого - остановиться и вернуться к `design.md`
-- [ ] 1.7 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 1.1 Сверить `DELETE /chats/users` с `docs/api/swagger.json`, а передачу тела у `HttpClient.delete` - через Context7; записать расхождения с `design.md`, если есть
+- [x] 1.2 Написать падающие спеки в `src/app/domains/chats/infrastructure/chat.api.spec.ts` и `http-chat-gateway.spec.ts`: `removeChatUser` шлет `DELETE /chats/users` с телом `{ users: [userId], chatId }` и принимает ответ без JSON; отказ превращается в **Ошибку приложения**
+- [x] 1.3 Написать падающие спеки `src/app/domains/chats/application/remove-chat-user/remove-chat-user.service.spec.ts`: на успехе состав перезапрашивается, приходит `succeeded$` и **Уведомление** `Remove member` / `Member removed`; на отказе состав не трогается и показывается **Уведомление** `Failed to remove member` с текстом **Ошибки приложения**; спеки `src/app/shared/submit-flow/create-action-flow-state.spec.ts`: `succeeded$` приходит на `markSuccess`; из спеков `RemoveChatUserService` и `DeleteChatService` уходят проверки `isSubmitting`
+- [x] 1.4 Реализовать `remove-chat-user-input.type.ts`, `removeChatUser` в `chat.gateway.ts`, `chat.api.ts`, `http-chat-gateway.ts`, ключ `removeChatUser` в `error-messages.constants.ts`, `create-action-flow-state.ts` с экспортом из `src/app/shared/submit-flow/index.ts` и `createFormSubmitFlowState` на нем, `remove-chat-user.service.ts` и перевод `DeleteChatService` на `createActionFlowState`, проверив, что спеки 1.2 и 1.3 зеленые
+- [x] 1.5 Добавить `DELETE /chats/users` в `mock-backend/src/routes/chats.ts`: неизвестный **Чат** - `400` с `reason`, иначе убрать пользователей из состава и ответить `200`
+- [x] 1.6 Проверить живым запросом к учебному API, что `DELETE /chats/users` от **Создателя чата** отвечает `200` и **Участник чата** пропадает из `GET /chats/{id}/users`; ответ отличается от ожидаемого - остановиться и вернуться к `design.md`
+- [x] 1.7 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 2. Маршрутный компонент выбранного чата
 
