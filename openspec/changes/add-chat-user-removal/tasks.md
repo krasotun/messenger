@@ -10,9 +10,9 @@
 
 ## 2. Маршрутный компонент выбранного чата
 
-- [ ] 2.1 Написать падающие спеки `src/app/domains/chats/presentation/selected-chat/selected-chat.spec.ts`: состав грузится по `chatId` и перезагружается при его смене; шапка получает **Чат** и `isChatCreator`, который истинен только у **Создателя чата** и ложен, пока список **Чатов** не загружен
-- [ ] 2.2 Переписать спеки `src/app/domains/chats/presentation/selected-chat-header/selected-chat-header.spec.ts` под входы **Чата** и `isChatCreator`: прежние сценарии **Удаления чата** и ошибки загрузки сохраняются
-- [ ] 2.3 Реализовать `selected-chat.ts`, `selected-chat.html`, `selected-chat.scss`: шапка сверху, под ней строка с местом под переписку; перенести из `selected-chat-header.ts` `effect` загрузки состава, поиск **Чата** и признак права под именем `isChatCreator`, шапке оставить **Удаление чата** с `DeleteChatService`
+- [ ] 2.1 Написать падающие спеки `src/app/domains/chats/presentation/selected-chat/selected-chat.spec.ts`: состав грузится по `chatId` и перезагружается при его смене; шапка получает **Чат**, `isChatCreator`, состав и ошибку загрузки состава; `isChatCreator` истинен только у **Создателя чата** и ложен, пока список **Чатов** не загружен
+- [ ] 2.2 Переписать спеки `src/app/domains/chats/presentation/selected-chat-header/selected-chat-header.spec.ts` под входы **Чата**, `isChatCreator`, состава и ошибки загрузки состава: прежние сценарии **Удаления чата** и ошибки загрузки сохраняются
+- [ ] 2.3 Реализовать `selected-chat.ts`, `selected-chat.html`, `selected-chat.scss`: шапка сверху, под ней строка с местом под переписку; перенести из `selected-chat-header.ts` `effect` загрузки состава, чтение `ChatUsersService`, поиск **Чата** и признак права под именем `isChatCreator`, шапке оставить **Удаление чата** с `DeleteChatService`
 - [ ] 2.4 Перевести маршрут `:chatId` в `src/app/app.routes.ts` на `SelectedChat` и поправить `src/app/pages/chats-page/chats-page.spec.ts`, проверив, что спеки 2.1, 2.2 и сценарии **Выбранного чата** зеленые
 - [ ] 2.5 Прогнать `npm run lint` и `npm run test:ci`
 
