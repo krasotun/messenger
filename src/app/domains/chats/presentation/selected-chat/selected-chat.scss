@@ -1,0 +1,33 @@
+@use 'layout';
+
+:host {
+  @include layout.column();
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.selected-chat {
+  // Строка, а не блок: в нее справа встанет панель состава.
+  &__conversation {
+    @include layout.row();
+    flex-grow: 1;
+    min-height: 0;
+  }
+
+  &__error {
+    @include layout.column(4px);
+    flex-grow: 1;
+    padding: 12px 24px;
+  }
+
+  &__error-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-danger);
+  }
+
+  &__error-reason {
+    font-size: 13px;
+    color: var(--color-text-muted);
+  }
+}

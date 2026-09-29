@@ -35,8 +35,8 @@ export const routes: Routes = [
           {
             path: ':chatId',
             loadComponent: () =>
-              import('@domains/chats/presentation/selected-chat-header/selected-chat-header').then(
-                (m) => m.SelectedChatHeader,
+              import('@domains/chats/presentation/selected-chat/selected-chat').then(
+                (m) => m.SelectedChat,
               ),
           },
         ],
