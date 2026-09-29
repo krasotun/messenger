@@ -10,11 +10,11 @@
 
 ## 2. Маршрутный компонент выбранного чата
 
-- [ ] 2.1 Написать падающие спеки `src/app/domains/chats/presentation/selected-chat/selected-chat.spec.ts`: состав грузится по `chatId` и перезагружается при его смене; шапка получает **Чат** и `isChatCreator`, который истинен только у **Создателя чата** и ложен, пока список **Чатов** не загружен
-- [ ] 2.2 Переписать спеки `src/app/domains/chats/presentation/selected-chat-header/selected-chat-header.spec.ts` под входы **Чата** и `isChatCreator`: прежние сценарии **Удаления чата** и ошибки загрузки сохраняются
-- [ ] 2.3 Реализовать `selected-chat.ts`, `selected-chat.html`, `selected-chat.scss`: шапка сверху, под ней строка с местом под переписку; перенести из `selected-chat-header.ts` `effect` загрузки состава, поиск **Чата** и признак права под именем `isChatCreator`, шапке оставить **Удаление чата** с `DeleteChatService`
-- [ ] 2.4 Перевести маршрут `:chatId` в `src/app/app.routes.ts` на `SelectedChat` и поправить `src/app/pages/chats-page/chats-page.spec.ts`, проверив, что спеки 2.1, 2.2 и сценарии **Выбранного чата** зеленые
-- [ ] 2.5 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 2.1 Написать падающие спеки `src/app/domains/chats/presentation/selected-chat/selected-chat.spec.ts`: состав грузится по `chatId` и перезагружается при его смене; при ошибке загрузки состава вместо шапки и места под переписку показывается **Ошибка приложения**; шапка получает **Чат**, `isChatCreator` и состав; `isChatCreator` истинен только у **Создателя чата**; пока **Чата** нет в списке, шапка не показывается; `deleteRequested` шапки запрашивает подтверждение **Удаления чата**, согласие вызывает `DeleteChatService`, отказ - нет, после успеха переход на `/`
+- [x] 2.2 Переписать спеки `src/app/domains/chats/presentation/selected-chat-header/selected-chat-header.spec.ts` под входы **Чата**, `isChatCreator` и состава: кнопка **Удаления чата** видна по `isChatCreator` и отдает `deleteRequested`; сценарии подтверждения, удаления и ошибки загрузки переезжают в 2.1
+- [x] 2.3 Реализовать `selected-chat.ts`, `selected-chat.html`, `selected-chat.scss`: шапка сверху (только при найденном **Чате**), под ней строка с местом под переписку, при ошибке состава вместо них **Ошибка приложения**; перенести из `selected-chat-header.ts` `effect` загрузки состава, чтение `ChatUsersService`, поиск **Чата** и признак права под именем `isChatCreator`, подтверждение **Удаления чата**, `DeleteChatService` и переход на `/`; шапке оставить кнопку и `deleteRequested`
+- [x] 2.4 Перевести маршрут `:chatId` в `src/app/app.routes.ts` на `SelectedChat` и поправить `src/app/pages/chats-page/chats-page.spec.ts`, проверив, что спеки 2.1, 2.2 и сценарии **Выбранного чата** зеленые
+- [x] 2.5 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 3. Состав чата в боковой панели
 

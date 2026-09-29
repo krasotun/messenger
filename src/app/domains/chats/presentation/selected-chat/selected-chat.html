@@ -1,0 +1,17 @@
+@if(errorMessage(); as errorMessage) {
+<div class="selected-chat__error">
+  <div class="selected-chat__error-title">Failed to load chat</div>
+  <div class="selected-chat__error-reason">{{ errorMessage }}</div>
+</div>
+} @else { @if(chat(); as chat) {
+<app-selected-chat-header
+  [chat]="chat"
+  [isChatCreator]="isChatCreator()"
+  [chatUsers]="chatUsers()"
+  (deleteRequested)="deleteChat()"
+></app-selected-chat-header>
+}
+
+<div class="selected-chat__conversation"></div>
+
+}

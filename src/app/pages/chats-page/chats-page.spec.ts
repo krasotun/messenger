@@ -39,8 +39,8 @@ describe('chats routing', () => {
       await import('@domains/chats/application/chat-list/chat-list.service');
     const { ChatUsersService } =
       await import('@domains/chats/application/chat-users/chat-users.service');
-    const { SelectedChatHeader } =
-      await import('@domains/chats/presentation/selected-chat-header/selected-chat-header');
+    const { SelectedChat } =
+      await import('@domains/chats/presentation/selected-chat/selected-chat');
     const { DeleteChatService } =
       await import('@domains/chats/application/delete-chat/delete-chat.service');
 
@@ -48,7 +48,7 @@ describe('chats routing', () => {
       {
         path: '',
         component: ChatsPage,
-        children: [{ path: ':chatId', component: SelectedChatHeader }],
+        children: [{ path: ':chatId', component: SelectedChat }],
       },
     ];
 
@@ -91,7 +91,7 @@ describe('chats routing', () => {
       ],
     });
 
-    TestBed.overrideComponent(SelectedChatHeader, {
+    TestBed.overrideComponent(SelectedChat, {
       set: {
         providers: [
           {
