@@ -20,20 +20,20 @@
 
 - [x] 3.1 Написать падающие спеки `src/app/domains/chats/presentation/chat-user-row/chat-user-row.spec.ts`: показаны **Аватар** и имя **Участника чата**; при `isCurrentUser` строка помечена `(you)`
 - [x] 3.2 Реализовать `chat-user-row.ts`, `chat-user-row.html`, `chat-user-row.scss` по артборду панели состава; проверить, что спеки 3.1 зеленые
-- [ ] 3.3 Написать падающие спеки `src/app/domains/chats/presentation/chat-users-panel/chat-users-panel.spec.ts`: строка на каждого **Участника чата** и заголовок `Members · N`; пометку `(you)` получает только строка **Текущего пользователя**; кнопка `Close members` отдает `closed`; метод фокуса ставит фокус на заголовок
+- [ ] 3.3 Написать падающие спеки `src/app/domains/chats/presentation/chat-users-panel/chat-users-panel.spec.ts`: строка на каждого **Участника чата** и заголовок `Members · N`; пометку `(you)` получает только строка **Текущего пользователя**; кнопка `Close members` отдает `closed`
 - [ ] 3.4 Реализовать `chat-users-panel.ts`, `chat-users-panel.html`, `chat-users-panel.scss` по артборду панели состава: строки в `@for`, заголовок с кнопкой закрытия вне прокрутки, список строк с `overflow-y: auto` на всю высоту панели; проверить, что спеки 3.3 зеленые
-- [ ] 3.5 Дописать падающие спеки `selected-chat-header.spec.ts`: у кнопки стека доступное имя `Members: N` и `aria-expanded` по входу; нажатие отдает `membersToggled`; метод фокуса ставит фокус на кнопку стека; `Add member` по-прежнему открывает и закрывает свою панель
-- [ ] 3.6 Обернуть `<app-chat-user-stack>` в кнопку в `selected-chat-header.html`, добавить вход признака открытого состава, `membersToggled` и метод фокуса в `selected-chat-header.ts`, стили кнопки - в `selected-chat-header.scss`; убрать `cursor: default` у `+K` в `src/app/domains/chats/presentation/chat-user-stack/chat-user-stack.scss`; проверить, что спеки 3.5 зеленые
-- [ ] 3.7 Дописать падающие спеки `selected-chat.spec.ts`: нажатие на стек открывает панель и ставит фокус на ее заголовок, повторное закрывает; `✕` закрывает и возвращает фокус на стек; щелчок мимо панели и `Escape` ее не закрывают; при смене `chatId` панель остается открытой и показывает новый состав; при ошибке состава панели нет
-- [ ] 3.8 Добавить в `selected-chat.ts` и `selected-chat.html` сигнал `membersOpen`, панель справа в строке под шапкой и связь с `membersToggled`, `closed` и методами фокуса, проверив, что спеки 3.7 зеленые
+- [ ] 3.5 Дописать падающие спеки `selected-chat-header.spec.ts`: нажатие на кнопку стека отдает `membersToggled`; `Add member` по-прежнему открывает и закрывает свою панель
+- [ ] 3.6 Обернуть `<app-chat-user-stack>` в кнопку в `selected-chat-header.html`, добавить `membersToggled` в `selected-chat-header.ts`, стили кнопки - в `selected-chat-header.scss`; убрать `cursor: default` у `+K` в `src/app/domains/chats/presentation/chat-user-stack/chat-user-stack.scss`; проверить, что спеки 3.5 зеленые
+- [ ] 3.7 Дописать падающие спеки `selected-chat.spec.ts`: нажатие на стек открывает панель, повторное закрывает; `✕` закрывает; щелчок мимо панели и `Escape` ее не закрывают; при смене `chatId` панель остается открытой и показывает новый состав; при ошибке состава панели нет
+- [ ] 3.8 Добавить в `selected-chat.ts` и `selected-chat.html` сигнал `membersOpen`, панель справа в строке под шапкой и связь с `membersToggled` и `closed`, проверив, что спеки 3.7 зеленые
 - [ ] 3.9 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 4. Исключение участника в панели
 
 - [ ] 4.1 Дописать падающие спеки `chat-user-row.spec.ts`: при `canRemove` видна кнопка `✕` с доступным именем `Remove <name>`, без `canRemove` кнопки нет; нажатие отдает `removeRequested`; и спеки `chat-users-panel.spec.ts`: при праве исключать `canRemove` получают все строки, кроме своей, без права - ни одна; `removeRequested` строки уходит из панели как `removeRequested` с этим **Участником чата**
 - [ ] 4.2 Реализовать кнопку исключения в `chat-user-row` и пересылку `removeRequested` в `chat-users-panel`, проверив, что спеки 4.1 зеленые
-- [ ] 4.3 Дописать падающие спеки `selected-chat.spec.ts`: панель получает право исключать только у **Создателя чата**; подтверждение запрашивается с `Remove member`, именем **Участника чата**, названием **Чата** в тексте и без признака опасности; отказ не вызывает use case и оставляет панель открытой; согласие вызывает `RemoveChatUserService` с `chatId` и `userId`; после успеха панель открыта и фокус на ее заголовке
-- [ ] 4.4 Предоставить `RemoveChatUserService` в `selected-chat.ts` и связать `removeRequested` с подтверждением, use case и фокусом по `succeeded$`, проверив, что спеки 4.3 зеленые
+- [ ] 4.3 Дописать падающие спеки `selected-chat.spec.ts`: панель получает право исключать только у **Создателя чата**; подтверждение запрашивается с `Remove member`, именем **Участника чата**, названием **Чата** в тексте и без признака опасности; отказ не вызывает use case и оставляет панель открытой; согласие вызывает `RemoveChatUserService` с `chatId` и `userId`; после успеха панель открыта
+- [ ] 4.4 Предоставить `RemoveChatUserService` в `selected-chat.ts` и связать `removeRequested` с подтверждением и use case, проверив, что спеки 4.3 зеленые
 - [ ] 4.5 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 5. Сквозной сценарий и макет
