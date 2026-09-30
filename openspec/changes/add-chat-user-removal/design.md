@@ -240,57 +240,56 @@ change. Отклонена: при ошибке шапке нечего пока
 ### Контракты компонентов
 
 Справка для спеков и кода: что компонент получает, что отдает и что решает
-сам. Почему устроено так - в решениях выше. Блок - секция `tasks.md`, в которой
-вход или выход появляется.
+сам - в итоговом виде. Почему устроено так - в решениях выше; в каком блоке
+что появляется - в `tasks.md`.
 
 `ChatUserRow` - глупый, без сервисов.
 
-| Вид   | Имя               | Тип        | Блок |
-| ----- | ----------------- | ---------- | ---- |
-| вход  | `user`            | `ChatUser` | 3    |
-| вход  | `isCurrentUser`   | `boolean`  | 3    |
-| вход  | `canRemove`       | `boolean`  | 4    |
-| выход | `removeRequested` | `void`     | 4    |
+| Вид   | Имя               | Тип        |
+| ----- | ----------------- | ---------- |
+| вход  | `user`            | `ChatUser` |
+| вход  | `isCurrentUser`   | `boolean`  |
+| вход  | `canRemove`       | `boolean`  |
+| выход | `removeRequested` | `void`     |
 
 Решает сам: подпись **Аватара** `Avatar <name>`, доступное имя кнопки
 `Remove <name>`.
 
 `ChatUsersPanel` - глупая, без сервисов.
 
-| Вид   | Имя                  | Тип                              | Блок |
-| ----- | -------------------- | -------------------------------- | ---- |
-| вход  | `chatUsers`          | `ChatUser[]`                     | 3    |
-| вход  | `currentUserId`      | `UserId`                         | 3    |
-| вход  | `canRemoveChatUsers` | `boolean`                        | 4    |
-| выход | `closed`             | `void`                           | 3    |
-| выход | `removeRequested`    | `ChatUser`                       | 4    |
-| метод | `focusTitle()`       | фокус на заголовок `Members · N` | 3    |
+| Вид   | Имя                  | Тип                              |
+| ----- | -------------------- | -------------------------------- |
+| вход  | `chatUsers`          | `ChatUser[]`                     |
+| вход  | `currentUserId`      | `UserId`                         |
+| вход  | `canRemoveChatUsers` | `boolean`                        |
+| выход | `closed`             | `void`                           |
+| выход | `removeRequested`    | `ChatUser`                       |
+| метод | `focusTitle()`       | фокус на заголовок `Members · N` |
 
 Решает сам: число в заголовке; строке - `isCurrentUser`, если ее `id` равен
 `currentUserId`, и `canRemove`, если исключать можно и строка не своя.
 
 `SelectedChatHeader` - глупая, кроме вложенной `AddChatUserPanel`.
 
-| Вид   | Имя                    | Тип                   | Блок |
-| ----- | ---------------------- | --------------------- | ---- |
-| вход  | `chat`                 | `Chat`                | 2    |
-| вход  | `isChatCreator`        | `boolean`             | 2    |
-| вход  | `chatUsers`            | `ChatUser[]`          | 2    |
-| вход  | `membersOpen`          | `boolean`             | 3    |
-| выход | `deleteRequested`      | `void`                | 2    |
-| выход | `membersToggled`       | `void`                | 3    |
-| метод | `focusMembersButton()` | фокус на кнопку стека | 3    |
+| Вид   | Имя                    | Тип                   |
+| ----- | ---------------------- | --------------------- |
+| вход  | `chat`                 | `Chat`                |
+| вход  | `isChatCreator`        | `boolean`             |
+| вход  | `chatUsers`            | `ChatUser[]`          |
+| вход  | `membersOpen`          | `boolean`             |
+| выход | `deleteRequested`      | `void`                |
+| выход | `membersToggled`       | `void`                |
+| метод | `focusMembersButton()` | фокус на кнопку стека |
 
 `SelectedChat` - маршрутный, держит сервисы.
 
-| Вид       | Имя           | Тип                          | Блок |
-| --------- | ------------- | ---------------------------- | ---- |
-| вход      | `chatId`      | `number` (`numberAttribute`) | 2    |
-| состояние | `membersOpen` | сигнал `boolean`             | 3    |
+| Вид       | Имя           | Тип                          |
+| --------- | ------------- | ---------------------------- |
+| вход      | `chatId`      | `number` (`numberAttribute`) |
+| состояние | `membersOpen` | сигнал `boolean`             |
 
 Читает `ChatListService`, `ChatUsersService`, `CurrentSessionService`,
-`ConfirmationService`, `Router`; предоставляет `DeleteChatService` и, с блока
-4, `RemoveChatUserService`. Решает сам: **Чат** по `chatId`, `isChatCreator`,
+`ConfirmationService`, `Router`; предоставляет `DeleteChatService` и `RemoveChatUserService`. Решает сам: **Чат** по `chatId`, `isChatCreator`,
 открытие и закрытие состава с фокусом, подтверждение обоих действий. Панели
 отдает `chatUsers`, `currentUserId` **Текущего пользователя** и
 `canRemoveChatUsers` из `isChatCreator`.
