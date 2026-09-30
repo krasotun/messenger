@@ -56,7 +56,6 @@ export class SelectedChatHeader {
   readonly errorMessage = this._chatUsersService.errorMessage;
 
   readonly avatarLabel = computed(() => `Avatar ${this.chat()?.title ?? ''}`);
-  readonly avatarFallbackText = computed(() => this.chat()?.title.trim()[0]?.toUpperCase() ?? '');
 
   readonly canDeleteChat = computed(() => {
     const chat = this.chat();

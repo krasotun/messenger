@@ -16,7 +16,6 @@ export class ChatListItem {
   readonly chat = input.required<Chat>();
 
   readonly avatarLabel = computed(() => `Avatar ${this.chat().title}`);
-  readonly avatarFallbackText = computed(() => this.chat().title.trim()[0]?.toUpperCase() ?? '');
 
   readonly lastMessageText = computed(() => {
     const lastMessage = this.chat().lastMessage;

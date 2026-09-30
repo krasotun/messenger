@@ -66,8 +66,4 @@ export class AddChatUserPanel {
   protected addUser(user: User): void {
     this._addChatUserService.addChatUser({ chatId: this.chatId(), userId: user.id });
   }
-
-  protected avatarFallbackText(user: User): string {
-    return user.name.trim()[0]?.toUpperCase() ?? '';
-  }
 }

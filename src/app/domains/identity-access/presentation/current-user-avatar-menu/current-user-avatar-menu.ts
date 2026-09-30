@@ -14,7 +14,7 @@ import { Popover } from '@shared/ui/popover/popover';
 interface CurrentUserAvatarView {
   imageUrl: Nullable<string>;
   label: string;
-  fallbackText: string;
+  name: string;
 }
 
 @Component({
@@ -74,7 +74,7 @@ export class CurrentUserAvatarMenu {
     return {
       imageUrl: currentUser.avatar,
       label: `Avatar ${userName}`,
-      fallbackText: userName[0].toUpperCase(),
+      name: userName,
     };
   }
 }
