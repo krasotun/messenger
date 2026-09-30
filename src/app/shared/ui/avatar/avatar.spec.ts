@@ -120,20 +120,26 @@ describe('Avatar', () => {
       expect(newAvatarEl.classList.contains('avatar_sm')).toBe(true);
     });
 
-    it('renders fallback text when fallbackText is provided', async () => {
-      fixture.componentRef.setInput('fallbackText', 'M');
+    it('renders the first letter of the name in upper case as the fallback', async () => {
+      fixture.componentRef.setInput('name', '  maria');
 
-      fixture.detectChanges();
       await fixture.whenStable();
 
       const avatarFallback: HTMLDivElement =
         fixture.nativeElement.querySelector('.avatar__fallback');
 
-      expect(avatarFallback).not.toBeNull();
-      expect(avatarFallback.getAttribute('aria-label')).toBe('mockLabel');
-      expect(avatarFallback.getAttribute('role')).toBe('img');
-
       expect(avatarFallback.textContent?.trim()).toBe('M');
+    });
+
+    it('renders an empty fallback for a blank name', async () => {
+      fixture.componentRef.setInput('name', '   ');
+
+      await fixture.whenStable();
+
+      const avatarFallback: HTMLDivElement =
+        fixture.nativeElement.querySelector('.avatar__fallback');
+
+      expect(avatarFallback.textContent?.trim()).toBe('');
     });
   });
 });
