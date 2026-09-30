@@ -257,29 +257,27 @@ change. Отклонена: при ошибке шапке нечего пока
 
 `ChatUsersPanel` - глупая, без сервисов.
 
-| Вид   | Имя                  | Тип                              |
-| ----- | -------------------- | -------------------------------- |
-| вход  | `chatUsers`          | `ChatUser[]`                     |
-| вход  | `currentUserId`      | `UserId`                         |
-| вход  | `canRemoveChatUsers` | `boolean`                        |
-| выход | `closed`             | `void`                           |
-| выход | `removeRequested`    | `ChatUser`                       |
-| метод | `focusTitle()`       | фокус на заголовок `Members · N` |
+| Вид   | Имя                  | Тип          |
+| ----- | -------------------- | ------------ |
+| вход  | `chatUsers`          | `ChatUser[]` |
+| вход  | `currentUserId`      | `UserId`     |
+| вход  | `canRemoveChatUsers` | `boolean`    |
+| выход | `closed`             | `void`       |
+| выход | `removeRequested`    | `ChatUser`   |
 
 Решает сам: число в заголовке; строке - `isCurrentUser`, если ее `id` равен
 `currentUserId`, и `canRemove`, если исключать можно и строка не своя.
 
 `SelectedChatHeader` - глупая, кроме вложенной `AddChatUserPanel`.
 
-| Вид   | Имя                    | Тип                   |
-| ----- | ---------------------- | --------------------- |
-| вход  | `chat`                 | `Chat`                |
-| вход  | `isChatCreator`        | `boolean`             |
-| вход  | `chatUsers`            | `ChatUser[]`          |
-| вход  | `membersOpen`          | `boolean`             |
-| выход | `deleteRequested`      | `void`                |
-| выход | `membersToggled`       | `void`                |
-| метод | `focusMembersButton()` | фокус на кнопку стека |
+| Вид   | Имя               | Тип          |
+| ----- | ----------------- | ------------ |
+| вход  | `chat`            | `Chat`       |
+| вход  | `isChatCreator`   | `boolean`    |
+| вход  | `chatUsers`       | `ChatUser[]` |
+| вход  | `membersOpen`     | `boolean`    |
+| выход | `deleteRequested` | `void`       |
+| выход | `membersToggled`  | `void`       |
 
 `SelectedChat` - маршрутный, держит сервисы.
 
