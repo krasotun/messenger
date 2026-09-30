@@ -1,0 +1,33 @@
+@use 'layout';
+
+:host {
+  @include layout.row(10px, $align: center);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+
+  &:hover {
+    background: var(--color-surface-hover);
+  }
+}
+
+.chat-user-row {
+  &__label {
+    @include layout.row(4px, $align: baseline);
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__you {
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+  }
+}

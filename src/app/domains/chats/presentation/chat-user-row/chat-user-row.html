@@ -1,0 +1,14 @@
+<app-avatar
+  [label]="avatarLabel()"
+  [imageUrl]="user().avatar"
+  [fallbackText]="avatarFallbackText()"
+  size="sm"
+></app-avatar>
+
+<div class="chat-user-row__label">
+  <span class="chat-user-row__name">{{ user().name }}</span>
+
+  @if (isCurrentUser()) {
+  <span class="chat-user-row__you">(you)</span>
+  }
+</div>
