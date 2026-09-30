@@ -132,8 +132,8 @@
 
 `ChatUserRow` - глупый компонент строки, как `ChatListItem` у `ChatList`:
 получает **Участника чата**, признак своей строки и право исключать, отдает
-`removeRequested`. Производные - подпись **Аватара**, буква-заглушка,
-`Remove <name>` - считаются в `computed`. `ChatUsersPanel` рисует строки в
+`removeRequested`. Производные - подпись **Аватара** и `Remove <name>` -
+считаются в `computed`; букву-заглушку `Avatar` берет из имени сам (#233). `ChatUsersPanel` рисует строки в
 `@for`, решает для каждой пометку и право и пересылает `removeRequested` с
 **Участником чата**.
 
@@ -236,6 +236,64 @@ change. Отклонена: при ошибке шапке нечего пока
 Порог `docs/adr/README.md` не проходит ни одно решение по условию «тяжело
 откатить»: `SelectedChat` - обертка вокруг существующей шапки, панель -
 компонент домена `chats`. ADR не заводим.
+
+### Контракты компонентов
+
+Справка для спеков и кода: что компонент получает, что отдает и что решает
+сам. Почему устроено так - в решениях выше. Блок - секция `tasks.md`, в которой
+вход или выход появляется.
+
+`ChatUserRow` - глупый, без сервисов.
+
+| Вид   | Имя               | Тип        | Блок |
+| ----- | ----------------- | ---------- | ---- |
+| вход  | `user`            | `ChatUser` | 3    |
+| вход  | `isCurrentUser`   | `boolean`  | 3    |
+| вход  | `canRemove`       | `boolean`  | 4    |
+| выход | `removeRequested` | `void`     | 4    |
+
+Решает сам: подпись **Аватара** `Avatar <name>`, доступное имя кнопки
+`Remove <name>`.
+
+`ChatUsersPanel` - глупая, без сервисов.
+
+| Вид   | Имя                  | Тип                              | Блок |
+| ----- | -------------------- | -------------------------------- | ---- |
+| вход  | `chatUsers`          | `ChatUser[]`                     | 3    |
+| вход  | `currentUserId`      | `UserId`                         | 3    |
+| вход  | `canRemoveChatUsers` | `boolean`                        | 4    |
+| выход | `closed`             | `void`                           | 3    |
+| выход | `removeRequested`    | `ChatUser`                       | 4    |
+| метод | `focusTitle()`       | фокус на заголовок `Members · N` | 3    |
+
+Решает сам: число в заголовке; строке - `isCurrentUser`, если ее `id` равен
+`currentUserId`, и `canRemove`, если исключать можно и строка не своя.
+
+`SelectedChatHeader` - глупая, кроме вложенной `AddChatUserPanel`.
+
+| Вид   | Имя                    | Тип                   | Блок |
+| ----- | ---------------------- | --------------------- | ---- |
+| вход  | `chat`                 | `Chat`                | 2    |
+| вход  | `isChatCreator`        | `boolean`             | 2    |
+| вход  | `chatUsers`            | `ChatUser[]`          | 2    |
+| вход  | `membersOpen`          | `boolean`             | 3    |
+| выход | `deleteRequested`      | `void`                | 2    |
+| выход | `membersToggled`       | `void`                | 3    |
+| метод | `focusMembersButton()` | фокус на кнопку стека | 3    |
+
+`SelectedChat` - маршрутный, держит сервисы.
+
+| Вид       | Имя           | Тип                          | Блок |
+| --------- | ------------- | ---------------------------- | ---- |
+| вход      | `chatId`      | `number` (`numberAttribute`) | 2    |
+| состояние | `membersOpen` | сигнал `boolean`             | 3    |
+
+Читает `ChatListService`, `ChatUsersService`, `CurrentSessionService`,
+`ConfirmationService`, `Router`; предоставляет `DeleteChatService` и, с блока
+4, `RemoveChatUserService`. Решает сам: **Чат** по `chatId`, `isChatCreator`,
+открытие и закрытие состава с фокусом, подтверждение обоих действий. Панели
+отдает `chatUsers`, `currentUserId` **Текущего пользователя** и
+`canRemoveChatUsers` из `isChatCreator`.
 
 ### Уровни тестов
 
