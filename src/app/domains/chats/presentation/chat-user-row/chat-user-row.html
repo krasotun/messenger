@@ -1,12 +1,14 @@
+@let chatUser = user();
+
 <app-avatar
   [label]="avatarLabel()"
-  [imageUrl]="user().avatar"
-  [name]="user().name"
+  [imageUrl]="chatUser.avatar"
+  [name]="chatUser.name"
   size="sm"
 ></app-avatar>
 
 <div class="chat-user-row__label">
-  <span class="chat-user-row__name">{{ user().name }}</span>
+  <span class="chat-user-row__name">{{ chatUser.name }}</span>
 
   @if (isCurrentUser()) {
   <span class="chat-user-row__you">(you)</span>
