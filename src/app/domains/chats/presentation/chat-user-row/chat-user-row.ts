@@ -14,5 +14,4 @@ export class ChatUserRow {
   readonly isCurrentUser = input.required<boolean>();
 
   readonly avatarLabel = computed(() => `Avatar ${this.user().name}`);
-  readonly avatarFallbackText = computed(() => this.user().name.trim()[0]?.toUpperCase() ?? '');
 }
