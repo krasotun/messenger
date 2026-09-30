@@ -14,7 +14,7 @@ export class Avatar {
   readonly label = input.required<string>();
   readonly imageUrl = input<Nullable<string>>(null);
   readonly size = input<AvatarSize>('md');
-  readonly fallbackText = input<string>('');
+  readonly name = input<string>('');
 
   // Сбой загрузки относится к конкретному адресу: при смене imageUrl попытка
   // показать изображение начинается заново, иначе аватар навсегда остается
@@ -23,6 +23,8 @@ export class Avatar {
     source: this.imageUrl,
     computation: () => false,
   });
+
+  readonly fallbackLetter = computed(() => this.name().trim()[0]?.toUpperCase() ?? '');
 
   readonly sizeClass = computed(() => `avatar_${this.size()}`);
   readonly imageShown = computed(() => !!this.imageUrl() && !this.imageFailed());
