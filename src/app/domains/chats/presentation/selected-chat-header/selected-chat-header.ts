@@ -23,7 +23,6 @@ export class SelectedChatHeader {
   readonly deleteRequested = output<void>();
 
   readonly avatarLabel = computed(() => `Avatar ${this.chat().title}`);
-  readonly avatarFallbackText = computed(() => this.chat().title.trim()[0]?.toUpperCase() ?? '');
 
   private readonly _addUserPopover = viewChild(Popover);
 

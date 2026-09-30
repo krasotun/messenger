@@ -17,8 +17,4 @@ export class ChatUserStack {
 
   readonly visibleUsers = computed(() => this.users().slice(0, maxVisibleUsers));
   readonly restCount = computed(() => Math.max(0, this.users().length - maxVisibleUsers));
-
-  protected avatarFallbackText(user: ChatUser): string {
-    return user.name.trim()[0]?.toUpperCase() ?? '';
-  }
 }

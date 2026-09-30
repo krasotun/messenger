@@ -2,6 +2,6 @@
   @if(imageShown()) {
   <img class="avatar__image" [src]="imageUrl()" [alt]="label()" (error)="onImageError()" />
   } @else {
-  <div class="avatar__fallback" [attr.aria-label]="label()" role="img">{{ fallbackText() }}</div>
+  <div class="avatar__fallback" [attr.aria-label]="label()" role="img">{{ fallbackLetter() }}</div>
   }
 </div>

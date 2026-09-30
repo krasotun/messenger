@@ -1,8 +1,4 @@
-<app-avatar
-  [label]="avatarLabel()"
-  [imageUrl]="chat().avatar"
-  [fallbackText]="avatarFallbackText()"
-></app-avatar>
+<app-avatar [label]="avatarLabel()" [imageUrl]="chat().avatar" [name]="chat().title"></app-avatar>
 
 <div class="selected-chat-header__title">{{ chat().title }}</div>
 
