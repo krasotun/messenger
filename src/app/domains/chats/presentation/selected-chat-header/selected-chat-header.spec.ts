@@ -1,3 +1,4 @@
+import { Component, getDebugNode, input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
@@ -6,7 +7,9 @@ import { Chat } from '../../application/chat.type';
 
 import { SelectedChatHeader } from './selected-chat-header';
 
+import { AddChatUserPanel } from '@domains/chats/presentation/add-chat-user-panel/add-chat-user-panel';
 import { ChatUserStack } from '@domains/chats/presentation/chat-user-stack/chat-user-stack';
+import { Nullable } from '@shared/types';
 
 const chatMock: Chat = {
   id: 1,
@@ -22,6 +25,14 @@ const chatUserMock: ChatUser = {
   name: 'Johnny',
   avatar: null,
 };
+
+@Component({
+  selector: 'app-add-chat-user-panel',
+  template: '',
+})
+class AddChatUserPanelStub {
+  readonly chatId = input.required<number>();
+}
 
 describe('SelectedChatHeader', () => {
   let fixture: ComponentFixture<SelectedChatHeader>;
@@ -44,10 +55,25 @@ describe('SelectedChatHeader', () => {
   const getDeleteButton = (): HTMLButtonElement | null =>
     fixture.nativeElement.querySelector('.selected-chat-header__delete-button');
 
+  const getMembersButton = (): Nullable<HTMLButtonElement> =>
+    fixture.nativeElement.querySelector('.selected-chat-header__members-button');
+
+  const getAddUserButton = (): Nullable<HTMLButtonElement> =>
+    fixture.nativeElement.querySelector('.selected-chat-header__add-user-button');
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SelectedChatHeader],
-    }).compileComponents();
+    })
+      .overrideComponent(SelectedChatHeader, {
+        remove: {
+          imports: [AddChatUserPanel],
+        },
+        add: {
+          imports: [AddChatUserPanelStub],
+        },
+      })
+      .compileComponents();
   });
 
   it('should create', async () => {
@@ -108,5 +134,47 @@ describe('SelectedChatHeader', () => {
 
       expect(deleteRequestedSpy).toHaveBeenCalledOnce();
     });
+  });
+
+  it('emits membersToggled when the users stack button is clicked', async () => {
+    await createComponent();
+
+    const membersToggledSpy = vi.fn();
+
+    const membersButton = getMembersButton();
+
+    if (membersButton === null) {
+      throw new Error('No members button found');
+    }
+
+    fixture.componentInstance.membersToggled.subscribe(membersToggledSpy);
+
+    membersButton.click();
+
+    expect(membersToggledSpy).toHaveBeenCalledOnce();
+  });
+
+  it('opens the add member panel for the selected chat when Add member is clicked', async () => {
+    await createComponent();
+
+    const addUserButton = getAddUserButton();
+
+    if (addUserButton === null) {
+      throw new Error('No user add button found');
+    }
+
+    addUserButton.click();
+
+    await fixture.whenStable();
+
+    const addUserPanel: Nullable<HTMLElement> = document.querySelector('app-add-chat-user-panel');
+
+    if (addUserPanel === null) {
+      throw new Error('No user panel found');
+    }
+
+    const panelChatId = getDebugNode(addUserPanel)?.componentInstance.chatId();
+
+    expect(panelChatId).toBe(chatMock.id);
   });
 });
