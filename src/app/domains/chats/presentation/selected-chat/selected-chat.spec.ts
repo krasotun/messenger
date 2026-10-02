@@ -13,6 +13,7 @@ import { SelectedChatHeader } from '../selected-chat-header/selected-chat-header
 
 import { SelectedChat } from './selected-chat';
 
+import { ChatUsersPanel } from '@domains/chats/presentation/chat-users-panel/chat-users-panel';
 import { CurrentSessionService, CurrentUser } from '@domains/identity-access';
 import { ApplicationError } from '@shared/errors';
 import { Nullable } from '@shared/types';
@@ -23,7 +24,7 @@ const chatGatewayMock = {
   chatUsers: vi.fn(),
 };
 
-const chatMock: Chat = {
+const firstChatMock: Chat = {
   id: 1,
   title: 'Analytics Q3',
   avatar: null,
@@ -32,9 +33,24 @@ const chatMock: Chat = {
   lastMessage: null,
 };
 
-const chatUserMock: ChatUser = {
+const secondChatMock: Chat = {
+  id: 2,
+  title: 'Analytics Q4',
+  avatar: null,
+  unreadCount: 0,
+  createdBy: 1,
+  lastMessage: null,
+};
+
+const firstChatUserMock: ChatUser = {
   id: 2,
   name: 'Johnny',
+  avatar: null,
+};
+
+const secondChatUserMock: ChatUser = {
+  id: 3,
+  name: 'Billie',
   avatar: null,
 };
 
@@ -81,6 +97,7 @@ describe('SelectedChat', () => {
 
     fixture = TestBed.createComponent(SelectedChat);
     fixture.componentRef.setInput('chatId', chatId);
+
     await fixture.whenStable();
     fixture.detectChanges();
   };
@@ -88,17 +105,30 @@ describe('SelectedChat', () => {
   const getHeader = (): SelectedChatHeader | null =>
     fixture.debugElement.query(By.directive(SelectedChatHeader))?.componentInstance ?? null;
 
+  const getChatUsersPanel = (): ChatUsersPanel | null =>
+    fixture.debugElement.query(By.directive(ChatUsersPanel))?.componentInstance ?? null;
+
   const requestDeletion = (): void => {
     fixture.debugElement
       .query(By.directive(SelectedChatHeader))
       .triggerEventHandler('deleteRequested');
   };
 
+  const requestMembersToggled = (): void => {
+    fixture.debugElement
+      .query(By.directive(SelectedChatHeader))
+      .triggerEventHandler('membersToggled');
+  };
+
+  const requestChatUsersPanelClosed = (): void => {
+    fixture.debugElement.query(By.directive(ChatUsersPanel)).triggerEventHandler('closed');
+  };
+
   beforeEach(async () => {
     chatGatewayMock.chats.mockReset();
     chatGatewayMock.chatUsers.mockReset();
-    chatGatewayMock.chats.mockReturnValue(of([chatMock]));
-    chatGatewayMock.chatUsers.mockReturnValue(of([chatUserMock]));
+    chatGatewayMock.chats.mockReturnValue(of([firstChatMock, secondChatMock]));
+    chatGatewayMock.chatUsers.mockReturnValue(of([firstChatUserMock]));
 
     currentUser.set(chatCreatorMock);
 
@@ -174,8 +204,8 @@ describe('SelectedChat', () => {
     it('passes the chat and its members to the header', async () => {
       await createComponent('1');
 
-      expect(getHeader()?.chat()).toEqual(chatMock);
-      expect(getHeader()?.chatUsers()).toEqual([chatUserMock]);
+      expect(getHeader()?.chat()).toEqual(firstChatMock);
+      expect(getHeader()?.chatUsers()).toEqual([firstChatUserMock]);
     });
   });
 
@@ -261,6 +291,82 @@ describe('SelectedChat', () => {
       deleteChatServiceMock.succeeded$.next();
 
       expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
+    });
+  });
+
+  describe('showing the chat members panel', () => {
+    it('opens the closed members panel when the header emits membersToggled', async () => {
+      await createComponent('1');
+
+      requestMembersToggled();
+      await fixture.whenStable();
+
+      expect(getChatUsersPanel()).not.toBe(null);
+    });
+
+    describe('when the members panel is open', () => {
+      beforeEach(async () => {
+        await createComponent('1');
+
+        requestMembersToggled();
+        await fixture.whenStable();
+      });
+
+      it('closes the open members panel when the header emits membersToggled', async () => {
+        requestMembersToggled();
+
+        await fixture.whenStable();
+
+        expect(getChatUsersPanel()).toBe(null);
+      });
+
+      it('keeps the open members panel when the chat changes', async () => {
+        fixture.componentRef.setInput('chatId', '2');
+
+        await fixture.whenStable();
+
+        const chatUsersPanel = getChatUsersPanel();
+
+        expect(chatUsersPanel).not.toBe(null);
+      });
+
+      it('shows the new members when the chat changes', async () => {
+        chatGatewayMock.chatUsers.mockReturnValue(of([secondChatUserMock]));
+
+        fixture.componentRef.setInput('chatId', '2');
+
+        await fixture.whenStable();
+
+        const chatUsersPanel = getChatUsersPanel();
+
+        if (chatUsersPanel === null) {
+          throw new Error('Chat panel not found');
+        }
+
+        const usersFromPanel = chatUsersPanel.chatUsers();
+
+        expect(usersFromPanel).toEqual([secondChatUserMock]);
+      });
+
+      it('closes the members panel when it emits closed', async () => {
+        requestChatUsersPanelClosed();
+
+        await fixture.whenStable();
+
+        expect(getChatUsersPanel()).toBe(null);
+      });
+
+      it('shows no members panel when the chat users fail to load', async () => {
+        chatGatewayMock.chatUsers.mockReturnValue(
+          throwError(() => new ApplicationError('mockReason')),
+        );
+
+        fixture.componentRef.setInput('chatId', '2');
+
+        await fixture.whenStable();
+
+        expect(getChatUsersPanel()).toBe(null);
+      });
     });
   });
 });

@@ -21,6 +21,7 @@ export class SelectedChatHeader {
   readonly chatUsers = input.required<ChatUser[]>();
 
   readonly deleteRequested = output<void>();
+  readonly membersToggled = output<void>();
 
   readonly avatarLabel = computed(() => `Avatar ${this.chat().title}`);
 

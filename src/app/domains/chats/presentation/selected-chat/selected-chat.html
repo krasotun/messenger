@@ -9,9 +9,19 @@
   [isChatCreator]="isChatCreator()"
   [chatUsers]="chatUsers()"
   (deleteRequested)="deleteChat()"
+  (membersToggled)="toggleChatUsersPanel()"
 ></app-selected-chat-header>
 }
 
-<div class="selected-chat__conversation"></div>
+<div class="selected-chat__conversation">
+  @if(membersOpen()) { @if(currentUser(); as currentUser) {
+  <app-chat-users-panel
+    class="selected-chat__members"
+    [chatUsers]="chatUsers()"
+    [currentUserId]="currentUser.id"
+    (closed)="closeChatUsersPanel()"
+  ></app-chat-users-panel>
+  } }
+</div>
 
 }

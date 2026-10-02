@@ -1,11 +1,12 @@
 <app-avatar [label]="avatarLabel()" [imageUrl]="chat().avatar" [name]="chat().title"></app-avatar>
 
 <div class="selected-chat-header__title">{{ chat().title }}</div>
-
-<app-chat-user-stack [users]="chatUsers()"></app-chat-user-stack>
+<button class="selected-chat-header__members-button" type="button" (click)="membersToggled.emit()">
+  <app-chat-user-stack [users]="chatUsers()"></app-chat-user-stack>
+</button>
 
 <button
-  class="selected-chat-header__add-user"
+  class="selected-chat-header__add-user-button"
   type="button"
   appButton
   colorType="secondary"
