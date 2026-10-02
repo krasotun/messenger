@@ -1,7 +1,8 @@
-import { Component, computed, effect, inject, input, numberAttribute } from '@angular/core';
+import { Component, computed, effect, inject, input, numberAttribute, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 
+import { ChatUsersPanel } from '../chat-users-panel/chat-users-panel';
 import { SelectedChatHeader } from '../selected-chat-header/selected-chat-header';
 
 import { ChatListService } from '@domains/chats/application/chat-list/chat-list.service';
@@ -15,7 +16,7 @@ const DELETE_CHAT_MESSAGE =
 
 @Component({
   selector: 'app-selected-chat',
-  imports: [SelectedChatHeader],
+  imports: [SelectedChatHeader, ChatUsersPanel],
   templateUrl: './selected-chat.html',
   styleUrl: './selected-chat.scss',
   providers: [DeleteChatService],
@@ -31,6 +32,10 @@ export class SelectedChat {
   private readonly _confirmationService = inject(ConfirmationService);
   private readonly _deleteChatService = inject(DeleteChatService);
   private readonly _router = inject(Router);
+
+  readonly membersOpen = signal(false);
+
+  readonly currentUser = this._currentSessionService.currentUser;
 
   readonly chat = computed(() => {
     const chatId = this.chatId();
@@ -56,6 +61,14 @@ export class SelectedChat {
     this._deleteChatService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
       this._router.navigateByUrl('/');
     });
+  }
+
+  protected toggleChatUsersPanel(): void {
+    this.membersOpen.update((currentStatus) => !currentStatus);
+  }
+
+  protected closeChatUsersPanel(): void {
+    this.membersOpen.set(false);
   }
 
   protected deleteChat(): void {

@@ -24,9 +24,9 @@
 - [x] 3.4 Реализовать `chat-users-panel.ts`, `chat-users-panel.html`, `chat-users-panel.scss` по артборду панели состава: строки в `@for`, заголовок с кнопкой закрытия вне прокрутки, список строк с `overflow-y: auto` на всю высоту панели; проверить, что спеки 3.3 зеленые
 - [x] 3.5 Дописать падающие спеки `selected-chat-header.spec.ts`: нажатие на кнопку стека отдает `membersToggled`; нажатие на `Add member` открывает панель добавления с `chatId` этого **Чата**
 - [x] 3.6 Обернуть `<app-chat-user-stack>` в кнопку в `selected-chat-header.html`, добавить `membersToggled` в `selected-chat-header.ts`, стили кнопки - в `selected-chat-header.scss`; убрать `cursor: default` у `+K` в `src/app/domains/chats/presentation/chat-user-stack/chat-user-stack.scss`; проверить, что спеки 3.5 зеленые
-- [ ] 3.7 Дописать падающие спеки `selected-chat.spec.ts`: нажатие на стек открывает панель, повторное закрывает; `✕` закрывает; щелчок мимо панели и `Escape` ее не закрывают; при смене `chatId` панель остается открытой и показывает новый состав; при ошибке состава панели нет
-- [ ] 3.8 Добавить в `selected-chat.ts` и `selected-chat.html` сигнал `membersOpen`, панель справа в строке под шапкой и связь с `membersToggled` и `closed`, проверив, что спеки 3.7 зеленые
-- [ ] 3.9 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 3.7 Дописать падающие спеки `selected-chat.spec.ts`: нажатие на стек открывает панель, повторное закрывает; `✕` закрывает; при смене `chatId` панель остается открытой и показывает новый состав; при ошибке состава панели нет
+- [x] 3.8 Добавить в `selected-chat.ts` и `selected-chat.html` сигнал `membersOpen`, панель справа в строке под шапкой и связь с `membersToggled` и `closed`, проверив, что спеки 3.7 зеленые
+- [x] 3.9 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 4. Исключение участника в панели
 

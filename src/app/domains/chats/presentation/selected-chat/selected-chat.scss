@@ -7,11 +7,17 @@
 }
 
 .selected-chat {
-  // Строка, а не блок: в нее справа встанет панель состава.
+  // Строка, а не блок: справа в ней стоит панель состава.
   &__conversation {
     @include layout.row();
     flex-grow: 1;
     min-height: 0;
+  }
+
+  // Переписки еще нет, и прижать панель к правому краю больше нечему.
+  &__members {
+    flex-shrink: 0;
+    margin-left: auto;
   }
 
   &__error {
