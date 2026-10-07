@@ -39,6 +39,6 @@
 ## 5. Сквозной сценарий и макет
 
 - [x] 5.1 Написать e2e `e2e/chats/remove-chat-user.spec.ts`: **Создатель чата** открывает состав, исключает **Участника чата**, подтверждает, видит **Уведомление** `Member removed`, а строки исключенного нет в открытой панели
-- [ ] 5.2 Добавить скриншотный e2e `chat users panel @visual` в `e2e/chats/chats.screenshot.spec.ts` на открытую панель у **Создателя чата**, где **Участников чата** больше, чем помещается без прокрутки, и снять linux-эталон в контейнере `mcr.microsoft.com/playwright` с `--platform linux/arm64`
+- [x] 5.2 Добавить скриншотный e2e `chat users panel @visual` в `e2e/chats/chats.screenshot.spec.ts` на открытую панель у **Создателя чата**, где **Участников чата** больше, чем помещается без прокрутки, и снять linux-эталон в контейнере `mcr.microsoft.com/playwright` с `--platform linux/arm64`
 - [x] 5.3 Сверить снимок с артбордом панели состава: порядок строк, пометка `(you)`, кнопки исключения и закрытия, заголовок с числом и прокрутка списка под ним совпадают с макетом
-- [ ] 5.4 Прогнать `npm run lint`, `npm run test:ci`, `npm run e2e` и `npm run e2e:visual`
+- [x] 5.4 Прогнать `npm run lint`, `npm run test:ci`, `npm run e2e` и `npm run e2e:visual`
