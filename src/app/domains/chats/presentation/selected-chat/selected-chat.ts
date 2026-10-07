@@ -6,8 +6,10 @@ import { ChatUsersPanel } from '../chat-users-panel/chat-users-panel';
 import { SelectedChatHeader } from '../selected-chat-header/selected-chat-header';
 
 import { ChatListService } from '@domains/chats/application/chat-list/chat-list.service';
+import { ChatUser } from '@domains/chats/application/chat-user.type';
 import { ChatUsersService } from '@domains/chats/application/chat-users/chat-users.service';
 import { DeleteChatService } from '@domains/chats/application/delete-chat/delete-chat.service';
+import { RemoveChatUserService } from '@domains/chats/application/remove-chat-user/remove-chat-user.service';
 import { CurrentSessionService } from '@domains/identity-access';
 import { ConfirmationService } from '@shared/ui/confirmation';
 
@@ -19,7 +21,7 @@ const DELETE_CHAT_MESSAGE =
   imports: [SelectedChatHeader, ChatUsersPanel],
   templateUrl: './selected-chat.html',
   styleUrl: './selected-chat.scss',
-  providers: [DeleteChatService],
+  providers: [DeleteChatService, RemoveChatUserService],
 })
 export class SelectedChat {
   readonly chatId = input.required({
@@ -31,6 +33,7 @@ export class SelectedChat {
   private readonly _currentSessionService = inject(CurrentSessionService);
   private readonly _confirmationService = inject(ConfirmationService);
   private readonly _deleteChatService = inject(DeleteChatService);
+  private readonly _removeChatUserService = inject(RemoveChatUserService);
   private readonly _router = inject(Router);
 
   readonly membersOpen = signal(false);
@@ -89,6 +92,27 @@ export class SelectedChat {
       .subscribe((confirmed) => {
         if (confirmed) {
           this._deleteChatService.deleteChat({ chatId: chat.id });
+        }
+      });
+  }
+
+  protected removeChatUser(chatUser: ChatUser): void {
+    const chat = this.chat();
+
+    if (!chat) {
+      return;
+    }
+
+    this._confirmationService
+      .confirm({
+        title: 'Remove member',
+        subject: chatUser.name,
+        message: `They leave "${chat.title}" and can be added back later.`,
+        confirmLabel: 'Remove',
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this._removeChatUserService.removeChatUser({ chatId: chat.id, userId: chatUser.id });
         }
       });
   }

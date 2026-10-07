@@ -14,3 +14,14 @@
   <span class="chat-user-row__you">(you)</span>
   }
 </div>
+
+@if (canRemove()) {
+<button
+  type="button"
+  class="chat-user-row__remove-user-button"
+  [aria-label]="removeButtonLabel()"
+  (click)="removeRequested.emit()"
+>
+  ✕
+</button>
+}

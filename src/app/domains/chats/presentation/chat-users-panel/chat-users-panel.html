@@ -14,9 +14,12 @@
 <ul class="chat-users-panel__list">
   @for (chatUser of chatUsers(); track chatUser.id) {
   <li>
+    @let isCurrentUser = chatUser.id === currentUserId();
     <app-chat-user-row
       [user]="chatUser"
-      [isCurrentUser]="chatUser.id === currentUserId()"
+      [isCurrentUser]="isCurrentUser"
+      [canRemove]="canRemoveChatUsers() && !isCurrentUser"
+      (removeRequested)="removeRequested.emit(chatUser)"
     ></app-chat-user-row>
   </li>
   }

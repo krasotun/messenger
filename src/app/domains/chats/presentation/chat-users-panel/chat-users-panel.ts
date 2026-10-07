@@ -14,6 +14,9 @@ import { UserId } from '@domains/identity-access';
 export class ChatUsersPanel {
   readonly chatUsers = input.required<ChatUser[]>();
   readonly currentUserId = input.required<UserId>();
+  readonly canRemoveChatUsers = input.required<boolean>();
+
+  readonly removeRequested = output<ChatUser>();
 
   readonly chatUsersTitle = computed(() => `Members · ${this.chatUsers().length}`);
 

@@ -25,6 +25,8 @@ const chatUsersMock = signal([currentUserMock, anotherUserMock]);
 
 const currentUserIdMock = signal(currentUserMock.id);
 
+const canRemoveChatUsersMock = signal(false);
+
 const getRows = (fixture: ComponentFixture<ChatUsersPanel>): ChatUserRow[] =>
   fixture.debugElement
     .queryAll(By.directive(ChatUserRow))
@@ -33,9 +35,13 @@ const getRows = (fixture: ComponentFixture<ChatUsersPanel>): ChatUserRow[] =>
 describe('ChatUsersPanel', () => {
   let fixture: ComponentFixture<ChatUsersPanel>;
   let closedSpy: Mock<() => void>;
+  let removeRequestedSpy: Mock<(user: ChatUser) => void>;
 
   beforeEach(async () => {
     closedSpy = vi.fn();
+    removeRequestedSpy = vi.fn();
+
+    canRemoveChatUsersMock.set(false);
 
     await TestBed.configureTestingModule({
       imports: [ChatUsersPanel],
@@ -45,7 +51,9 @@ describe('ChatUsersPanel', () => {
       bindings: [
         inputBinding('chatUsers', chatUsersMock),
         inputBinding('currentUserId', currentUserIdMock),
+        inputBinding('canRemoveChatUsers', canRemoveChatUsersMock),
         outputBinding('closed', closedSpy),
+        outputBinding('removeRequested', removeRequestedSpy),
       ],
     });
     await fixture.whenStable();
@@ -76,6 +84,7 @@ describe('ChatUsersPanel', () => {
 
     expect(currentUserRow.isCurrentUser()).toBe(true);
   });
+
   it('does not mark other chat user rows', () => {
     const rows = getRows(fixture);
 
@@ -98,5 +107,53 @@ describe('ChatUsersPanel', () => {
     closeButton.click();
 
     expect(closedSpy).toHaveBeenCalledOnce();
+  });
+  it('offers removal for other chat user rows when removal is allowed', async () => {
+    canRemoveChatUsersMock.set(true);
+
+    await fixture.whenStable();
+
+    const rows = getRows(fixture);
+
+    const marks = rows
+      .filter((row) => row.user().id !== currentUserIdMock())
+      .map((row) => row.canRemove());
+
+    expect(marks).toEqual([true]);
+  });
+
+  it('does not offer removal for the current user row when removal is allowed', async () => {
+    canRemoveChatUsersMock.set(true);
+
+    await fixture.whenStable();
+
+    const rows = getRows(fixture);
+
+    const marks = rows
+      .filter((row) => row.user().id === currentUserIdMock())
+      .map((row) => row.canRemove());
+
+    expect(marks).toEqual([false]);
+  });
+
+  it('offers removal for no row when removal is not allowed', async () => {
+    const rows = getRows(fixture);
+
+    const marks = rows.map((row) => row.canRemove());
+
+    expect(marks).toEqual([false, false]);
+  });
+
+  it('emits removeRequested with the chat user when their row requests removal', async () => {
+    const rows = fixture.debugElement.queryAll(By.directive(ChatUserRow));
+    const userRowforExclude = rows.find((row) => row.componentInstance.user().name === 'Billy');
+
+    if (userRowforExclude === undefined) {
+      throw new Error('No user to exlude');
+    }
+
+    userRowforExclude.triggerEventHandler('removeRequested');
+
+    expect(removeRequestedSpy).toHaveBeenCalledWith(anotherUserMock);
   });
 });
