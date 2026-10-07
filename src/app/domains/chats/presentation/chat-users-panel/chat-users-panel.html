@@ -1,0 +1,26 @@
+<div class="chat-users-panel__head">
+  <h2 class="chat-users-panel__title">{{ chatUsersTitle() }}</h2>
+
+  <button
+    type="button"
+    class="chat-users-panel__close"
+    aria-label="Close members"
+    (click)="closed.emit()"
+  >
+    ✕
+  </button>
+</div>
+
+<ul class="chat-users-panel__list">
+  @for (chatUser of chatUsers(); track chatUser.id) {
+  <li>
+    @let isCurrentUser = chatUser.id === currentUserId();
+    <app-chat-user-row
+      [user]="chatUser"
+      [isCurrentUser]="isCurrentUser"
+      [canRemove]="canRemoveChatUsers() && !isCurrentUser"
+      (removeRequested)="removeRequested.emit(chatUser)"
+    ></app-chat-user-row>
+  </li>
+  }
+</ul>

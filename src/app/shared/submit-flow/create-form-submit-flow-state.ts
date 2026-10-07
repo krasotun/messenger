@@ -1,9 +1,11 @@
 import { signal } from '@angular/core';
-import { Subject } from 'rxjs';
+
+import { createActionFlowState } from '@shared/submit-flow/create-action-flow-state';
 
 export const createFormSubmitFlowState = () => {
+  const actionFlowState = createActionFlowState();
+
   const isSubmitting = signal(false);
-  const succeeded = new Subject<void>();
 
   const startSubmitting = () => {
     isSubmitting.set(true);
@@ -11,7 +13,7 @@ export const createFormSubmitFlowState = () => {
 
   const markSuccess = () => {
     isSubmitting.set(false);
-    succeeded.next();
+    actionFlowState.markSuccess();
   };
 
   const markError = () => {
@@ -20,7 +22,7 @@ export const createFormSubmitFlowState = () => {
 
   return {
     isSubmitting: isSubmitting.asReadonly(),
-    succeeded$: succeeded.asObservable(),
+    succeeded$: actionFlowState.succeeded$,
     startSubmitting,
     markSuccess,
     markError,

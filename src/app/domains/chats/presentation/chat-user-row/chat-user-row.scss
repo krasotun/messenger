@@ -1,0 +1,62 @@
+@use 'layout';
+
+:host {
+  @include layout.row(10px, $align: center);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+
+  &:hover {
+    background: var(--color-surface-hover);
+  }
+}
+
+// Кнопка исключения окрашивается при наведении на всю строку, а не только на
+// себя: так видно, какого участника она исключит.
+:host(:hover) .chat-user-row__remove-user-button {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.chat-user-row {
+  &__label {
+    @include layout.row(4px, $align: baseline);
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__you {
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+  }
+
+  &__remove-user-button {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    box-sizing: border-box;
+    padding: 0;
+    border: 1px solid var(--color-border-muted);
+    border-radius: 6px;
+    background: var(--color-surface);
+    font-size: 12px;
+    line-height: 1;
+    color: var(--color-text-muted);
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--color-border-focus);
+      outline-offset: 2px;
+    }
+  }
+}

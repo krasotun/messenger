@@ -1,0 +1,41 @@
+@use 'layout';
+
+:host {
+  @include layout.column();
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.selected-chat {
+  // Строка, а не блок: справа в ней стоит панель состава.
+  // База 0, а не по контенту: иначе длинный состав при сжатии колонки
+  // отнимает высоту у шапки.
+  &__conversation {
+    @include layout.row();
+    flex: 1 1 0;
+    min-height: 0;
+  }
+
+  // Переписки еще нет, и прижать панель к правому краю больше нечему.
+  &__members {
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  &__error {
+    @include layout.column(4px);
+    flex-grow: 1;
+    padding: 12px 24px;
+  }
+
+  &__error-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-danger);
+  }
+
+  &__error-reason {
+    font-size: 13px;
+    color: var(--color-text-muted);
+  }
+}

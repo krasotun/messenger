@@ -46,7 +46,7 @@ export interface DeleteChatRequestDto {
   chatId: number;
 }
 
-export interface AddChatUserRequestDto {
+export interface UsersRequestDto {
   chatId: number;
   users: number[];
 }

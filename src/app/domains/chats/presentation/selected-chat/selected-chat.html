@@ -1,0 +1,29 @@
+@if(errorMessage(); as errorMessage) {
+<div class="selected-chat__error">
+  <div class="selected-chat__error-title">Failed to load chat</div>
+  <div class="selected-chat__error-reason">{{ errorMessage }}</div>
+</div>
+} @else { @if(chat(); as chat) {
+<app-selected-chat-header
+  [chat]="chat"
+  [isChatCreator]="isChatCreator()"
+  [chatUsers]="chatUsers()"
+  (deleteRequested)="deleteChat()"
+  (membersToggled)="toggleChatUsersPanel()"
+></app-selected-chat-header>
+}
+
+<div class="selected-chat__conversation">
+  @if(membersOpen()) { @if(currentUser(); as currentUser) {
+  <app-chat-users-panel
+    class="selected-chat__members"
+    [chatUsers]="chatUsers()"
+    [currentUserId]="currentUser.id"
+    [canRemoveChatUsers]="isChatCreator()"
+    (closed)="closeChatUsersPanel()"
+    (removeRequested)="removeChatUser($event)"
+  ></app-chat-users-panel>
+  } }
+</div>
+
+}

@@ -19,6 +19,7 @@ const chatApiMock = {
   chatUsers: vi.fn(),
   addChatUser: vi.fn(),
   deleteChat: vi.fn(),
+  removeChatUser: vi.fn(),
 };
 
 const resourcesBaseUrlMock = 'https://mock.host/resources';
@@ -79,6 +80,7 @@ describe('HttpChatGateway', () => {
     chatApiMock.createChat.mockReset();
     chatApiMock.chatUsers.mockReset();
     chatApiMock.addChatUser.mockReset();
+    chatApiMock.removeChatUser.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -415,6 +417,59 @@ describe('HttpChatGateway', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.addChatUser);
+    });
+  });
+
+  describe('removeChatUser', () => {
+    it('should ask api to remove the user from the chat', () => {
+      chatApiMock.removeChatUser.mockReturnValue(of('OK'));
+
+      service.removeChatUser({ chatId: 1, userId: 2 }).subscribe();
+
+      expect(chatApiMock.removeChatUser).toHaveBeenCalledOnce();
+      expect(chatApiMock.removeChatUser).toHaveBeenCalledWith({ chatId: 1, users: [2] });
+    });
+
+    it('should emit once when the user is removed', () => {
+      chatApiMock.removeChatUser.mockReturnValue(of('OK'));
+
+      const nextSpy = vi.fn();
+
+      service.removeChatUser({ chatId: 1, userId: 2 }).subscribe(nextSpy);
+
+      expect(nextSpy).toHaveBeenCalledOnce();
+    });
+
+    it('should map error to ApplicationError with reason from response body', () => {
+      chatApiMock.removeChatUser.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ error: { reason: 'mockReason' } })),
+      );
+
+      let caughtError: unknown;
+
+      service.removeChatUser({ chatId: 1, userId: 2 }).subscribe({
+        error: (error: unknown) => {
+          caughtError = error;
+        },
+      });
+
+      expect(caughtError).toBeInstanceOf(ApplicationError);
+      expect((caughtError as ApplicationError).message).toBe('mockReason');
+    });
+
+    it('should map generic error to ApplicationError with fallback message', () => {
+      chatApiMock.removeChatUser.mockReturnValue(throwError(() => 'mockError'));
+
+      let caughtError: unknown;
+
+      service.removeChatUser({ chatId: 1, userId: 2 }).subscribe({
+        error: (error: unknown) => {
+          caughtError = error;
+        },
+      });
+
+      expect(caughtError).toBeInstanceOf(ApplicationError);
+      expect((caughtError as ApplicationError).message).toBe(CHAT_ERROR_MESSAGES.removeChatUser);
     });
   });
 });

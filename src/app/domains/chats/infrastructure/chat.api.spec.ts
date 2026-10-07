@@ -129,4 +129,24 @@ describe('ChatApi', () => {
       expect(results).toEqual(['OK']);
     });
   });
+
+  describe('removeChatUser', () => {
+    it('should send DELETE request with the chat id and user ids as text', () => {
+      const results: unknown[] = [];
+
+      service.removeChatUser({ chatId: 1, users: [2] }).subscribe((response) => {
+        results.push(response);
+      });
+
+      const request = httpTestingController.expectOne('/chats/users');
+
+      expect(request.request.method).toBe('DELETE');
+      expect(request.request.body).toEqual({ chatId: 1, users: [2] });
+      expect(request.request.responseType).toBe('text');
+
+      request.flush('OK');
+
+      expect(results).toEqual(['OK']);
+    });
+  });
 });

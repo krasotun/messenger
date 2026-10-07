@@ -7,7 +7,7 @@ import { DeleteChatInput } from './delete-chat-input.type';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
-import { createFormSubmitFlowState } from '@shared/submit-flow';
+import { createActionFlowState } from '@shared/submit-flow';
 
 @Injectable()
 export class DeleteChatService {
@@ -15,15 +15,11 @@ export class DeleteChatService {
   private readonly _chatListService = inject(ChatListService);
   private readonly _notifier = inject(NOTIFIER);
 
-  private readonly _flow = createFormSubmitFlowState();
-
-  readonly isSubmitting = this._flow.isSubmitting;
+  private readonly _flow = createActionFlowState();
 
   readonly succeeded$ = this._flow.succeeded$;
 
   deleteChat(deleteChatInput: DeleteChatInput): void {
-    this._flow.startSubmitting();
-
     this._chatGateway.deleteChat(deleteChatInput).subscribe({
       next: () => {
         this._chatListService.loadChats();
@@ -31,7 +27,6 @@ export class DeleteChatService {
         this._notifier.success('Delete chat', 'Chat deleted successfully');
       },
       error: ({ message }: ApplicationError) => {
-        this._flow.markError();
         this._notifier.error('Failed to delete chat', message);
       },
     });

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of, Subject, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { ChatListService } from '../chat-list/chat-list.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
@@ -52,12 +52,6 @@ describe('DeleteChatService', () => {
     service = TestBed.inject(DeleteChatService);
   });
 
-  describe('initial state', () => {
-    it('should be idle', () => {
-      expect(service.isSubmitting()).toBe(false);
-    });
-  });
-
   describe('deleteChat', () => {
     it('should call the chat gateway with the given chat id', () => {
       chatGatewayMock.deleteChat.mockReturnValue(of(undefined));
@@ -66,14 +60,6 @@ describe('DeleteChatService', () => {
 
       expect(chatGatewayMock.deleteChat).toHaveBeenCalledOnce();
       expect(chatGatewayMock.deleteChat).toHaveBeenCalledWith({ chatId: 1 });
-    });
-
-    it('should mark submitting while the request is pending', () => {
-      chatGatewayMock.deleteChat.mockReturnValue(new Subject<void>());
-
-      service.deleteChat({ chatId: 1 });
-
-      expect(service.isSubmitting()).toBe(true);
     });
 
     describe('when the chat is deleted', () => {
@@ -88,7 +74,6 @@ describe('DeleteChatService', () => {
         service.deleteChat({ chatId: 1 });
 
         expect(succeededSpy).toHaveBeenCalledOnce();
-        expect(service.isSubmitting()).toBe(false);
       });
 
       it('should reload the chat list', () => {
@@ -121,7 +106,6 @@ describe('DeleteChatService', () => {
         service.deleteChat({ chatId: 1 });
 
         expect(succeededSpy).not.toHaveBeenCalled();
-        expect(service.isSubmitting()).toBe(false);
         expect(notifierMock.error).toHaveBeenCalledWith('Failed to delete chat', 'mockReason');
       });
 
