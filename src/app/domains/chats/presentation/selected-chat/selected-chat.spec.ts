@@ -487,6 +487,8 @@ describe('SelectedChat', () => {
 
       requestChatUserRemoval(secondChatUserMock);
 
+      removeChatUserServiceMock.succeeded$.next();
+
       await fixture.whenStable();
 
       const chatUsersPanel = getChatUsersPanel();
