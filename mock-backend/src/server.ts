@@ -5,10 +5,16 @@ import express from 'express';
 import { authRouter } from './routes/auth';
 import { chatsRouter } from './routes/chats';
 import { userRouter } from './routes/user';
+import { seedDemoData } from './seed';
 import { resetStore } from './store';
 
 const app = express();
 const port = Number(process.env['PORT'] ?? 3000);
+
+// Демо-данные только по явному флагу: e2e рассчитывают на пустой мок.
+if (process.env['MOCK_SEED'] === 'demo') {
+  seedDemoData();
+}
 
 app.use(express.json());
 app.use(cookieParser());
