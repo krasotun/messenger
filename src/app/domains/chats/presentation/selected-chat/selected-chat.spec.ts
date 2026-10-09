@@ -2,12 +2,11 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { of, Subject, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { ChatListService } from '../../application/chat-list/chat-list.service';
 import { ChatUser } from '../../application/chat-user.type';
 import { CHAT_GATEWAY } from '../../application/chat.gateway';
-import { Chat } from '../../application/chat.type';
 import { DeleteChatService } from '../../application/delete-chat/delete-chat.service';
 import { SelectedChatHeader } from '../selected-chat-header/selected-chat-header';
 
@@ -15,56 +14,20 @@ import { SelectedChat } from './selected-chat';
 
 import { RemoveChatUserService } from '@domains/chats/application/remove-chat-user/remove-chat-user.service';
 import { ChatUsersPanel } from '@domains/chats/presentation/chat-users-panel/chat-users-panel';
+import { ChatMocks } from '@domains/chats/testing';
 import { CurrentSessionService, CurrentUser } from '@domains/identity-access';
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { Nullable } from '@shared/types';
 import { ConfirmationService } from '@shared/ui/confirmation';
 
-const chatGatewayMock = {
-  chats: vi.fn(),
-  chatUsers: vi.fn(),
-};
+const firstChatMock = ChatMocks.chat({ id: 1, title: 'Analytics Q3' });
+const secondChatMock = ChatMocks.chat({ id: 2, title: 'Analytics Q4' });
 
-const firstChatMock: Chat = {
-  id: 1,
-  title: 'Analytics Q3',
-  avatar: null,
-  unreadCount: 0,
-  createdBy: 1,
-  lastMessage: null,
-};
+const firstChatUserMock = ChatMocks.chatUser({ id: 2, name: 'Johnny' });
+const secondChatUserMock = ChatMocks.chatUser({ id: 3, name: 'Billie' });
 
-const secondChatMock: Chat = {
-  id: 2,
-  title: 'Analytics Q4',
-  avatar: null,
-  unreadCount: 0,
-  createdBy: 1,
-  lastMessage: null,
-};
-
-const firstChatUserMock: ChatUser = {
-  id: 2,
-  name: 'Johnny',
-  avatar: null,
-};
-
-const secondChatUserMock: ChatUser = {
-  id: 3,
-  name: 'Billie',
-  avatar: null,
-};
-
-const chatCreatorMock: CurrentUser = {
-  id: 1,
-  avatar: null,
-  displayName: null,
-  email: 'creator@mock',
-  firstName: 'Creator',
-  login: 'creator',
-  phone: 'phone',
-  secondName: 'secondName',
-};
+const chatCreatorMock = IdentityMocks.currentUser({ id: 1 });
 
 describe('SelectedChat', () => {
   let fixture: ComponentFixture<SelectedChat>;
@@ -79,15 +42,9 @@ describe('SelectedChat', () => {
     confirm: vi.fn(),
   };
 
-  let deleteChatServiceMock: {
-    deleteChat: ReturnType<typeof vi.fn>;
-    succeeded$: Subject<void>;
-  };
-
-  let removeChatUserServiceMock: {
-    removeChatUser: ReturnType<typeof vi.fn>;
-    succeeded$: Subject<void>;
-  };
+  let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
+  let deleteChatServiceMock: ReturnType<typeof ChatMocks.deleteChatService>;
+  let removeChatUserServiceMock: ReturnType<typeof ChatMocks.removeChatUserService>;
 
   const routerMock = {
     navigateByUrl: vi.fn(),
@@ -151,8 +108,7 @@ describe('SelectedChat', () => {
   };
 
   beforeEach(async () => {
-    chatGatewayMock.chats.mockReset();
-    chatGatewayMock.chatUsers.mockReset();
+    chatGatewayMock = ChatMocks.chatGateway();
     chatGatewayMock.chats.mockReturnValue(of([firstChatMock, secondChatMock]));
     chatGatewayMock.chatUsers.mockReturnValue(of([firstChatUserMock]));
 
@@ -161,15 +117,8 @@ describe('SelectedChat', () => {
     confirmationServiceMock.confirm.mockReset();
     confirmationServiceMock.confirm.mockReturnValue(of(false));
 
-    deleteChatServiceMock = {
-      deleteChat: vi.fn(),
-      succeeded$: new Subject<void>(),
-    };
-
-    removeChatUserServiceMock = {
-      removeChatUser: vi.fn(),
-      succeeded$: new Subject<void>(),
-    };
+    deleteChatServiceMock = ChatMocks.deleteChatService();
+    removeChatUserServiceMock = ChatMocks.removeChatUserService();
 
     routerMock.navigateByUrl.mockReset();
 

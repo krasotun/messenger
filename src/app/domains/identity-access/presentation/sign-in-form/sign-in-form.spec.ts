@@ -11,6 +11,8 @@ import { SignInForm } from './sign-in-form';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { FormQueries } from '@shared/ui/form/testing';
+import { FormFieldQueries } from '@shared/ui/form-field/testing';
 
 let signInServiceMock: {
   isSubmitting: WritableSignal<boolean>;
@@ -26,12 +28,6 @@ const notifierMock = {
 describe('SignInForm', () => {
   let component: SignInForm;
   let fixture: ComponentFixture<SignInForm>;
-
-  const getSubmitButton = (): HTMLButtonElement =>
-    fixture.nativeElement.querySelector('button[type="submit"]');
-
-  const getFieldErrors = (): HTMLElement[] =>
-    Array.from(fixture.nativeElement.querySelectorAll('.form-field__error'));
 
   beforeEach(async () => {
     signInServiceMock = {
@@ -89,14 +85,14 @@ describe('SignInForm', () => {
     it('should disable the submit button when the sign-in form is empty', () => {
       fixture.detectChanges();
 
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(FormQueries.submitButton(fixture).disabled).toBe(true);
     });
 
     it('should not show field errors on an untouched form', () => {
       fixture.detectChanges();
 
-      expect(getFieldErrors()).toHaveLength(0);
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(FormFieldQueries.errors(fixture)).toHaveLength(0);
+      expect(FormQueries.submitButton(fixture).disabled).toBe(true);
     });
 
     it('should show a field error after the field loses focus while it stays empty', () => {
@@ -105,11 +101,11 @@ describe('SignInForm', () => {
       component.signInForm.controls.login.markAsTouched();
       fixture.detectChanges();
 
-      const fieldErrors = getFieldErrors();
+      const fieldErrors = FormFieldQueries.errors(fixture);
 
       expect(fieldErrors.length).toBeGreaterThan(0);
       expect(fieldErrors.some((error) => error.textContent?.trim())).toBe(true);
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(FormQueries.submitButton(fixture).disabled).toBe(true);
     });
 
     it('should enable the submit button once the form becomes valid', () => {
@@ -118,7 +114,7 @@ describe('SignInForm', () => {
       component.signInForm.setValue({ login: 'Mock', password: 'secret' });
       fixture.detectChanges();
 
-      expect(getSubmitButton().disabled).toBe(false);
+      expect(FormQueries.submitButton(fixture).disabled).toBe(false);
     });
   });
 
