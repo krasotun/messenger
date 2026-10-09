@@ -2,6 +2,7 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
+import { mockProvider } from '@ngneat/spectator/vitest';
 import { of, Subject, throwError } from 'rxjs';
 
 import { ChatListService } from '../../application/chat-list/chat-list.service';
@@ -75,23 +76,14 @@ describe('SelectedChat', () => {
     currentUser: currentUser.asReadonly(),
   };
 
-  const confirmationServiceMock = {
-    confirm: vi.fn(),
-  };
+  let deleteChatSucceeded: Subject<void>;
+  let removeChatUserSucceeded: Subject<void>;
 
-  let deleteChatServiceMock: {
-    deleteChat: ReturnType<typeof vi.fn>;
-    succeeded$: Subject<void>;
-  };
-
-  let removeChatUserServiceMock: {
-    removeChatUser: ReturnType<typeof vi.fn>;
-    succeeded$: Subject<void>;
-  };
-
-  const routerMock = {
-    navigateByUrl: vi.fn(),
-  };
+  const confirmationService = () => vi.mocked(TestBed.inject(ConfirmationService));
+  const router = () => vi.mocked(TestBed.inject(Router));
+  const deleteChatService = () => vi.mocked(fixture.debugElement.injector.get(DeleteChatService));
+  const removeChatUserService = () =>
+    vi.mocked(fixture.debugElement.injector.get(RemoveChatUserService));
 
   const createComponent = async (
     chatId: string,
@@ -158,20 +150,8 @@ describe('SelectedChat', () => {
 
     currentUser.set(chatCreatorMock);
 
-    confirmationServiceMock.confirm.mockReset();
-    confirmationServiceMock.confirm.mockReturnValue(of(false));
-
-    deleteChatServiceMock = {
-      deleteChat: vi.fn(),
-      succeeded$: new Subject<void>(),
-    };
-
-    removeChatUserServiceMock = {
-      removeChatUser: vi.fn(),
-      succeeded$: new Subject<void>(),
-    };
-
-    routerMock.navigateByUrl.mockReset();
+    deleteChatSucceeded = new Subject<void>();
+    removeChatUserSucceeded = new Subject<void>();
 
     await TestBed.configureTestingModule({
       imports: [SelectedChat],
@@ -184,28 +164,16 @@ describe('SelectedChat', () => {
           provide: CurrentSessionService,
           useValue: currentSessionServiceMock,
         },
-        {
-          provide: ConfirmationService,
-          useValue: confirmationServiceMock,
-        },
-        {
-          provide: Router,
-          useValue: routerMock,
-        },
+        mockProvider(ConfirmationService, { confirm: vi.fn().mockReturnValue(of(false)) }),
+        mockProvider(Router),
       ],
     }).compileComponents();
 
     TestBed.overrideComponent(SelectedChat, {
       set: {
         providers: [
-          {
-            provide: DeleteChatService,
-            useValue: deleteChatServiceMock,
-          },
-          {
-            provide: RemoveChatUserService,
-            useValue: removeChatUserServiceMock,
-          },
+          mockProvider(DeleteChatService, { succeeded$: deleteChatSucceeded }),
+          mockProvider(RemoveChatUserService, { succeeded$: removeChatUserSucceeded }),
         ],
       },
     });
@@ -291,7 +259,7 @@ describe('SelectedChat', () => {
 
       requestDeletion();
 
-      expect(confirmationServiceMock.confirm).toHaveBeenCalledWith({
+      expect(confirmationService().confirm).toHaveBeenCalledWith({
         title: 'Delete chat',
         subject: 'Analytics Q3',
         message: "The chat and its messages disappear for every member. This can't be undone.",
@@ -301,31 +269,31 @@ describe('SelectedChat', () => {
     });
 
     it('does not delete the chat when the confirmation is refused', async () => {
-      confirmationServiceMock.confirm.mockReturnValue(of(false));
+      confirmationService().confirm.mockReturnValue(of(false));
 
       await createComponent('1');
 
       requestDeletion();
 
-      expect(deleteChatServiceMock.deleteChat).not.toHaveBeenCalled();
+      expect(deleteChatService().deleteChat).not.toHaveBeenCalled();
     });
 
     it('deletes the chat when the confirmation is accepted', async () => {
-      confirmationServiceMock.confirm.mockReturnValue(of(true));
+      confirmationService().confirm.mockReturnValue(of(true));
 
       await createComponent('1');
 
       requestDeletion();
 
-      expect(deleteChatServiceMock.deleteChat).toHaveBeenCalledWith({ chatId: 1 });
+      expect(deleteChatService().deleteChat).toHaveBeenCalledWith({ chatId: 1 });
     });
 
     it('navigates to / when the chat is deleted', async () => {
       await createComponent('1');
 
-      deleteChatServiceMock.succeeded$.next();
+      deleteChatSucceeded.next();
 
-      expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
+      expect(router().navigateByUrl).toHaveBeenCalledWith('/');
     });
   });
 
@@ -431,7 +399,7 @@ describe('SelectedChat', () => {
 
       requestChatUserRemoval(secondChatUserMock);
 
-      expect(confirmationServiceMock.confirm).toHaveBeenCalledWith({
+      expect(confirmationService().confirm).toHaveBeenCalledWith({
         title: 'Remove member',
         subject: 'Billie',
         message: 'They leave "Analytics Q3" and can be added back later.',
@@ -446,7 +414,7 @@ describe('SelectedChat', () => {
 
       requestChatUserRemoval(secondChatUserMock);
 
-      expect(removeChatUserServiceMock.removeChatUser).not.toHaveBeenCalled();
+      expect(removeChatUserService().removeChatUser).not.toHaveBeenCalled();
     });
 
     it('keeps the members panel open when the confirmation is refused', async () => {
@@ -462,7 +430,7 @@ describe('SelectedChat', () => {
     });
 
     it('removes the member from the chat when the confirmation is accepted', async () => {
-      confirmationServiceMock.confirm.mockReturnValue(of(true));
+      confirmationService().confirm.mockReturnValue(of(true));
 
       await createComponent('1');
 
@@ -472,14 +440,14 @@ describe('SelectedChat', () => {
 
       await fixture.whenStable();
 
-      expect(removeChatUserServiceMock.removeChatUser).toHaveBeenCalledWith({
+      expect(removeChatUserService().removeChatUser).toHaveBeenCalledWith({
         chatId: 1,
         userId: 3,
       });
     });
 
     it('keeps the members panel open after the member is removed', async () => {
-      confirmationServiceMock.confirm.mockReturnValue(of(true));
+      confirmationService().confirm.mockReturnValue(of(true));
 
       await createComponent('1');
 
@@ -487,7 +455,7 @@ describe('SelectedChat', () => {
 
       requestChatUserRemoval(secondChatUserMock);
 
-      removeChatUserServiceMock.succeeded$.next();
+      removeChatUserSucceeded.next();
 
       await fixture.whenStable();
 
