@@ -98,6 +98,26 @@ module.exports = defineConfig([
     },
   },
   {
+    // Отдельное правило, а не шаблон в no-restricted-imports: блоки ниже
+    // перезаписывают его для своих файлов и покрывают не все каталоги.
+    files: ['src/**/*.ts'],
+    ignores: ['src/**/*.spec.ts', 'src/**/testing/**'],
+    rules: {
+      'import/no-restricted-paths': [
+        'error',
+        {
+          zones: [
+            {
+              target: './src',
+              from: './src/**/testing/**',
+              message: 'Test doubles and fixtures are for specs only.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['src/app/app*.ts', 'src/app/core/**/*.ts', 'src/app/pages/**/*.ts'],
     rules: {
       'no-restricted-imports': [
