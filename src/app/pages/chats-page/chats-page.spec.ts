@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Routes, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { screen, within } from '@testing-library/angular/zoneless';
 import { of, Subject } from 'rxjs';
 
 import { ChatsPage } from './chats-page';
@@ -108,7 +109,9 @@ describe('chats routing', () => {
       const harness = await RouterTestingHarness.create('/');
       harness.detectChanges();
 
-      expect(harness.routeNativeElement?.textContent).toContain('Select a chat to see it here');
+      expect(
+        within(harness.routeNativeElement as HTMLElement).getByText('Select a chat to see it here'),
+      ).toBeInTheDocument();
     });
   });
 
@@ -117,7 +120,8 @@ describe('chats routing', () => {
       const harness = await RouterTestingHarness.create('/1');
       harness.detectChanges();
 
-      expect(harness.routeNativeElement?.textContent).toContain('Analytics Q3');
+      // Название чата есть и в списке слева: шапку выбранного чата выдает ее кнопка.
+      expect(screen.getByRole('button', { name: 'Members' })).toBeInTheDocument();
     });
   });
 
@@ -132,7 +136,8 @@ describe('chats routing', () => {
       await harness.navigateByUrl('/1');
       harness.detectChanges();
 
-      expect(harness.routeNativeElement?.textContent).toContain('Analytics Q3');
+      // Название чата есть и в списке слева: шапку выбранного чата выдает ее кнопка.
+      expect(screen.getByRole('button', { name: 'Members' })).toBeInTheDocument();
     });
   });
 
@@ -141,8 +146,10 @@ describe('chats routing', () => {
       const harness = await RouterTestingHarness.create('/999');
       harness.detectChanges();
 
-      expect(harness.routeNativeElement?.textContent).toContain('Not found chat');
-      expect(harness.fixture.nativeElement.querySelector('app-chat-list')).not.toBeNull();
+      expect(
+        within(harness.routeNativeElement as HTMLElement).getByText('Not found chat'),
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
     });
   });
 });
