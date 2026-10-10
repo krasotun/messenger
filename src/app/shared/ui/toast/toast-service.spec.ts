@@ -2,6 +2,7 @@ import { Overlay } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { ApplicationRef, Component, effect, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { screen } from '@testing-library/angular/zoneless';
 
 import { ToastService } from './toast-service';
 
@@ -51,27 +52,23 @@ describe('ToastService', () => {
     TestBed.inject(ApplicationRef).tick();
   }
 
+  // Тост живет в overlay, вне какого-либо fixture: поиск идет по screen.
+  const queryToast = (): HTMLElement | null =>
+    screen.queryByRole('button', { name: 'Close notification' });
+
   it('should create an overlay when a notification is shown', () => {
     service.success('Password change', 'Password changed successfully');
     tick();
 
-    const toastEl = document.querySelector('.cdk-overlay-container .app-toast');
-
-    expect(toastEl).toBeTruthy();
+    expect(queryToast()?.closest('.cdk-overlay-container')).toBeTruthy();
   });
 
   it('should render title and text of the shown notification', () => {
     service.error('Failed to change password', 'Wrong password');
     tick();
 
-    const overlayContainer = document.querySelector('.cdk-overlay-container');
-
-    expect(overlayContainer?.querySelector('.app-toast__title')?.textContent?.trim()).toBe(
-      'Failed to change password',
-    );
-    expect(overlayContainer?.querySelector('.app-toast__text')?.textContent?.trim()).toBe(
-      'Wrong password',
-    );
+    expect(screen.getByText('Failed to change password')).toBeInTheDocument();
+    expect(screen.getByText('Wrong password')).toBeInTheDocument();
   });
 
   it('should pass the given delay down to the toast', () => {
@@ -80,11 +77,11 @@ describe('ToastService', () => {
 
     vi.advanceTimersByTime(999);
     tick();
-    expect(document.querySelector('.cdk-overlay-container .app-toast')).toBeTruthy();
+    expect(queryToast()).toBeInTheDocument();
 
     vi.advanceTimersByTime(1);
     tick();
-    expect(document.querySelector('.cdk-overlay-container .app-toast')).toBeNull();
+    expect(queryToast()).not.toBeInTheDocument();
   });
 
   it('should use the default delay when none is given', () => {
@@ -93,11 +90,11 @@ describe('ToastService', () => {
 
     vi.advanceTimersByTime(DEFAULT_NOTIFICATION_DELAY_MS - 1);
     tick();
-    expect(document.querySelector('.cdk-overlay-container .app-toast')).toBeTruthy();
+    expect(queryToast()).toBeInTheDocument();
 
     vi.advanceTimersByTime(1);
     tick();
-    expect(document.querySelector('.cdk-overlay-container .app-toast')).toBeNull();
+    expect(queryToast()).not.toBeInTheDocument();
   });
 
   it('should destroy the overlay once the stack is empty', () => {
@@ -122,9 +119,7 @@ describe('ToastService', () => {
     tick();
 
     const panes = document.querySelectorAll('.cdk-overlay-container .cdk-overlay-pane');
-    const toastPane = document
-      .querySelector('.cdk-overlay-container .app-toast')
-      ?.closest('.cdk-overlay-pane');
+    const toastPane = queryToast()?.closest('.cdk-overlay-pane');
 
     expect(panes[panes.length - 1]).toBe(toastPane);
 
@@ -135,21 +130,18 @@ describe('ToastService', () => {
     it('should render the first notification', () => {
       service.success('Password change', 'Password changed successfully');
 
-      expect(
-        document.querySelector('.cdk-overlay-container .app-toast__title')?.textContent?.trim(),
-      ).toBe('Password change');
+      expect(screen.getByText('Password change')).toBeInTheDocument();
     });
 
     it('should render the next notification in an already open stack', () => {
       service.success('Password change', 'Password changed successfully');
       service.error('Failed to change password', 'Wrong password');
 
-      const titleEls = document.querySelectorAll('.cdk-overlay-container .app-toast__title');
+      const titles = screen
+        .getAllByText(/^(Failed to change password|Password change)$/)
+        .map((titleEl) => titleEl.textContent?.trim());
 
-      expect(Array.from(titleEls).map((titleEl) => titleEl.textContent?.trim())).toEqual([
-        'Failed to change password',
-        'Password change',
-      ]);
+      expect(titles).toEqual(['Failed to change password', 'Password change']);
     });
   });
 
@@ -161,9 +153,7 @@ describe('ToastService', () => {
 
     expect(() => tick()).not.toThrow();
 
-    expect(
-      document.querySelector('.cdk-overlay-container .app-toast__title')?.textContent?.trim(),
-    ).toBe('Called from an effect');
+    expect(screen.getByText('Called from an effect')).toBeInTheDocument();
   });
 
   it('should not move keyboard focus when a notification appears', () => {

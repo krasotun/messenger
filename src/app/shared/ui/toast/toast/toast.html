@@ -4,4 +4,11 @@
   <span class="app-toast__title">{{ shownNotification.title }}</span>
   <span class="app-toast__text">{{ shownNotification.text }}</span>
 </div>
-<button type="button" class="app-toast__close-button" (click)="close()">×</button>
+<button
+  type="button"
+  class="app-toast__close-button"
+  aria-label="Close notification"
+  (click)="close()"
+>
+  ×
+</button>
