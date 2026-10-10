@@ -40,6 +40,41 @@
   но остается на `(change)`.
 - Предупреждение `beforeunload` на других экранах.
 
+## Поток
+
+Одно нажатие по времени: кто кого зовет и в каком блоке `tasks.md` это
+появляется. Решения ниже объясняют «почему» каждой стрелки.
+
+```
+Человек в Чатах выбирает Settings в меню аватара               [4]
+│
+├─ роутер: /settings → redirectTo → /settings/profile            [4]
+│    NavigationStart: через 200 мс без ответа - полоска сверху    [5]
+│
+├─ resolve { currentUser } маршрута profile
+│    currentUserResolver (pages)                                  [4]
+│      → RefreshCurrentUserService.refreshCurrentUser()           [1]
+│          → AUTH_GATEWAY.currentSession() → GET /auth/user
+│    пока ответа нет - на экране Чаты
+│
+├─ ответ
+│    Authenticated → CurrentSessionService.updateCurrentUser      [1]
+│                    (шапка тоже свежая)
+│                  → currentUser во вход ProfileSettings          [4]
+│                  → profile во вход UpdateProfileForm            [2]
+│    Anonymous / ошибка → Уведомление, поток пуст                 [1]
+│                  → навигация отменена, человек в Чатах          [4]
+│
+└─ уход из раздела (ссылка, «назад», Logout → /logout)
+     canDeactivate: unsavedChangesGuard                           [3]
+       → раздел.hasUnsavedChanges() → формы: dirty / файл         [2, 4]
+       → есть изменения: подтверждение Discard changes
+     /logout: canActivate logoutGuard → Выход → /sign-in          [3]
+     закрытие вкладки: beforeunload в разделе                     [4]
+```
+
+Раздел пароля идет той же веткой без `resolve`.
+
 ## Decisions
 
 ### 1. Страница в `pages`, разделы в домене
