@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { render, screen } from '@testing-library/angular/zoneless';
 
 import { PopoverPanel } from './popover-panel';
 
@@ -15,26 +15,9 @@ import { PopoverPanel } from './popover-panel';
 class TestHost {}
 
 describe('PopoverPanel', () => {
-  let fixture: ComponentFixture<TestHost>;
+  it('should render template from input into panel', async () => {
+    await render(TestHost, { waitForStableOnRender: true });
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [TestHost],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(TestHost);
-
-    fixture.detectChanges();
-
-    await fixture.whenStable();
-  });
-
-  it('should render template from input into panel', () => {
-    const panelEl = fixture.nativeElement.querySelector('.app-popover-panel');
-    const contentEl = panelEl.querySelector('[data-testid="popover-content"]');
-
-    expect(contentEl).toBeTruthy();
-
-    expect(contentEl.textContent.trim()).toBe('Mock');
+    expect(screen.getByTestId('popover-content')).toHaveTextContent('Mock');
   });
 });

@@ -1,170 +1,108 @@
-import { signal, WritableSignal } from '@angular/core';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { of, Subject, throwError } from 'rxjs';
+import { fireEvent, render, screen, within } from '@testing-library/angular/zoneless';
+import { userEvent, UserEvent } from '@testing-library/user-event';
+import { of, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../../application/auth.gateway';
 import { ChangeAvatarService } from '../../application/change-avatar/change-avatar.service';
 import { CurrentSessionStatus } from '../../application/current-session/current-session-status.type';
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
-import { CurrentUser } from '../../application/current-session/current-user.type';
-import { UpdateProfileInput } from '../../application/update-profile/update-profile-input.type';
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 import { USER_GATEWAY } from '../../application/user.gateway';
-import { ChangeAvatarForm } from '../change-avatar-form/change-avatar-form';
-import { UpdateProfileForm } from '../update-profile-form/update-profile-form';
 
 import { UpdateProfileModalContent } from './update-profile-modal-content';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 import { ModalRef } from '@shared/ui/modal/modal-ref';
+import { ModalMocks } from '@shared/ui/modal/testing';
 
-const currentUserMock: CurrentUser = {
-  id: 1,
+const currentUserMock = IdentityMocks.currentUser({
   firstName: 'firstName',
   secondName: 'secondName',
   displayName: 'displayName',
   login: 'login',
   email: 'email@mock.ru',
   phone: '+79991234567',
-  avatar: null,
-};
+});
 
-const initialValuesMock: UpdateProfileInput = {
+const initialValuesMock = IdentityMocks.updateProfileInput({
   firstName: 'firstName',
   secondName: 'secondName',
   displayName: 'displayName',
   login: 'login',
   email: 'email@mock.ru',
   phone: '+79991234567',
-};
-
-let updateProfileServiceMock: {
-  initialValues: WritableSignal<UpdateProfileInput>;
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  updateProfile: ReturnType<typeof vi.fn>;
-};
-
-let changeAvatarServiceMock: {
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  changeAvatar: ReturnType<typeof vi.fn>;
-};
-
-let modalRefMock: {
-  close: ReturnType<typeof vi.fn>;
-};
-
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
+});
 
 const pngFileMock = new File(['mockContent'], 'avatar.png', { type: 'image/png' });
 
-const getChangeAvatarFormElement = (
-  fixture: ComponentFixture<UpdateProfileModalContent>,
-): HTMLFormElement => fixture.nativeElement.querySelector('.change-avatar-form');
-
-const getUpdateProfileFormElement = (
-  fixture: ComponentFixture<UpdateProfileModalContent>,
-): HTMLFormElement => fixture.nativeElement.querySelector('app-update-profile-form form');
-
-const selectAvatarFile = (fixture: ComponentFixture<UpdateProfileModalContent>): void => {
-  const fileInput: HTMLInputElement = fixture.nativeElement.querySelector(
-    '.change-avatar-form__file-input',
-  );
-
-  Object.defineProperty(fileInput, 'files', { value: [pngFileMock], configurable: true });
-  fileInput.dispatchEvent(new Event('change'));
-
-  fixture.detectChanges();
-};
-
-const submitChangeAvatarForm = (fixture: ComponentFixture<UpdateProfileModalContent>): void => {
-  getChangeAvatarFormElement(fixture).dispatchEvent(new Event('submit', { cancelable: true }));
-
-  fixture.detectChanges();
-};
-
-const submitUpdateProfileForm = (fixture: ComponentFixture<UpdateProfileModalContent>): void => {
-  getUpdateProfileFormElement(fixture).dispatchEvent(new Event('submit'));
-
-  fixture.detectChanges();
-};
+const changeAvatarError = /^Avatar change failed:/;
 
 describe('UpdateProfileModalContent', () => {
-  let fixture: ComponentFixture<UpdateProfileModalContent>;
+  let updateProfileServiceMock: ReturnType<typeof IdentityMocks.updateProfileService>;
+  let changeAvatarServiceMock: ReturnType<typeof IdentityMocks.changeAvatarService>;
+  let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
+  let user: UserEvent;
 
-  beforeEach(async () => {
-    updateProfileServiceMock = {
-      initialValues: signal(initialValuesMock),
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      updateProfile: vi.fn(),
-    };
+  const sharedProviders = () => [
+    { provide: ModalRef, useValue: modalRefMock },
+    { provide: NOTIFIER, useValue: notifierMock },
+  ];
 
-    changeAvatarServiceMock = {
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      changeAvatar: vi.fn(),
-    };
-
-    modalRefMock = {
-      close: vi.fn(),
-    };
-
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
-
-    TestBed.configureTestingModule({
-      imports: [UpdateProfileModalContent],
+  // Оба use case живут в providers компонента модалки.
+  const renderModal = () =>
+    render(UpdateProfileModalContent, {
       providers: [
-        {
-          provide: ModalRef,
-          useValue: modalRefMock,
-        },
-        {
-          provide: CurrentSessionService,
-          useValue: { currentUser: signal(currentUserMock) },
-        },
-        {
-          provide: NOTIFIER,
-          useValue: notifierMock,
-        },
+        ...sharedProviders(),
+        { provide: CurrentSessionService, useValue: { currentUser: signal(currentUserMock) } },
       ],
+      configureTestBed: (testBed) =>
+        testBed.overrideComponent(UpdateProfileModalContent, {
+          set: {
+            providers: [
+              { provide: UpdateProfileService, useValue: updateProfileServiceMock },
+              { provide: ChangeAvatarService, useValue: changeAvatarServiceMock },
+            ],
+          },
+        }),
+      waitForStableOnRender: true,
     });
 
-    TestBed.overrideComponent(UpdateProfileModalContent, {
-      set: {
-        providers: [
-          {
-            provide: UpdateProfileService,
-            useValue: updateProfileServiceMock,
-          },
-          {
-            provide: ChangeAvatarService,
-            useValue: changeAvatarServiceMock,
-          },
-        ],
-      },
-    });
+  const selectAvatarFile = async (modal: HTMLElement = document.body): Promise<void> => {
+    await user.upload(within(modal).getByLabelText(/Choose file/), pngFileMock);
+  };
 
-    await TestBed.compileComponents();
+  const submitChangeAvatarForm = async (modal: HTMLElement = document.body): Promise<void> => {
+    await user.click(within(modal).getByRole('button', { name: 'Change avatar' }));
+  };
 
-    fixture = TestBed.createComponent(UpdateProfileModalContent);
-    await fixture.whenStable();
+  const changeFirstNameAndSave = async (modal: HTMLElement = document.body): Promise<void> => {
+    await user.type(within(modal).getByLabelText('First name'), ' changed');
+    await user.click(within(modal).getByRole('button', { name: 'Save' }));
+  };
+
+  beforeEach(() => {
+    user = userEvent.setup();
+    updateProfileServiceMock = IdentityMocks.updateProfileService(initialValuesMock);
+    changeAvatarServiceMock = IdentityMocks.changeAvatarService();
+    modalRefMock = ModalMocks.modalRef();
+    notifierMock = NotificationMocks.notifier();
   });
 
-  it('should create', () => {
+  it('should create', async () => {
+    const { fixture } = await renderModal();
+
     expect(fixture.componentInstance).toBeTruthy();
   });
 
   describe('successful save', () => {
-    it('should close the modal without a manual application tick', () => {
-      fixture.detectChanges();
+    it('should close the modal without a manual application tick', async () => {
+      await renderModal();
 
       updateProfileServiceMock.succeeded$.next();
 
@@ -173,16 +111,16 @@ describe('UpdateProfileModalContent', () => {
   });
 
   describe('closing without saving', () => {
-    it('should not call updateProfile', () => {
-      fixture.detectChanges();
+    it('should not call updateProfile', async () => {
+      await renderModal();
 
       expect(updateProfileServiceMock.updateProfile).not.toHaveBeenCalled();
     });
 
-    it('should not call changeAvatar even when a file has been selected', () => {
-      fixture.detectChanges();
+    it('should not call changeAvatar even when a file has been selected', async () => {
+      const { fixture } = await renderModal();
 
-      selectAvatarFile(fixture);
+      await selectAvatarFile();
 
       fixture.destroy();
 
@@ -191,28 +129,28 @@ describe('UpdateProfileModalContent', () => {
   });
 
   describe('both forms', () => {
-    it('should be shown together', () => {
-      fixture.detectChanges();
+    it('should be shown together', async () => {
+      await renderModal();
 
-      expect(fixture.debugElement.query(By.directive(ChangeAvatarForm))).not.toBeNull();
-      expect(fixture.debugElement.query(By.directive(UpdateProfileForm))).not.toBeNull();
+      expect(screen.getByRole('button', { name: 'Change avatar' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
     });
 
-    it('should keep the change avatar submit out of the update profile use case', () => {
-      fixture.detectChanges();
+    it('should keep the change avatar submit out of the update profile use case', async () => {
+      await renderModal();
 
-      selectAvatarFile(fixture);
-      submitChangeAvatarForm(fixture);
+      await selectAvatarFile();
+      await submitChangeAvatarForm();
 
       expect(changeAvatarServiceMock.changeAvatar).toHaveBeenCalledOnce();
       expect(updateProfileServiceMock.updateProfile).not.toHaveBeenCalled();
       expect(modalRefMock.close).not.toHaveBeenCalled();
     });
 
-    it('should keep the update profile submit out of the change avatar use case', () => {
-      fixture.detectChanges();
+    it('should keep the update profile submit out of the change avatar use case', async () => {
+      await renderModal();
 
-      submitUpdateProfileForm(fixture);
+      await changeFirstNameAndSave();
 
       expect(updateProfileServiceMock.updateProfile).toHaveBeenCalledOnce();
       expect(changeAvatarServiceMock.changeAvatar).not.toHaveBeenCalled();
@@ -220,119 +158,89 @@ describe('UpdateProfileModalContent', () => {
   });
 
   describe('flow lifetime', () => {
-    let userGatewayMock: {
-      updateProfile: ReturnType<typeof vi.fn>;
-      changePassword: ReturnType<typeof vi.fn>;
-      changeAvatar: ReturnType<typeof vi.fn>;
-    };
+    let userGatewayMock: ReturnType<typeof IdentityMocks.userGateway>;
+    let authGatewayMock: ReturnType<typeof IdentityMocks.authGateway>;
 
-    const openModal = async (): Promise<ComponentFixture<UpdateProfileModalContent>> => {
-      const openedFixture = TestBed.createComponent(UpdateProfileModalContent);
-      await openedFixture.whenStable();
-      openedFixture.detectChanges();
-
-      return openedFixture;
-    };
-
-    const submitWithError = async (
-      openedFixture: ComponentFixture<UpdateProfileModalContent>,
-    ): Promise<void> => {
-      getUpdateProfileFormElement(openedFixture).dispatchEvent(new Event('submit'));
-
-      await openedFixture.whenStable();
-      openedFixture.detectChanges();
-    };
-
-    beforeEach(async () => {
-      TestBed.resetTestingModule();
-
-      userGatewayMock = {
-        updateProfile: vi.fn(() => throwError(() => new ApplicationError('Mock error'))),
-        changePassword: vi.fn(),
-        changeAvatar: vi.fn(() => throwError(() => new ApplicationError('Mock error'))),
-      };
-
-      TestBed.configureTestingModule({
-        imports: [UpdateProfileModalContent],
+    const renderWithRealServices = () =>
+      render(UpdateProfileModalContent, {
         providers: [
-          {
-            provide: USER_GATEWAY,
-            useValue: userGatewayMock,
-          },
-          {
-            provide: AUTH_GATEWAY,
-            useValue: {
-              currentSession: vi.fn(() =>
-                of({ status: CurrentSessionStatus.Authenticated, user: currentUserMock }),
-              ),
-            },
-          },
-          {
-            provide: ModalRef,
-            useValue: modalRefMock,
-          },
-          {
-            provide: NOTIFIER,
-            useValue: notifierMock,
-          },
+          ...sharedProviders(),
+          { provide: USER_GATEWAY, useValue: userGatewayMock },
+          { provide: AUTH_GATEWAY, useValue: authGatewayMock },
         ],
+        configureTestBed: (testBed) =>
+          testBed.inject(CurrentSessionService).updateCurrentUser(currentUserMock),
+        waitForStableOnRender: true,
       });
 
-      await TestBed.compileComponents();
+    // render настраивает TestBed и второй раз в одном тесте не вызывается:
+    // повторное открытие модалки идет через TestBed.createComponent.
+    const reopenModal = async (): Promise<ComponentFixture<UpdateProfileModalContent>> => {
+      const reopenedFixture = TestBed.createComponent(UpdateProfileModalContent);
+      await reopenedFixture.whenStable();
 
-      TestBed.inject(CurrentSessionService).updateCurrentUser(currentUserMock);
+      return reopenedFixture;
+    };
+
+    beforeEach(() => {
+      userGatewayMock = IdentityMocks.userGateway();
+      userGatewayMock.updateProfile.mockImplementation(() =>
+        throwError(() => new ApplicationError('Mock error')),
+      );
+      userGatewayMock.changeAvatar.mockImplementation(() =>
+        throwError(() => new ApplicationError('Mock error')),
+      );
+
+      authGatewayMock = IdentityMocks.authGateway();
+      authGatewayMock.currentSession.mockImplementation(() =>
+        of({ status: CurrentSessionStatus.Authenticated, user: currentUserMock }),
+      );
     });
 
     it('should show a form without an error when reopened after a failed save', async () => {
-      const failedFixture = await openModal();
+      const { fixture: failedFixture, container } = await renderWithRealServices();
 
-      await submitWithError(failedFixture);
+      await changeFirstNameAndSave(container);
+      await failedFixture.whenStable();
 
       expect(notifierMock.error).toHaveBeenCalledWith('Failed to update profile', 'Mock error');
-      expect(failedFixture.nativeElement.querySelector('.update-profile-form__error')).toBeNull();
+      expect(container.querySelector('.update-profile-form__error')).toBeNull();
 
       failedFixture.destroy();
 
-      const reopenedFixture = await openModal();
+      const reopenedFixture = await reopenModal();
+      const reopenedModal = within(reopenedFixture.nativeElement);
 
-      const reopenedForm: UpdateProfileForm = reopenedFixture.debugElement.query(
-        By.directive(UpdateProfileForm),
-      ).componentInstance;
-
-      expect(reopenedForm.updateProfileForm.getRawValue().firstName).toBe(
-        currentUserMock.firstName,
-      );
-
+      expect(reopenedModal.getByLabelText('First name')).toHaveValue(currentUserMock.firstName);
       expect(reopenedFixture.nativeElement.querySelector('.update-profile-form__error')).toBeNull();
     });
 
     it('should show the change avatar form without a file and without an error when reopened', async () => {
-      const failedFixture = await openModal();
+      const { fixture: failedFixture, container } = await renderWithRealServices();
 
-      selectAvatarFile(failedFixture);
-      submitChangeAvatarForm(failedFixture);
-
+      await selectAvatarFile(container);
+      await submitChangeAvatarForm(container);
       await failedFixture.whenStable();
-      failedFixture.detectChanges();
 
       expect(userGatewayMock.changeAvatar).toHaveBeenCalledOnce();
       expect(notifierMock.error).toHaveBeenCalledWith('Failed to change avatar', 'Mock error');
-      expect(failedFixture.nativeElement.querySelector('.change-avatar-form__error')).toBeNull();
+      expect(within(container).queryByText(changeAvatarError)).not.toBeInTheDocument();
 
       failedFixture.destroy();
 
-      const reopenedFixture = await openModal();
+      const reopenedFixture = await reopenModal();
+      const reopenedModal = within(reopenedFixture.nativeElement);
 
-      expect(reopenedFixture.nativeElement.querySelector('.change-avatar-form__error')).toBeNull();
+      expect(reopenedModal.queryByText(changeAvatarError)).not.toBeInTheDocument();
 
-      submitChangeAvatarForm(reopenedFixture);
+      // Файл не выбран, кнопка выключена: событие отправки идет напрямую.
+      fireEvent.submit(
+        reopenedFixture.nativeElement.querySelector('.change-avatar-form') as HTMLFormElement,
+      );
+      await reopenedFixture.whenStable();
 
       expect(userGatewayMock.changeAvatar).toHaveBeenCalledOnce();
-      expect(
-        reopenedFixture.nativeElement
-          .querySelector('.change-avatar-form__error')
-          ?.textContent?.trim(),
-      ).toContain('Select a file');
+      expect(reopenedModal.getByText(changeAvatarError)).toHaveTextContent('Select a file');
     });
   });
 });

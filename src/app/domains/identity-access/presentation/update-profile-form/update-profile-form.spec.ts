@@ -1,148 +1,134 @@
-import { signal, WritableSignal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
+import { outputBinding } from '@angular/core';
+import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
+import { userEvent, UserEvent } from '@testing-library/user-event';
 
 import { UpdateProfileInput } from '../../application/update-profile/update-profile-input.type';
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 
 import { UpdateProfileForm } from './update-profile-form';
 
-const initialValuesMock: UpdateProfileInput = {
-  firstName: 'firstName',
-  secondName: 'secondName',
-  displayName: 'displayName',
-  login: 'login',
-  email: 'email@mock.ru',
-  phone: '+79991234567',
+import { IdentityMocks } from '@domains/identity-access/testing';
+
+const initialValuesMock = IdentityMocks.updateProfileInput();
+
+const fieldLabels: Record<keyof UpdateProfileInput, string> = {
+  firstName: 'First name',
+  secondName: 'Second name',
+  displayName: 'Display name',
+  login: 'Login',
+  email: 'Email',
+  phone: 'Mobile phone',
 };
 
-let updateProfileServiceMock: {
-  initialValues: WritableSignal<UpdateProfileInput>;
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  updateProfile: ReturnType<typeof vi.fn>;
-};
+const invalidFormatError = 'Value has an invalid format';
 
 describe('UpdateProfileForm', () => {
-  let component: UpdateProfileForm;
-  let fixture: ComponentFixture<UpdateProfileForm>;
+  let updateProfileServiceMock: ReturnType<typeof IdentityMocks.updateProfileService>;
+  let user: UserEvent;
 
-  const submitForm = () => {
-    const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
-    formElement.dispatchEvent(new Event('submit'));
+  const renderForm = async () => {
+    const profileUpdated = vi.fn();
+
+    const result = await render(UpdateProfileForm, {
+      bindings: [outputBinding('profileUpdated', profileUpdated)],
+      providers: [{ provide: UpdateProfileService, useValue: updateProfileServiceMock }],
+      waitForStableOnRender: true,
+    });
+
+    return { ...result, profileUpdated };
   };
 
-  const getSubmitButton = (): HTMLButtonElement =>
-    fixture.nativeElement.querySelector('button[type="submit"]');
+  const getField = (field: keyof UpdateProfileInput): HTMLElement =>
+    screen.getByLabelText(fieldLabels[field]);
 
-  const getFieldErrors = (): HTMLElement[] =>
-    Array.from(fixture.nativeElement.querySelectorAll('.form-field__error'));
+  const getSubmitButton = (): HTMLElement => screen.getByRole('button', { name: 'Save' });
 
-  beforeEach(async () => {
-    updateProfileServiceMock = {
-      initialValues: signal(initialValuesMock),
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      updateProfile: vi.fn(),
-    };
+  const replaceValue = async (field: keyof UpdateProfileInput, value: string): Promise<void> => {
+    await user.clear(getField(field));
+    await user.type(getField(field), value);
+  };
 
-    await TestBed.configureTestingModule({
-      imports: [UpdateProfileForm],
-      providers: [
-        {
-          provide: UpdateProfileService,
-          useValue: updateProfileServiceMock,
-        },
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(UpdateProfileForm);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+  beforeEach(() => {
+    user = userEvent.setup();
+    updateProfileServiceMock = IdentityMocks.updateProfileService(initialValuesMock);
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should create', async () => {
+    const { fixture } = await renderForm();
+
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   describe('prefilled form', () => {
-    it('should prefill form with initial values of the current user', () => {
-      fixture.detectChanges();
+    it('should prefill form with initial values of the current user', async () => {
+      await renderForm();
 
-      expect(component.updateProfileForm.getRawValue()).toEqual(initialValuesMock);
+      for (const field of Object.keys(fieldLabels) as (keyof UpdateProfileInput)[]) {
+        expect(getField(field)).toHaveValue(initialValuesMock[field]);
+      }
     });
   });
 
   describe('submit availability', () => {
-    it('should disable the submit button until the form is changed', () => {
-      fixture.detectChanges();
+    it('should disable the submit button until the form is changed', async () => {
+      await renderForm();
 
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should not show field errors on an untouched prefilled form', () => {
-      fixture.detectChanges();
+    it('should not show field errors on an untouched prefilled form', async () => {
+      await renderForm();
 
-      expect(getFieldErrors()).toHaveLength(0);
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(screen.queryByText(invalidFormatError)).not.toBeInTheDocument();
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should enable the submit button once a field changes and the form stays valid', () => {
-      fixture.detectChanges();
+    it('should enable the submit button once a field changes and the form stays valid', async () => {
+      await renderForm();
 
-      component.updateProfileForm.controls.firstName.markAsDirty();
-      component.updateProfileForm.controls.firstName.setValue('changed');
-      fixture.detectChanges();
+      await replaceValue('firstName', 'changed');
 
-      expect(getSubmitButton().disabled).toBe(false);
+      expect(getSubmitButton()).toBeEnabled();
     });
   });
 
   describe('invalid submit', () => {
-    it('should not call updateProfile when form is invalid', () => {
-      fixture.detectChanges();
+    // Кнопка выключена, пользовательского пути к submit нет: проверяем защиту.
+    it('should not call updateProfile when form is invalid', async () => {
+      const { container } = await renderForm();
 
-      component.updateProfileForm.controls.email.markAsDirty();
-      component.updateProfileForm.controls.email.setValue('not-an-email');
+      await replaceValue('email', 'not-an-email');
 
-      submitForm();
+      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
       expect(updateProfileServiceMock.updateProfile).not.toHaveBeenCalled();
     });
 
-    it('should disable the submit button when a changed field becomes invalid', () => {
-      fixture.detectChanges();
+    it('should disable the submit button when a changed field becomes invalid', async () => {
+      await renderForm();
 
-      component.updateProfileForm.controls.email.markAsDirty();
-      component.updateProfileForm.controls.email.setValue('not-an-email');
-      fixture.detectChanges();
+      await replaceValue('email', 'not-an-email');
 
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should show a field error after the field loses focus while it stays invalid', () => {
-      fixture.detectChanges();
+    it('should show a field error after the field loses focus while it stays invalid', async () => {
+      await renderForm();
 
-      component.updateProfileForm.controls.email.setValue('not-an-email');
-      component.updateProfileForm.controls.email.markAsTouched();
-      fixture.detectChanges();
+      await replaceValue('email', 'not-an-email');
+      await user.tab();
 
-      const fieldErrors = getFieldErrors();
-
-      expect(fieldErrors.length).toBeGreaterThan(0);
-      expect(fieldErrors.some((error) => error.textContent?.trim())).toBe(true);
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(screen.getByText(invalidFormatError)).toBeInTheDocument();
+      expect(getSubmitButton()).toBeDisabled();
     });
   });
 
   describe('valid submit', () => {
-    it('should call updateProfile with form value when a changed valid form is submitted', () => {
-      fixture.detectChanges();
+    it('should call updateProfile with form value when a changed valid form is submitted', async () => {
+      await renderForm();
 
-      component.updateProfileForm.controls.firstName.markAsDirty();
-      component.updateProfileForm.controls.firstName.setValue('changed');
-
-      submitForm();
+      await replaceValue('firstName', 'changed');
+      await user.click(getSubmitButton());
 
       expect(updateProfileServiceMock.updateProfile).toHaveBeenCalledOnce();
       expect(updateProfileServiceMock.updateProfile).toHaveBeenCalledWith({
@@ -153,59 +139,53 @@ describe('UpdateProfileForm', () => {
   });
 
   describe('submitting state', () => {
-    it('should disable submit button', () => {
+    it('should disable submit button', async () => {
+      const { fixture } = await renderForm();
+
       updateProfileServiceMock.isSubmitting.set(true);
-      fixture.detectChanges();
+      await fixture.whenStable();
 
-      const submitButton: HTMLButtonElement =
-        fixture.nativeElement.querySelector('button[type="submit"]');
-
-      expect(submitButton.disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should disable all controls', () => {
+    it('should disable all controls', async () => {
+      const { fixture } = await renderForm();
+
       updateProfileServiceMock.isSubmitting.set(true);
-      fixture.detectChanges();
+      await fixture.whenStable();
 
-      const inputEls: HTMLInputElement[] = fixture.nativeElement.querySelectorAll('input');
-
-      inputEls.forEach((inputEl) => {
-        expect(inputEl.disabled).toBe(true);
-      });
+      for (const field of Object.keys(fieldLabels) as (keyof UpdateProfileInput)[]) {
+        expect(getField(field)).toBeDisabled();
+      }
     });
 
-    it('should not treat the lock while submitting as a form change', () => {
-      fixture.detectChanges();
+    it('should not treat the lock while submitting as a form change', async () => {
+      const { fixture } = await renderForm();
 
       updateProfileServiceMock.isSubmitting.set(true);
-      fixture.detectChanges();
+      await fixture.whenStable();
       updateProfileServiceMock.isSubmitting.set(false);
-      fixture.detectChanges();
+      await fixture.whenStable();
 
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
   });
 
   describe('error state', () => {
-    it('should not render a submit error in the form', () => {
-      fixture.detectChanges();
+    it('should not render a submit error in the form', async () => {
+      const { container } = await renderForm();
 
-      const errorElement: HTMLElement | null = fixture.nativeElement.querySelector(
-        '.update-profile-form__error',
-      );
-
-      expect(errorElement).toBeNull();
+      expect(container.querySelector('.update-profile-form__error')).toBeNull();
     });
   });
 
   describe('success state', () => {
-    it('should emit profileUpdated when the service reports success, without a manual application tick', () => {
-      const profileUpdatedSpy = vi.fn();
-      component.profileUpdated.subscribe(profileUpdatedSpy);
+    it('should emit profileUpdated when the service reports success, without a manual application tick', async () => {
+      const { profileUpdated } = await renderForm();
 
       updateProfileServiceMock.succeeded$.next();
 
-      expect(profileUpdatedSpy).toHaveBeenCalledOnce();
+      expect(profileUpdated).toHaveBeenCalledOnce();
     });
   });
 });

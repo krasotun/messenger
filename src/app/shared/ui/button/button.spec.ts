@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture } from '@angular/core/testing';
+import { render, screen } from '@testing-library/angular/zoneless';
 
 import { Button } from './button';
 
@@ -19,20 +20,14 @@ describe('Button', () => {
   let host: TestHost;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [TestHost],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(TestHost);
+    ({ fixture } = await render(TestHost, { waitForStableOnRender: true }));
     host = fixture.componentInstance;
-
-    await fixture.whenStable();
   });
 
-  it('should apply default color class', async () => {
-    const buttonEl: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+  const getButton = (): HTMLElement => screen.getByRole('button', { name: 'Test' });
 
-    expect(buttonEl.classList.contains('button-primary')).toBe(true);
+  it('should apply default color class', async () => {
+    expect(getButton()).toHaveClass('button-primary');
   });
 
   it('should apply color class from input', async () => {
@@ -40,9 +35,7 @@ describe('Button', () => {
 
     await fixture.whenStable();
 
-    const buttonEl: HTMLButtonElement = fixture.nativeElement.querySelector('button');
-
-    expect(buttonEl.classList.contains('button-danger')).toBe(true);
+    expect(getButton()).toHaveClass('button-danger');
   });
 
   it('should disable host button when disabled input is true', async () => {
@@ -50,9 +43,7 @@ describe('Button', () => {
 
     await fixture.whenStable();
 
-    const buttonEl: HTMLButtonElement = fixture.nativeElement.querySelector('button');
-
-    expect(buttonEl.disabled).toBe(true);
-    expect(buttonEl.classList.contains('disabled')).toBe(true);
+    expect(getButton()).toBeDisabled();
+    expect(getButton()).toHaveClass('disabled');
   });
 });

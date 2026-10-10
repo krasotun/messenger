@@ -1,180 +1,105 @@
-import { Component, getDebugNode, input } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-
-import { ChatUser } from '../../application/chat-user.type';
-import { Chat } from '../../application/chat.type';
+import { Component, input, inputBinding, outputBinding } from '@angular/core';
+import { render, screen, within } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
 
 import { SelectedChatHeader } from './selected-chat-header';
 
 import { AddChatUserPanel } from '@domains/chats/presentation/add-chat-user-panel/add-chat-user-panel';
-import { ChatUserStack } from '@domains/chats/presentation/chat-user-stack/chat-user-stack';
-import { Nullable } from '@shared/types';
+import { ChatMocks } from '@domains/chats/testing';
 
-const chatMock: Chat = {
-  id: 1,
-  title: 'Analytics Q3',
-  avatar: null,
-  unreadCount: 0,
-  createdBy: 1,
-  lastMessage: null,
-};
+const chatMock = ChatMocks.chat({ id: 7, title: 'Analytics Q3' });
 
-const chatUserMock: ChatUser = {
-  id: 2,
-  name: 'Johnny',
-  avatar: null,
-};
+const chatUserMock = ChatMocks.chatUser({ name: 'Johnny' });
 
+// Заглушка показывает chatId текстом: так тест проверяет, что панель
+// получила выбранный чат, через видимый результат, а не через экземпляр.
 @Component({
   selector: 'app-add-chat-user-panel',
-  template: '',
+  template: 'Add member panel for chat {{ chatId() }}',
 })
 class AddChatUserPanelStub {
   readonly chatId = input.required<number>();
 }
 
-describe('SelectedChatHeader', () => {
-  let fixture: ComponentFixture<SelectedChatHeader>;
+const renderHeader = async (options: { isChatCreator?: boolean } = {}) => {
+  const deleteRequested = vi.fn();
+  const membersToggled = vi.fn();
 
-  const createComponent = async (options: { isChatCreator?: boolean } = {}): Promise<void> => {
-    const { isChatCreator } = options;
-
-    fixture = TestBed.createComponent(SelectedChatHeader);
-
-    fixture.componentRef.setInput('chat', chatMock);
-    fixture.componentRef.setInput('isChatCreator', isChatCreator ?? false);
-    fixture.componentRef.setInput('chatUsers', [chatUserMock]);
-
-    await fixture.whenStable();
-    fixture.detectChanges();
-  };
-
-  const getText = (): string => fixture.nativeElement.textContent;
-
-  const getDeleteButton = (): HTMLButtonElement | null =>
-    fixture.nativeElement.querySelector('.selected-chat-header__delete-button');
-
-  const getMembersButton = (): Nullable<HTMLButtonElement> =>
-    fixture.nativeElement.querySelector('.selected-chat-header__members-button');
-
-  const getAddUserButton = (): Nullable<HTMLButtonElement> =>
-    fixture.nativeElement.querySelector('.selected-chat-header__add-user-button');
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [SelectedChatHeader],
-    })
-      .overrideComponent(SelectedChatHeader, {
-        remove: {
-          imports: [AddChatUserPanel],
-        },
-        add: {
-          imports: [AddChatUserPanelStub],
-        },
-      })
-      .compileComponents();
+  const { fixture } = await render(SelectedChatHeader, {
+    bindings: [
+      inputBinding('chat', () => chatMock),
+      inputBinding('isChatCreator', () => options.isChatCreator ?? false),
+      inputBinding('chatUsers', () => [chatUserMock]),
+      outputBinding('deleteRequested', deleteRequested),
+      outputBinding('membersToggled', membersToggled),
+    ],
+    importOverrides: [{ replace: AddChatUserPanel, with: AddChatUserPanelStub }],
   });
 
+  return { fixture, deleteRequested, membersToggled };
+};
+
+describe('SelectedChatHeader', () => {
   it('should create', async () => {
-    await createComponent();
+    const { fixture } = await renderHeader();
 
     expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('should show the chat title', async () => {
-    await createComponent();
+    await renderHeader();
 
-    expect(getText()).toContain('Analytics Q3');
+    expect(screen.getByText('Analytics Q3')).toBeInTheDocument();
   });
 
   it('should pass chat users to users stack', async () => {
-    await createComponent();
+    await renderHeader();
 
-    const usersStack: ChatUserStack | null =
-      fixture.debugElement.query(By.directive(ChatUserStack))?.componentInstance ?? null;
+    const membersButton = screen.getByRole('button', { name: 'Members' });
 
-    if (usersStack === null) {
-      throw new Error('Users stack not found');
-    }
-
-    expect(usersStack.users()).toEqual([chatUserMock]);
+    expect(within(membersButton).getByRole('img', { name: 'Avatar Johnny' })).toBeInTheDocument();
   });
 
   describe('deleting the chat', () => {
     it('shows the delete action to the chat creator with an accessible name', async () => {
-      await createComponent({ isChatCreator: true });
+      await renderHeader({ isChatCreator: true });
 
-      const deleteButton = getDeleteButton();
-
-      expect(deleteButton).not.toBeNull();
-      expect(deleteButton?.getAttribute('aria-label')).toBe('Delete chat');
+      expect(screen.getByRole('button', { name: 'Delete chat' })).toBeInTheDocument();
     });
 
+    // Поиск по имени здесь не пустой: тест выше закрепляет, что у кнопки
+    // именно это имя, поэтому null означает отсутствие кнопки, а не опечатку.
     it('hides the delete action from other chat members', async () => {
-      await createComponent();
+      await renderHeader();
 
-      expect(getDeleteButton()).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Delete chat' })).not.toBeInTheDocument();
     });
 
-    it('should emit delete request when delete butoon clicked', async () => {
-      await createComponent({ isChatCreator: true });
+    it('should emit delete request when delete button clicked', async () => {
+      const user = userEvent.setup();
+      const { deleteRequested } = await renderHeader({ isChatCreator: true });
 
-      const deleteRequestedSpy = vi.fn();
+      await user.click(screen.getByRole('button', { name: 'Delete chat' }));
 
-      const deleteButton = getDeleteButton();
-
-      if (deleteButton === null) {
-        throw new Error('No delete button found');
-      }
-
-      fixture.componentInstance.deleteRequested.subscribe(deleteRequestedSpy);
-
-      deleteButton.click();
-
-      expect(deleteRequestedSpy).toHaveBeenCalledOnce();
+      expect(deleteRequested).toHaveBeenCalledOnce();
     });
   });
 
   it('emits membersToggled when the users stack button is clicked', async () => {
-    await createComponent();
+    const user = userEvent.setup();
+    const { membersToggled } = await renderHeader();
 
-    const membersToggledSpy = vi.fn();
+    await user.click(screen.getByRole('button', { name: 'Members' }));
 
-    const membersButton = getMembersButton();
-
-    if (membersButton === null) {
-      throw new Error('No members button found');
-    }
-
-    fixture.componentInstance.membersToggled.subscribe(membersToggledSpy);
-
-    membersButton.click();
-
-    expect(membersToggledSpy).toHaveBeenCalledOnce();
+    expect(membersToggled).toHaveBeenCalledOnce();
   });
 
   it('opens the add member panel for the selected chat when Add member is clicked', async () => {
-    await createComponent();
+    const user = userEvent.setup();
+    await renderHeader();
 
-    const addUserButton = getAddUserButton();
+    await user.click(screen.getByRole('button', { name: '+ Add member' }));
 
-    if (addUserButton === null) {
-      throw new Error('No user add button found');
-    }
-
-    addUserButton.click();
-
-    await fixture.whenStable();
-
-    const addUserPanel: Nullable<HTMLElement> = document.querySelector('app-add-chat-user-panel');
-
-    if (addUserPanel === null) {
-      throw new Error('No user panel found');
-    }
-
-    const panelChatId = getDebugNode(addUserPanel)?.componentInstance.chatId();
-
-    expect(panelChatId).toBe(chatMock.id);
+    expect(await screen.findByText('Add member panel for chat 7')).toBeInTheDocument();
   });
 });

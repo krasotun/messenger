@@ -1,75 +1,58 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { inputBinding, outputBinding } from '@angular/core';
+import { ComponentFixture } from '@angular/core/testing';
+import { render, screen } from '@testing-library/angular/zoneless';
+import { userEvent, UserEvent } from '@testing-library/user-event';
 import { of, Subject } from 'rxjs';
+import { Mock } from 'vitest';
 
 import { AddChatUserService } from '../../application/add-chat-user/add-chat-user.service';
 
 import { AddChatUserPanel } from './add-chat-user-panel';
 
-import { SearchUsersResult, SearchUsersService, User } from '@domains/identity-access';
+import { SearchUsersResult, SearchUsersService } from '@domains/identity-access';
+import { IdentityMocks } from '@domains/identity-access/testing';
 
 let addChatUserServiceMock: {
   succeeded$: Subject<void>;
   addChatUser: ReturnType<typeof vi.fn>;
 };
 
-const searchUsersServiceMock = {
-  searchUsers: vi.fn(),
-};
-
-const userMock: User = {
-  id: 2,
-  login: 'jane.roe',
-  name: 'Janie',
-  avatar: null,
-};
+const userMock = IdentityMocks.user({ login: 'jane.roe', name: 'Janie' });
 
 const debounceMs = 300;
 
 describe('AddChatUserPanel', () => {
+  let searchUsersServiceMock: ReturnType<typeof IdentityMocks.searchUsersService>;
   let fixture: ComponentFixture<AddChatUserPanel>;
-  let component: AddChatUserPanel;
+  let userAdded: Mock<() => void>;
+  let user: UserEvent;
 
-  const search = (login: string): void => {
-    component.loginControl.setValue(login);
+  // Таймеры поддельные: user-event двигает их сам, а поиск ждет debounce.
+  const search = async (text: string): Promise<void> => {
+    await user.type(screen.getByRole('textbox', { name: 'Search users' }), text);
     vi.advanceTimersByTime(debounceMs);
+    fixture.detectChanges();
   };
 
-  const getText = (): string => fixture.nativeElement.textContent;
-
   beforeEach(async () => {
+    searchUsersServiceMock = IdentityMocks.searchUsersService();
     vi.useFakeTimers();
+    user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 
     addChatUserServiceMock = {
       succeeded$: new Subject<void>(),
       addChatUser: vi.fn(),
     };
+    userAdded = vi.fn();
 
-    searchUsersServiceMock.searchUsers.mockReset();
-
-    await TestBed.configureTestingModule({
-      imports: [AddChatUserPanel],
-      providers: [
-        {
-          provide: SearchUsersService,
-          useValue: searchUsersServiceMock,
-        },
-      ],
-    }).compileComponents();
-
-    TestBed.overrideComponent(AddChatUserPanel, {
-      set: {
-        providers: [
-          {
-            provide: AddChatUserService,
-            useValue: addChatUserServiceMock,
-          },
-        ],
-      },
-    });
-
-    fixture = TestBed.createComponent(AddChatUserPanel);
-    component = fixture.componentInstance;
-    fixture.componentRef.setInput('chatId', 1);
+    ({ fixture } = await render(AddChatUserPanel, {
+      bindings: [inputBinding('chatId', () => 1), outputBinding('userAdded', userAdded)],
+      providers: [{ provide: SearchUsersService, useValue: searchUsersServiceMock }],
+      configureTestBed: (testBed) =>
+        testBed.overrideComponent(AddChatUserPanel, {
+          set: { providers: [{ provide: AddChatUserService, useValue: addChatUserServiceMock }] },
+        }),
+    }));
   });
 
   afterEach(() => {
@@ -77,112 +60,78 @@ describe('AddChatUserPanel', () => {
   });
 
   it('should create', () => {
-    fixture.detectChanges();
-
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   describe('empty field', () => {
     it('should show a hint to start typing a login', () => {
-      fixture.detectChanges();
-
-      expect(getText()).toContain('Start typing a login');
+      expect(screen.getByText(/Start typing a login/)).toBeInTheDocument();
     });
   });
 
   describe('request in flight', () => {
-    it('should keep the previous results visible while the new request is pending', () => {
-      fixture.detectChanges();
-
+    it('should keep the previous results visible while the new request is pending', async () => {
       searchUsersServiceMock.searchUsers.mockReturnValueOnce(of({ users: [userMock] }));
 
-      search('ja');
-      fixture.detectChanges();
+      await search('ja');
 
-      expect(getText()).toContain('Janie');
+      expect(screen.getByText('Janie')).toBeInTheDocument();
 
       searchUsersServiceMock.searchUsers.mockReturnValueOnce(new Subject<SearchUsersResult>());
 
-      search('jane');
-      fixture.detectChanges();
+      await search('ne');
 
-      expect(getText()).toContain('Janie');
-      expect(getText()).not.toContain('No users found');
+      expect(screen.getByText('Janie')).toBeInTheDocument();
+      expect(screen.queryByText('No users found')).not.toBeInTheDocument();
     });
   });
 
   describe('found', () => {
-    it('should show the found users', () => {
-      fixture.detectChanges();
-
+    it('should show the found users', async () => {
       searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
-      search('jane');
-      fixture.detectChanges();
+      await search('jane');
 
-      expect(getText()).toContain('Janie');
+      expect(screen.getByText('Janie')).toBeInTheDocument();
     });
 
-    it('should add the clicked user to the given chat', () => {
-      fixture.detectChanges();
-
+    it('should add the clicked user to the given chat', async () => {
       searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
-      search('jane');
-      fixture.detectChanges();
-
-      const userButton: HTMLButtonElement = fixture.nativeElement.querySelector(
-        '.add-chat-user-panel__user',
-      );
-
-      userButton.click();
+      await search('jane');
+      await user.click(screen.getByRole('button', { name: /Janie/ }));
 
       expect(addChatUserServiceMock.addChatUser).toHaveBeenCalledWith({ chatId: 1, userId: 2 });
     });
   });
 
   describe('empty response', () => {
-    it('should show that nobody was found, distinct from the not-started hint', () => {
-      fixture.detectChanges();
-
+    it('should show that nobody was found, distinct from the not-started hint', async () => {
       searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [] }));
 
-      search('nobody');
-      fixture.detectChanges();
+      await search('nobody');
 
-      expect(getText()).toContain('No users found');
-      expect(getText()).not.toContain('Start typing a login');
+      expect(screen.getByText('No users found')).toBeInTheDocument();
+      expect(screen.queryByText(/Start typing a login/)).not.toBeInTheDocument();
     });
   });
 
   describe('400 on add', () => {
-    it('should not render a submit error and keep the panel open', () => {
-      fixture.detectChanges();
-
+    it('should not render a submit error and keep the panel open', async () => {
       searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
-      search('jane');
-      fixture.detectChanges();
+      await search('jane');
 
-      const errorElement: HTMLElement | null = fixture.nativeElement.querySelector(
-        '.add-chat-user-panel__error',
-      );
-
-      expect(errorElement).toBeNull();
-      expect(getText()).toContain('Janie');
+      expect(fixture.nativeElement.querySelector('.add-chat-user-panel__error')).toBeNull();
+      expect(screen.getByText('Janie')).toBeInTheDocument();
     });
   });
 
   describe('successful add', () => {
     it('should emit userAdded when the service reports success, without a manual application tick', () => {
-      fixture.detectChanges();
-
-      const userAddedSpy = vi.fn();
-      component.userAdded.subscribe(userAddedSpy);
-
       addChatUserServiceMock.succeeded$.next();
 
-      expect(userAddedSpy).toHaveBeenCalledOnce();
+      expect(userAdded).toHaveBeenCalledOnce();
     });
   });
 });

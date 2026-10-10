@@ -1,5 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { render, screen } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
 import { of, Subject, throwError } from 'rxjs';
 
 import { CHAT_GATEWAY } from '../../application/chat.gateway';
@@ -8,71 +9,41 @@ import { CreateChatModalContent } from '../create-chat-modal-content/create-chat
 
 import { ChatList } from './chat-list';
 
+import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 import { ModalService } from '@shared/ui/modal/modal-service';
+import { ModalMocks } from '@shared/ui/modal/testing';
 
-const chatGatewayMock = {
-  chats: vi.fn(),
-};
-
-const modalServiceMock = {
-  open: vi.fn(),
-};
-
-const chatMock: Chat = {
-  id: 1,
-  title: 'Analytics Q3',
-  avatar: null,
-  unreadCount: 3,
-  createdBy: 1,
-  lastMessage: {
-    authorName: 'John',
-    content: 'the report is ready',
-  },
-};
+const chatMock = ChatMocks.chat();
 
 describe('ChatList', () => {
-  let component: ChatList;
-  let fixture: ComponentFixture<ChatList>;
+  let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
+  let modalServiceMock: ReturnType<typeof ModalMocks.modalService>;
 
-  const createComponent = async (): Promise<void> => {
-    fixture = TestBed.createComponent(ChatList);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
-    fixture.detectChanges();
-  };
-
-  const getText = (): string => fixture.nativeElement.textContent;
-
-  beforeEach(async () => {
-    chatGatewayMock.chats.mockReset();
-    chatGatewayMock.chats.mockReturnValue(of([chatMock]));
-    modalServiceMock.open.mockReset();
-
-    await TestBed.configureTestingModule({
-      imports: [ChatList],
+  const renderList = () =>
+    render(ChatList, {
       providers: [
         provideRouter([]),
-        {
-          provide: CHAT_GATEWAY,
-          useValue: chatGatewayMock,
-        },
-        {
-          provide: ModalService,
-          useValue: modalServiceMock,
-        },
+        { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
+        { provide: ModalService, useValue: modalServiceMock },
       ],
-    }).compileComponents();
+      waitForStableOnRender: true,
+    });
+
+  beforeEach(() => {
+    chatGatewayMock = ChatMocks.chatGateway();
+    modalServiceMock = ModalMocks.modalService();
+    chatGatewayMock.chats.mockReturnValue(of([chatMock]));
   });
 
   it('should create', async () => {
-    await createComponent();
+    const { fixture } = await renderList();
 
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('should load chats when the screen opens', async () => {
-    await createComponent();
+    await renderList();
 
     expect(chatGatewayMock.chats).toHaveBeenCalledOnce();
   });
@@ -81,9 +52,9 @@ describe('ChatList', () => {
     it('should render a row per chat', async () => {
       chatGatewayMock.chats.mockReturnValue(of([chatMock, { ...chatMock, id: 2 }]));
 
-      await createComponent();
+      await renderList();
 
-      expect(fixture.nativeElement.querySelectorAll('app-chat-list-item')).toHaveLength(2);
+      expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
   });
 
@@ -91,15 +62,15 @@ describe('ChatList', () => {
     beforeEach(async () => {
       chatGatewayMock.chats.mockReturnValue(of([]));
 
-      await createComponent();
+      await renderList();
     });
 
     it('should explain that there are no chats yet', () => {
-      expect(getText()).toContain('No chats yet');
+      expect(screen.getByText('No chats yet')).toBeInTheDocument();
     });
 
     it('should keep chat creation available', () => {
-      expect(fixture.nativeElement.querySelector('.chat-list__create')).not.toBeNull();
+      expect(screen.getByRole('button', { name: 'Create' })).toBeEnabled();
     });
   });
 
@@ -107,35 +78,35 @@ describe('ChatList', () => {
     beforeEach(async () => {
       chatGatewayMock.chats.mockReturnValue(throwError(() => new ApplicationError('mockReason')));
 
-      await createComponent();
+      await renderList();
     });
 
     it('should show the error message', () => {
-      expect(getText()).toContain('mockReason');
+      expect(screen.getByText('mockReason')).toBeInTheDocument();
     });
 
     it('should not show the empty state instead of the error', () => {
-      expect(getText()).not.toContain('No chats yet');
+      expect(screen.queryByText('No chats yet')).not.toBeInTheDocument();
     });
 
     it('should load the list again on retry', async () => {
+      const user = userEvent.setup();
       chatGatewayMock.chats.mockReturnValue(of([chatMock]));
 
-      fixture.nativeElement.querySelector('.chat-list__retry').click();
-      await fixture.whenStable();
-      fixture.detectChanges();
+      await user.click(screen.getByRole('button', { name: 'Retry' }));
 
       expect(chatGatewayMock.chats).toHaveBeenCalledTimes(2);
-      expect(fixture.nativeElement.querySelectorAll('app-chat-list-item')).toHaveLength(1);
-      expect(getText()).not.toContain('mockReason');
+      expect(screen.getAllByRole('listitem')).toHaveLength(1);
+      expect(screen.queryByText('mockReason')).not.toBeInTheDocument();
     });
   });
 
   describe('create chat', () => {
     it('should open the create chat modal', async () => {
-      await createComponent();
+      const user = userEvent.setup();
+      await renderList();
 
-      fixture.nativeElement.querySelector('.chat-list__create').click();
+      await user.click(screen.getByRole('button', { name: 'Create' }));
 
       expect(modalServiceMock.open).toHaveBeenCalledOnce();
       expect(modalServiceMock.open).toHaveBeenCalledWith(CreateChatModalContent, {
@@ -148,10 +119,10 @@ describe('ChatList', () => {
     it('should show neither the empty state nor an error', async () => {
       chatGatewayMock.chats.mockReturnValue(new Subject<Chat[]>());
 
-      await createComponent();
+      await renderList();
 
-      expect(getText()).not.toContain('No chats yet');
-      expect(fixture.nativeElement.querySelector('.chat-list__error')).toBeNull();
+      expect(screen.queryByText('No chats yet')).not.toBeInTheDocument();
+      expect(screen.queryByText('Failed to load chats')).not.toBeInTheDocument();
     });
   });
 });

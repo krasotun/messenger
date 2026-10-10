@@ -1,73 +1,36 @@
-import { signal } from '@angular/core';
+import { inputBinding, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { of, Subject, throwError } from 'rxjs';
+import { render, screen, within } from '@testing-library/angular/zoneless';
+import { userEvent, UserEvent } from '@testing-library/user-event';
+import { of, throwError } from 'rxjs';
 
 import { ChatListService } from '../../application/chat-list/chat-list.service';
-import { ChatUser } from '../../application/chat-user.type';
 import { CHAT_GATEWAY } from '../../application/chat.gateway';
-import { Chat } from '../../application/chat.type';
 import { DeleteChatService } from '../../application/delete-chat/delete-chat.service';
-import { SelectedChatHeader } from '../selected-chat-header/selected-chat-header';
 
 import { SelectedChat } from './selected-chat';
 
 import { RemoveChatUserService } from '@domains/chats/application/remove-chat-user/remove-chat-user.service';
-import { ChatUsersPanel } from '@domains/chats/presentation/chat-users-panel/chat-users-panel';
+import { ChatMocks } from '@domains/chats/testing';
 import { CurrentSessionService, CurrentUser } from '@domains/identity-access';
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { Nullable } from '@shared/types';
 import { ConfirmationService } from '@shared/ui/confirmation';
 
-const chatGatewayMock = {
-  chats: vi.fn(),
-  chatUsers: vi.fn(),
-};
+const firstChatMock = ChatMocks.chat({ id: 1, title: 'Analytics Q3' });
+const secondChatMock = ChatMocks.chat({ id: 2, title: 'Analytics Q4' });
 
-const firstChatMock: Chat = {
-  id: 1,
-  title: 'Analytics Q3',
-  avatar: null,
-  unreadCount: 0,
-  createdBy: 1,
-  lastMessage: null,
-};
+const firstChatUserMock = ChatMocks.chatUser({ id: 2, name: 'Johnny' });
+const secondChatUserMock = ChatMocks.chatUser({ id: 3, name: 'Billie' });
 
-const secondChatMock: Chat = {
-  id: 2,
-  title: 'Analytics Q4',
-  avatar: null,
-  unreadCount: 0,
-  createdBy: 1,
-  lastMessage: null,
-};
-
-const firstChatUserMock: ChatUser = {
-  id: 2,
-  name: 'Johnny',
-  avatar: null,
-};
-
-const secondChatUserMock: ChatUser = {
-  id: 3,
-  name: 'Billie',
-  avatar: null,
-};
-
-const chatCreatorMock: CurrentUser = {
-  id: 1,
-  avatar: null,
-  displayName: null,
-  email: 'creator@mock',
-  firstName: 'Creator',
-  login: 'creator',
-  phone: 'phone',
-  secondName: 'secondName',
-};
+const chatCreatorMock = IdentityMocks.currentUser({ id: 1 });
 
 describe('SelectedChat', () => {
   let fixture: ComponentFixture<SelectedChat>;
+  let chatId: WritableSignal<string>;
+  let user: UserEvent;
 
   const currentUser = signal<Nullable<CurrentUser>>(chatCreatorMock);
 
@@ -79,59 +42,75 @@ describe('SelectedChat', () => {
     confirm: vi.fn(),
   };
 
-  let deleteChatServiceMock: {
-    deleteChat: ReturnType<typeof vi.fn>;
-    succeeded$: Subject<void>;
-  };
-
-  let removeChatUserServiceMock: {
-    removeChatUser: ReturnType<typeof vi.fn>;
-    succeeded$: Subject<void>;
-  };
+  let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
+  let deleteChatServiceMock: ReturnType<typeof ChatMocks.deleteChatService>;
+  let removeChatUserServiceMock: ReturnType<typeof ChatMocks.removeChatUserService>;
 
   const routerMock = {
     navigateByUrl: vi.fn(),
   };
 
+  // Сервисы удаления живут в providers компонента и подменяются через
+  // overrideComponent; список чатов загружается до рендера, как это делает
+  // страница чатов.
   const createComponent = async (
-    chatId: string,
+    initialChatId: string,
     options: { loadChats?: boolean } = {},
   ): Promise<void> => {
-    if (options.loadChats ?? true) {
-      TestBed.inject(ChatListService).loadChats();
-    }
+    chatId = signal(initialChatId);
 
-    fixture = TestBed.createComponent(SelectedChat);
-    fixture.componentRef.setInput('chatId', chatId);
+    ({ fixture } = await render(SelectedChat, {
+      bindings: [inputBinding('chatId', chatId)],
+      providers: [
+        { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
+        { provide: CurrentSessionService, useValue: currentSessionServiceMock },
+        { provide: ConfirmationService, useValue: confirmationServiceMock },
+        { provide: Router, useValue: routerMock },
+      ],
+      configureTestBed: (testBed) => {
+        testBed.overrideComponent(SelectedChat, {
+          set: {
+            providers: [
+              { provide: DeleteChatService, useValue: deleteChatServiceMock },
+              { provide: RemoveChatUserService, useValue: removeChatUserServiceMock },
+            ],
+          },
+        });
 
+        if (options.loadChats ?? true) {
+          TestBed.inject(ChatListService).loadChats();
+        }
+      },
+      waitForStableOnRender: true,
+    }));
+  };
+
+  const changeChat = async (nextChatId: string): Promise<void> => {
+    chatId.set(nextChatId);
     await fixture.whenStable();
-    fixture.detectChanges();
   };
 
-  const getHeader = (): SelectedChatHeader | null =>
-    fixture.debugElement.query(By.directive(SelectedChatHeader))?.componentInstance ?? null;
+  const queryMembersButton = (): Nullable<HTMLElement> =>
+    screen.queryByRole('button', { name: 'Members' });
 
-  const getChatUsersPanel = (): ChatUsersPanel | null =>
-    fixture.debugElement.query(By.directive(ChatUsersPanel))?.componentInstance ?? null;
+  const queryChatUsersPanel = (): Nullable<HTMLElement> =>
+    screen.queryByRole('heading', { name: /^Members ·/ });
 
-  const requestDeletion = (): void => {
-    fixture.debugElement
-      .query(By.directive(SelectedChatHeader))
-      .triggerEventHandler('deleteRequested');
+  const queryConversation = (): Nullable<HTMLElement> =>
+    fixture.nativeElement.querySelector('.selected-chat__conversation');
+
+  const requestDeletion = async (): Promise<void> => {
+    await user.click(screen.getByRole('button', { name: 'Delete chat' }));
   };
 
-  const requestMembersToggled = (): void => {
-    fixture.debugElement
-      .query(By.directive(SelectedChatHeader))
-      .triggerEventHandler('membersToggled');
+  const requestMembersToggled = async (): Promise<void> => {
+    await user.click(screen.getByRole('button', { name: 'Members' }));
   };
 
-  const openChatUsersPanel = async (): Promise<ChatUsersPanel> => {
-    requestMembersToggled();
+  const openChatUsersPanel = async (): Promise<HTMLElement> => {
+    await requestMembersToggled();
 
-    await fixture.whenStable();
-
-    const chatUsersPanel = getChatUsersPanel();
+    const chatUsersPanel = queryChatUsersPanel();
 
     if (chatUsersPanel === null) {
       throw new Error('Users panel not found');
@@ -140,19 +119,14 @@ describe('SelectedChat', () => {
     return chatUsersPanel;
   };
 
-  const requestChatUsersPanelClosed = (): void => {
-    fixture.debugElement.query(By.directive(ChatUsersPanel)).triggerEventHandler('closed');
+  const requestChatUserRemoval = async (name: string): Promise<void> => {
+    await user.click(screen.getByRole('button', { name: `Remove ${name}` }));
   };
 
-  const requestChatUserRemoval = (chatUser: ChatUser): void => {
-    fixture.debugElement
-      .query(By.directive(ChatUsersPanel))
-      .triggerEventHandler('removeRequested', chatUser);
-  };
+  beforeEach(() => {
+    user = userEvent.setup();
 
-  beforeEach(async () => {
-    chatGatewayMock.chats.mockReset();
-    chatGatewayMock.chatUsers.mockReset();
+    chatGatewayMock = ChatMocks.chatGateway();
     chatGatewayMock.chats.mockReturnValue(of([firstChatMock, secondChatMock]));
     chatGatewayMock.chatUsers.mockReturnValue(of([firstChatUserMock]));
 
@@ -161,54 +135,10 @@ describe('SelectedChat', () => {
     confirmationServiceMock.confirm.mockReset();
     confirmationServiceMock.confirm.mockReturnValue(of(false));
 
-    deleteChatServiceMock = {
-      deleteChat: vi.fn(),
-      succeeded$: new Subject<void>(),
-    };
-
-    removeChatUserServiceMock = {
-      removeChatUser: vi.fn(),
-      succeeded$: new Subject<void>(),
-    };
+    deleteChatServiceMock = ChatMocks.deleteChatService();
+    removeChatUserServiceMock = ChatMocks.removeChatUserService();
 
     routerMock.navigateByUrl.mockReset();
-
-    await TestBed.configureTestingModule({
-      imports: [SelectedChat],
-      providers: [
-        {
-          provide: CHAT_GATEWAY,
-          useValue: chatGatewayMock,
-        },
-        {
-          provide: CurrentSessionService,
-          useValue: currentSessionServiceMock,
-        },
-        {
-          provide: ConfirmationService,
-          useValue: confirmationServiceMock,
-        },
-        {
-          provide: Router,
-          useValue: routerMock,
-        },
-      ],
-    }).compileComponents();
-
-    TestBed.overrideComponent(SelectedChat, {
-      set: {
-        providers: [
-          {
-            provide: DeleteChatService,
-            useValue: deleteChatServiceMock,
-          },
-          {
-            provide: RemoveChatUserService,
-            useValue: removeChatUserServiceMock,
-          },
-        ],
-      },
-    });
   });
 
   describe('loading the chat users', () => {
@@ -221,8 +151,7 @@ describe('SelectedChat', () => {
     it('reloads the members when the chat changes', async () => {
       await createComponent('1');
 
-      fixture.componentRef.setInput('chatId', '2');
-      await fixture.whenStable();
+      await changeChat('2');
 
       expect(chatGatewayMock.chatUsers).toHaveBeenLastCalledWith(2);
     });
@@ -232,15 +161,19 @@ describe('SelectedChat', () => {
     it('shows the header and the place for the conversation', async () => {
       await createComponent('1');
 
-      expect(getHeader()).not.toBeNull();
-      expect(fixture.nativeElement.querySelector('.selected-chat__conversation')).not.toBeNull();
+      expect(queryMembersButton()).toBeInTheDocument();
+      expect(queryConversation()).not.toBeNull();
     });
 
     it('passes the chat and its members to the header', async () => {
       await createComponent('1');
 
-      expect(getHeader()?.chat()).toEqual(firstChatMock);
-      expect(getHeader()?.chatUsers()).toEqual([firstChatUserMock]);
+      expect(screen.getByText('Analytics Q3')).toBeInTheDocument();
+      expect(
+        within(screen.getByRole('button', { name: 'Members' })).getByRole('img', {
+          name: 'Avatar Johnny',
+        }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -254,12 +187,12 @@ describe('SelectedChat', () => {
     });
 
     it('shows an application error', () => {
-      expect(fixture.nativeElement.textContent).toContain('mockReason');
+      expect(screen.getByText('mockReason')).toBeInTheDocument();
     });
 
     it('shows neither the header nor the place for the conversation', () => {
-      expect(getHeader()).toBeNull();
-      expect(fixture.nativeElement.querySelector('.selected-chat__conversation')).toBeNull();
+      expect(queryMembersButton()).not.toBeInTheDocument();
+      expect(queryConversation()).toBeNull();
     });
   });
 
@@ -267,7 +200,7 @@ describe('SelectedChat', () => {
     it('tells the header that the current user is the chat creator', async () => {
       await createComponent('1');
 
-      expect(getHeader()?.isChatCreator()).toBe(true);
+      expect(screen.getByRole('button', { name: 'Delete chat' })).toBeInTheDocument();
     });
 
     it('tells the header that other chat members are not the chat creator', async () => {
@@ -275,13 +208,13 @@ describe('SelectedChat', () => {
 
       await createComponent('1');
 
-      expect(getHeader()?.isChatCreator()).toBe(false);
+      expect(screen.queryByRole('button', { name: 'Delete chat' })).not.toBeInTheDocument();
     });
 
     it('shows no header before the chat list has loaded', async () => {
       await createComponent('1', { loadChats: false });
 
-      expect(getHeader()).toBeNull();
+      expect(queryMembersButton()).not.toBeInTheDocument();
     });
   });
 
@@ -289,7 +222,7 @@ describe('SelectedChat', () => {
     it('asks for confirmation naming the chat and marking the action as dangerous', async () => {
       await createComponent('1');
 
-      requestDeletion();
+      await requestDeletion();
 
       expect(confirmationServiceMock.confirm).toHaveBeenCalledWith({
         title: 'Delete chat',
@@ -305,7 +238,7 @@ describe('SelectedChat', () => {
 
       await createComponent('1');
 
-      requestDeletion();
+      await requestDeletion();
 
       expect(deleteChatServiceMock.deleteChat).not.toHaveBeenCalled();
     });
@@ -315,7 +248,7 @@ describe('SelectedChat', () => {
 
       await createComponent('1');
 
-      requestDeletion();
+      await requestDeletion();
 
       expect(deleteChatServiceMock.deleteChat).toHaveBeenCalledWith({ chatId: 1 });
     });
@@ -333,62 +266,43 @@ describe('SelectedChat', () => {
     it('opens the closed members panel when the header emits membersToggled', async () => {
       await createComponent('1');
 
-      requestMembersToggled();
-      await fixture.whenStable();
+      await requestMembersToggled();
 
-      expect(getChatUsersPanel()).not.toBe(null);
+      expect(queryChatUsersPanel()).toBeInTheDocument();
     });
 
     describe('when the members panel is open', () => {
       beforeEach(async () => {
         await createComponent('1');
 
-        requestMembersToggled();
-        await fixture.whenStable();
+        await requestMembersToggled();
       });
 
       it('closes the open members panel when the header emits membersToggled', async () => {
-        requestMembersToggled();
+        await requestMembersToggled();
 
-        await fixture.whenStable();
-
-        expect(getChatUsersPanel()).toBe(null);
+        expect(queryChatUsersPanel()).not.toBeInTheDocument();
       });
 
       it('keeps the open members panel when the chat changes', async () => {
-        fixture.componentRef.setInput('chatId', '2');
+        await changeChat('2');
 
-        await fixture.whenStable();
-
-        const chatUsersPanel = getChatUsersPanel();
-
-        expect(chatUsersPanel).not.toBe(null);
+        expect(queryChatUsersPanel()).toBeInTheDocument();
       });
 
       it('shows the new members when the chat changes', async () => {
         chatGatewayMock.chatUsers.mockReturnValue(of([secondChatUserMock]));
 
-        fixture.componentRef.setInput('chatId', '2');
+        await changeChat('2');
 
-        await fixture.whenStable();
-
-        const chatUsersPanel = getChatUsersPanel();
-
-        if (chatUsersPanel === null) {
-          throw new Error('Chat panel not found');
-        }
-
-        const usersFromPanel = chatUsersPanel.chatUsers();
-
-        expect(usersFromPanel).toEqual([secondChatUserMock]);
+        expect(within(screen.getByRole('list')).getByText('Billie')).toBeInTheDocument();
+        expect(within(screen.getByRole('list')).queryByText('Johnny')).not.toBeInTheDocument();
       });
 
       it('closes the members panel when it emits closed', async () => {
-        requestChatUsersPanelClosed();
+        await user.click(screen.getByRole('button', { name: 'Close members' }));
 
-        await fixture.whenStable();
-
-        expect(getChatUsersPanel()).toBe(null);
+        expect(queryChatUsersPanel()).not.toBeInTheDocument();
       });
 
       it('shows no members panel when the chat users fail to load', async () => {
@@ -396,22 +310,25 @@ describe('SelectedChat', () => {
           throwError(() => new ApplicationError('mockReason')),
         );
 
-        fixture.componentRef.setInput('chatId', '2');
+        await changeChat('2');
 
-        await fixture.whenStable();
-
-        expect(getChatUsersPanel()).toBe(null);
+        expect(queryChatUsersPanel()).not.toBeInTheDocument();
       });
     });
   });
 
   describe('removing a chat member', () => {
+    beforeEach(() => {
+      chatGatewayMock.chatUsers.mockReturnValue(of([firstChatUserMock, secondChatUserMock]));
+    });
+
     it('lets the panel remove members when the current user is the chat creator', async () => {
       await createComponent('1');
 
       const chatUsersPanel = await openChatUsersPanel();
 
-      expect(chatUsersPanel.canRemoveChatUsers()).toBe(true);
+      expect(chatUsersPanel).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove Billie' })).toBeInTheDocument();
     });
 
     it('does not let the panel remove members when the current user is not the chat creator', async () => {
@@ -419,9 +336,9 @@ describe('SelectedChat', () => {
 
       await createComponent('1');
 
-      const chatUsersPanel = await openChatUsersPanel();
+      await openChatUsersPanel();
 
-      expect(chatUsersPanel.canRemoveChatUsers()).toBe(false);
+      expect(screen.queryAllByRole('button', { name: /^Remove / })).toHaveLength(0);
     });
 
     it('asks for confirmation naming the member and the chat without marking it as dangerous', async () => {
@@ -429,7 +346,7 @@ describe('SelectedChat', () => {
 
       await openChatUsersPanel();
 
-      requestChatUserRemoval(secondChatUserMock);
+      await requestChatUserRemoval('Billie');
 
       expect(confirmationServiceMock.confirm).toHaveBeenCalledWith({
         title: 'Remove member',
@@ -444,7 +361,7 @@ describe('SelectedChat', () => {
 
       await openChatUsersPanel();
 
-      requestChatUserRemoval(secondChatUserMock);
+      await requestChatUserRemoval('Billie');
 
       expect(removeChatUserServiceMock.removeChatUser).not.toHaveBeenCalled();
     });
@@ -454,11 +371,9 @@ describe('SelectedChat', () => {
 
       await openChatUsersPanel();
 
-      requestChatUserRemoval(secondChatUserMock);
+      await requestChatUserRemoval('Billie');
 
-      await fixture.whenStable();
-
-      expect(getChatUsersPanel()).not.toBe(null);
+      expect(queryChatUsersPanel()).toBeInTheDocument();
     });
 
     it('removes the member from the chat when the confirmation is accepted', async () => {
@@ -468,9 +383,7 @@ describe('SelectedChat', () => {
 
       await openChatUsersPanel();
 
-      requestChatUserRemoval(secondChatUserMock);
-
-      await fixture.whenStable();
+      await requestChatUserRemoval('Billie');
 
       expect(removeChatUserServiceMock.removeChatUser).toHaveBeenCalledWith({
         chatId: 1,
@@ -485,15 +398,13 @@ describe('SelectedChat', () => {
 
       await openChatUsersPanel();
 
-      requestChatUserRemoval(secondChatUserMock);
+      await requestChatUserRemoval('Billie');
 
       removeChatUserServiceMock.succeeded$.next();
 
       await fixture.whenStable();
 
-      const chatUsersPanel = getChatUsersPanel();
-
-      expect(chatUsersPanel).not.toBe(null);
+      expect(queryChatUsersPanel()).toBeInTheDocument();
     });
   });
 });

@@ -1,159 +1,104 @@
-import { inputBinding, outputBinding, signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { Mock } from 'vitest';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { inputBinding, outputBinding } from '@angular/core';
+import { render, screen } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
 
 import { ChatUsersPanel } from './chat-users-panel';
 
-import { ChatUser } from '@domains/chats/application/chat-user.type';
-import { ChatUserRow } from '@domains/chats/presentation/chat-user-row/chat-user-row';
-import { Nullable } from '@shared/types';
+import { ChatMocks, ChatUserRowHarness } from '@domains/chats/testing';
 
-const currentUserMock: ChatUser = {
-  id: 2,
-  name: 'Johnny',
-  avatar: null,
-};
+const currentUserMock = ChatMocks.chatUser({ id: 2, name: 'Johnny' });
 
-const anotherUserMock: ChatUser = {
-  id: 3,
-  name: 'Billy',
-  avatar: null,
-};
+const anotherUserMock = ChatMocks.chatUser({ id: 3, name: 'Billy' });
 
-const chatUsersMock = signal([currentUserMock, anotherUserMock]);
-
-const currentUserIdMock = signal(currentUserMock.id);
-
-const canRemoveChatUsersMock = signal(false);
-
-const getRows = (fixture: ComponentFixture<ChatUsersPanel>): ChatUserRow[] =>
-  fixture.debugElement
-    .queryAll(By.directive(ChatUserRow))
-    .map(({ componentInstance }) => componentInstance);
-
+// Панель проверяется Testing Library, а строки участников - через
+// ChatUserRowHarness: разметку строки спек панели не знает.
 describe('ChatUsersPanel', () => {
-  let fixture: ComponentFixture<ChatUsersPanel>;
-  let closedSpy: Mock<() => void>;
-  let removeRequestedSpy: Mock<(user: ChatUser) => void>;
+  let loader: HarnessLoader;
 
-  beforeEach(async () => {
-    closedSpy = vi.fn();
-    removeRequestedSpy = vi.fn();
+  const renderPanel = async (options: { canRemoveChatUsers?: boolean } = {}) => {
+    const closed = vi.fn();
+    const removeRequested = vi.fn();
 
-    canRemoveChatUsersMock.set(false);
-
-    await TestBed.configureTestingModule({
-      imports: [ChatUsersPanel],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ChatUsersPanel, {
+    const { fixture } = await render(ChatUsersPanel, {
       bindings: [
-        inputBinding('chatUsers', chatUsersMock),
-        inputBinding('currentUserId', currentUserIdMock),
-        inputBinding('canRemoveChatUsers', canRemoveChatUsersMock),
-        outputBinding('closed', closedSpy),
-        outputBinding('removeRequested', removeRequestedSpy),
+        inputBinding('chatUsers', () => [currentUserMock, anotherUserMock]),
+        inputBinding('currentUserId', () => currentUserMock.id),
+        inputBinding('canRemoveChatUsers', () => options.canRemoveChatUsers ?? false),
+        outputBinding('closed', closed),
+        outputBinding('removeRequested', removeRequested),
       ],
     });
-    await fixture.whenStable();
+
+    loader = TestbedHarnessEnvironment.loader(fixture);
+
+    return { closed, removeRequested };
+  };
+
+  const getRow = (name: string): Promise<ChatUserRowHarness> =>
+    loader.getHarness(ChatUserRowHarness.with({ name }));
+
+  it('shows the chat user count in the Members · N title', async () => {
+    await renderPanel();
+
+    expect(screen.getByRole('heading', { name: 'Members · 2' })).toBeInTheDocument();
   });
 
-  it('shows the chat user count in the Members · N title', () => {
-    const host: HTMLElement = fixture.nativeElement;
+  it('shows a row for each chat user', async () => {
+    await renderPanel();
 
-    const title = 'Members · 2';
+    const rows = await loader.getAllHarnesses(ChatUserRowHarness);
 
-    expect(host.textContent).toContain(title);
+    expect(await Promise.all(rows.map((row) => row.getName()))).toEqual(['Johnny', 'Billy']);
   });
 
-  it('shows a row for each chat user', () => {
-    const usersInRows = getRows(fixture).map((row) => row.user());
+  it('marks the current user row', async () => {
+    await renderPanel();
 
-    expect(usersInRows).toEqual(chatUsersMock());
+    expect(await (await getRow('Johnny')).isCurrentUser()).toBe(true);
   });
 
-  it('marks the current user row', () => {
-    const rows = getRows(fixture);
+  it('does not mark other chat user rows', async () => {
+    await renderPanel();
 
-    const currentUserRow = rows.find((userInRow) => userInRow.user().id === currentUserIdMock());
-
-    if (currentUserRow === undefined) {
-      throw new Error('No current user found');
-    }
-
-    expect(currentUserRow.isCurrentUser()).toBe(true);
+    expect(await (await getRow('Billy')).isCurrentUser()).toBe(false);
   });
 
-  it('does not mark other chat user rows', () => {
-    const rows = getRows(fixture);
+  it('emits closed when Close members is pressed', async () => {
+    const user = userEvent.setup();
+    const { closed } = await renderPanel();
 
-    const marks = rows
-      .filter((row) => row.user().id !== currentUserIdMock())
-      .map((row) => row.isCurrentUser());
+    await user.click(screen.getByRole('button', { name: 'Close members' }));
 
-    expect(marks).toEqual([false]);
+    expect(closed).toHaveBeenCalledOnce();
   });
 
-  it('emits closed when Close members is pressed', () => {
-    const closeButton: Nullable<HTMLButtonElement> = fixture.nativeElement.querySelector(
-      'button[aria-label="Close members"]',
-    );
-
-    if (closeButton === null) {
-      throw new Error('No close button found');
-    }
-
-    closeButton.click();
-
-    expect(closedSpy).toHaveBeenCalledOnce();
-  });
   it('offers removal for other chat user rows when removal is allowed', async () => {
-    canRemoveChatUsersMock.set(true);
+    await renderPanel({ canRemoveChatUsers: true });
 
-    await fixture.whenStable();
-
-    const rows = getRows(fixture);
-
-    const marks = rows
-      .filter((row) => row.user().id !== currentUserIdMock())
-      .map((row) => row.canRemove());
-
-    expect(marks).toEqual([true]);
+    expect(await (await getRow('Billy')).canRemove()).toBe(true);
   });
 
   it('does not offer removal for the current user row when removal is allowed', async () => {
-    canRemoveChatUsersMock.set(true);
+    await renderPanel({ canRemoveChatUsers: true });
 
-    await fixture.whenStable();
-
-    const rows = getRows(fixture);
-
-    const marks = rows
-      .filter((row) => row.user().id === currentUserIdMock())
-      .map((row) => row.canRemove());
-
-    expect(marks).toEqual([false]);
+    expect(await (await getRow('Johnny')).canRemove()).toBe(false);
   });
 
   it('offers removal for no row when removal is not allowed', async () => {
-    const rows = getRows(fixture);
+    await renderPanel();
 
-    const marks = rows.map((row) => row.canRemove());
+    const rows = await loader.getAllHarnesses(ChatUserRowHarness);
 
-    expect(marks).toEqual([false, false]);
+    expect(await Promise.all(rows.map((row) => row.canRemove()))).toEqual([false, false]);
   });
 
   it('emits removeRequested with the chat user when their row requests removal', async () => {
-    const rows = fixture.debugElement.queryAll(By.directive(ChatUserRow));
-    const userRowforExclude = rows.find((row) => row.componentInstance.user().name === 'Billy');
+    const { removeRequested } = await renderPanel({ canRemoveChatUsers: true });
 
-    if (userRowforExclude === undefined) {
-      throw new Error('No user to exlude');
-    }
+    await (await getRow('Billy')).remove();
 
-    userRowforExclude.triggerEventHandler('removeRequested');
-
-    expect(removeRequestedSpy).toHaveBeenCalledWith(anotherUserMock);
+    expect(removeRequested).toHaveBeenCalledWith(anotherUserMock);
   });
 });

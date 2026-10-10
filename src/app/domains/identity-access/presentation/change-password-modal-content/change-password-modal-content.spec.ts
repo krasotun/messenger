@@ -1,88 +1,60 @@
-import { signal, WritableSignal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { Subject, throwError } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
+import { render, within } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
+import { throwError } from 'rxjs';
 
 import { ChangePasswordService } from '../../application/change-password/change-password.service';
 import { USER_GATEWAY } from '../../application/user.gateway';
-import { ChangePasswordForm } from '../change-password-form/change-password-form';
 
 import { ChangePasswordModalContent } from './change-password-modal-content';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 import { ModalRef } from '@shared/ui/modal/modal-ref';
+import { ModalMocks } from '@shared/ui/modal/testing';
 
-let changePasswordServiceMock: {
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  changePassword: ReturnType<typeof vi.fn>;
-};
-
-let modalRefMock: {
-  close: ReturnType<typeof vi.fn>;
-};
-
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
+const passwordLabels = ['Old password', 'New password', 'Repeat new password'];
 
 describe('ChangePasswordModalContent', () => {
-  let fixture: ComponentFixture<ChangePasswordModalContent>;
+  let changePasswordServiceMock: ReturnType<typeof IdentityMocks.changePasswordService>;
+  let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
 
-  beforeEach(async () => {
-    changePasswordServiceMock = {
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      changePassword: vi.fn(),
-    };
+  const sharedProviders = () => [
+    { provide: ModalRef, useValue: modalRefMock },
+    { provide: NOTIFIER, useValue: notifierMock },
+  ];
 
-    modalRefMock = {
-      close: vi.fn(),
-    };
-
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
-
-    TestBed.configureTestingModule({
-      imports: [ChangePasswordModalContent],
-      providers: [
-        {
-          provide: ModalRef,
-          useValue: modalRefMock,
-        },
-        {
-          provide: NOTIFIER,
-          useValue: notifierMock,
-        },
-      ],
-    });
-
-    TestBed.overrideComponent(ChangePasswordModalContent, {
-      set: {
-        providers: [
-          {
-            provide: ChangePasswordService,
-            useValue: changePasswordServiceMock,
+  // ChangePasswordService живет в providers компонента модалки.
+  const renderModal = () =>
+    render(ChangePasswordModalContent, {
+      providers: sharedProviders(),
+      configureTestBed: (testBed) =>
+        testBed.overrideComponent(ChangePasswordModalContent, {
+          set: {
+            providers: [{ provide: ChangePasswordService, useValue: changePasswordServiceMock }],
           },
-        ],
-      },
+        }),
+      waitForStableOnRender: true,
     });
 
-    await TestBed.compileComponents();
-
-    fixture = TestBed.createComponent(ChangePasswordModalContent);
-    await fixture.whenStable();
+  beforeEach(() => {
+    changePasswordServiceMock = IdentityMocks.changePasswordService();
+    modalRefMock = ModalMocks.modalRef();
+    notifierMock = NotificationMocks.notifier();
   });
 
-  it('should create', () => {
+  it('should create', async () => {
+    const { fixture } = await renderModal();
+
     expect(fixture.componentInstance).toBeTruthy();
   });
 
   describe('successful change', () => {
-    it('should close the modal without a manual application tick', () => {
-      fixture.detectChanges();
+    it('should close the modal without a manual application tick', async () => {
+      await renderModal();
 
       changePasswordServiceMock.succeeded$.next();
 
@@ -91,96 +63,51 @@ describe('ChangePasswordModalContent', () => {
   });
 
   describe('closing without submitting', () => {
-    it('should not call changePassword', () => {
-      fixture.detectChanges();
+    it('should not call changePassword', async () => {
+      await renderModal();
 
       expect(changePasswordServiceMock.changePassword).not.toHaveBeenCalled();
     });
   });
 
   describe('flow lifetime', () => {
-    let userGatewayMock: {
-      updateProfile: ReturnType<typeof vi.fn>;
-      changePassword: ReturnType<typeof vi.fn>;
-    };
+    let userGatewayMock: ReturnType<typeof IdentityMocks.userGateway>;
 
-    const openModal = async (): Promise<ComponentFixture<ChangePasswordModalContent>> => {
-      const openedFixture = TestBed.createComponent(ChangePasswordModalContent);
-      await openedFixture.whenStable();
-      openedFixture.detectChanges();
-
-      return openedFixture;
-    };
-
-    const submitWithError = async (
-      openedFixture: ComponentFixture<ChangePasswordModalContent>,
-    ): Promise<void> => {
-      const form: ChangePasswordForm = openedFixture.debugElement.query(
-        By.directive(ChangePasswordForm),
-      ).componentInstance;
-
-      form.changePasswordForm.setValue({
-        oldPassword: 'typedOldPassword',
-        newPassword: 'typedNewPassword',
-        repeatNewPassword: 'typedNewPassword',
-      });
-
-      openedFixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
-
-      await openedFixture.whenStable();
-      openedFixture.detectChanges();
-    };
-
-    beforeEach(async () => {
-      TestBed.resetTestingModule();
-
-      userGatewayMock = {
-        updateProfile: vi.fn(),
-        changePassword: vi.fn(() => throwError(() => new ApplicationError('Mock error'))),
-      };
-
-      TestBed.configureTestingModule({
-        imports: [ChangePasswordModalContent],
-        providers: [
-          {
-            provide: USER_GATEWAY,
-            useValue: userGatewayMock,
-          },
-          {
-            provide: ModalRef,
-            useValue: modalRefMock,
-          },
-          {
-            provide: NOTIFIER,
-            useValue: notifierMock,
-          },
-        ],
-      });
-
-      await TestBed.compileComponents();
+    beforeEach(() => {
+      userGatewayMock = IdentityMocks.userGateway();
+      userGatewayMock.changePassword.mockImplementation(() =>
+        throwError(() => new ApplicationError('Mock error')),
+      );
     });
 
+    // render настраивает TestBed и второй раз в одном тесте не вызывается:
+    // повторное открытие модалки идет через TestBed.createComponent.
     it('should show an empty form without an error when reopened after a failed change', async () => {
-      const failedFixture = await openModal();
+      const user = userEvent.setup();
+      const { fixture: failedFixture, container } = await render(ChangePasswordModalContent, {
+        providers: [...sharedProviders(), { provide: USER_GATEWAY, useValue: userGatewayMock }],
+        waitForStableOnRender: true,
+      });
+      const failedModal = within(container);
 
-      await submitWithError(failedFixture);
+      await user.type(failedModal.getByLabelText('Old password'), 'typedOldPassword');
+      await user.type(failedModal.getByLabelText('New password'), 'typedNewPassword');
+      await user.type(failedModal.getByLabelText('Repeat new password'), 'typedNewPassword');
+      await user.click(failedModal.getByRole('button', { name: 'Save' }));
+      await failedFixture.whenStable();
 
       expect(notifierMock.error).toHaveBeenCalledWith('Failed to change password', 'Mock error');
-      expect(failedFixture.nativeElement.querySelector('.change-password-form__error')).toBeNull();
+      expect(container.querySelector('.change-password-form__error')).toBeNull();
 
       failedFixture.destroy();
 
-      const reopenedFixture = await openModal();
+      const reopenedFixture = TestBed.createComponent(ChangePasswordModalContent);
+      await reopenedFixture.whenStable();
+      const reopenedModal = within(reopenedFixture.nativeElement);
 
-      const reopenedInputEls: HTMLInputElement[] = Array.from(
-        reopenedFixture.nativeElement.querySelectorAll('input'),
-      );
-
-      expect(reopenedInputEls).toHaveLength(3);
-
-      reopenedInputEls.forEach((inputEl) => {
-        expect(inputEl.value).toBe('');
-      });
+      for (const label of passwordLabels) {
+        expect(reopenedModal.getByLabelText(label)).toHaveValue('');
+      }
 
       expect(
         reopenedFixture.nativeElement.querySelector('.change-password-form__error'),

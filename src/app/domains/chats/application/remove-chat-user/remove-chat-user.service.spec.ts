@@ -6,30 +6,21 @@ import { CHAT_GATEWAY } from '../chat.gateway';
 
 import { RemoveChatUserService } from './remove-chat-user.service';
 
+import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
-
-const chatGatewayMock = {
-  removeChatUser: vi.fn(),
-};
-
-const chatUsersServiceMock = {
-  loadChatUsers: vi.fn(),
-};
-
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
+import { NotificationMocks } from '@shared/notifications/testing';
 
 describe('RemoveChatUserService', () => {
+  let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
+  let chatUsersServiceMock: ReturnType<typeof ChatMocks.chatUsersService>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let service: RemoveChatUserService;
 
   beforeEach(() => {
-    chatGatewayMock.removeChatUser.mockReset();
-    chatUsersServiceMock.loadChatUsers.mockReset();
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
+    chatGatewayMock = ChatMocks.chatGateway();
+    chatUsersServiceMock = ChatMocks.chatUsersService();
+    notifierMock = NotificationMocks.notifier();
 
     TestBed.configureTestingModule({
       providers: [

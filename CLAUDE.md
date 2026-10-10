@@ -244,7 +244,8 @@ Issue отвечает на «зачем и когда», change - на «что
     этого проекта и потому отвечает под установленную версию;
     `get_best_practices` дает официальный свод правил. Сервер подключен в
     local scope, в репозитории его настроек нет.
-  - Angular CDK, RxJS, Playwright, Vitest, OpenSpec - MCP Context7.
+  - Angular CDK, RxJS, Playwright, Vitest, Testing Library, OpenSpec - MCP
+    Context7.
 - Context7 на глубоких вопросах по Angular отдает исходники ветки `main`, а не
   документацию установленной версии. Поэтому за темой идешь в MCP, а за точным
   фактом своей версии - в `node_modules`.

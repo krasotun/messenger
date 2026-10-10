@@ -1,22 +1,11 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { render } from '@testing-library/angular/zoneless';
 
 import { AuthPageShell } from './auth-page-shell';
 
 describe('AuthPageShell', () => {
-  let component: AuthPageShell;
-  let fixture: ComponentFixture<AuthPageShell>;
+  it('should create', async () => {
+    const { fixture } = await render(AuthPageShell);
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AuthPageShell],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(AuthPageShell);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });

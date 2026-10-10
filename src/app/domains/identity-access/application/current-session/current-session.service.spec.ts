@@ -8,37 +8,22 @@ import { CurrentSessionStatus } from './current-session-status.type';
 import { CurrentSessionService } from './current-session.service';
 import { CurrentUser } from './current-user.type';
 
-const authGatewayMock = {
-  currentSession: vi.fn(),
-  logout: vi.fn(),
-};
+import { IdentityMocks } from '@domains/identity-access/testing';
 
-const currentUserMock: CurrentUser = {
-  id: 1,
-  avatar: null,
-  displayName: 'displayName',
-  email: 'email',
-  firstName: 'firstName',
-  login: 'login',
-  phone: 'phone',
-  secondName: 'secondName',
-};
+const currentUserMock = IdentityMocks.currentUser();
 
-const successResponseMock: CurrentSessionResult = {
-  status: CurrentSessionStatus.Authenticated,
-  user: currentUserMock,
-};
+const successResponseMock = IdentityMocks.authenticatedSession(currentUserMock);
 
 const anonymousResponseMock: CurrentSessionResult = {
   status: CurrentSessionStatus.Anonymous,
 };
 
 describe('CurrentSessionService', () => {
+  let authGatewayMock: ReturnType<typeof IdentityMocks.authGateway>;
   let service: CurrentSessionService;
 
   beforeEach(() => {
-    authGatewayMock.currentSession.mockReset();
-    authGatewayMock.logout.mockReset();
+    authGatewayMock = IdentityMocks.authGateway();
 
     TestBed.configureTestingModule({
       providers: [
