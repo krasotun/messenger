@@ -75,7 +75,8 @@
                   "with": "src/environments/environment.e2e.ts"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "sourceMap": true
             }
           },
           "defaultConfiguration": "production"
