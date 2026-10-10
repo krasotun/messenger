@@ -1,5 +1,7 @@
 import { signal, WritableSignal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture } from '@angular/core/testing';
+import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
+import { userEvent, UserEvent } from '@testing-library/user-event';
 
 import { ChangeAvatarService } from '../../application/change-avatar/change-avatar.service';
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
@@ -19,45 +21,43 @@ const currentUserMock = IdentityMocks.currentUser({
 });
 
 const pngFileMock = new File(['mockContent'], 'avatar.png', { type: 'image/png' });
+const otherPngFileMock = new File(['otherContent'], 'other-avatar.png', { type: 'image/png' });
 const pdfFileMock = new File(['mockContent'], 'avatar.pdf', { type: 'application/pdf' });
 
 describe('ChangeAvatarForm', () => {
   let changeAvatarServiceMock: ReturnType<typeof IdentityMocks.changeAvatarService>;
-  let component: ChangeAvatarForm;
   let fixture: ComponentFixture<ChangeAvatarForm>;
+  let container: HTMLElement;
+  let user: UserEvent;
   let createObjectUrlSpy: ReturnType<typeof vi.spyOn>;
   let revokeObjectUrlSpy: ReturnType<typeof vi.spyOn>;
   let createdObjectUrlCount: number;
 
-  const getFileInput = (): HTMLInputElement =>
-    fixture.nativeElement.querySelector('.change-avatar-form__file-input');
+  // Подпись поля складывается из «Avatar», «Choose file» и имени файла внутри label.
+  const getFileInput = (): HTMLInputElement => screen.getByLabelText(/Choose file/);
 
-  const getSubmitButton = (): HTMLButtonElement =>
-    fixture.nativeElement.querySelector('button[type="submit"]');
+  const getSubmitButton = (): HTMLElement => screen.getByRole('button', { name: 'Change avatar' });
 
-  const getAvatarImage = (): HTMLImageElement | null =>
-    fixture.nativeElement.querySelector('.avatar__image');
+  const getPreviewSrc = (): Nullable<string> =>
+    screen.getByRole('img', { name: 'Avatar preview' }).getAttribute('src');
 
-  const getErrorMessage = (): string =>
-    fixture.nativeElement.querySelector('.change-avatar-form__error')?.textContent?.trim() ?? '';
+  const queryErrorMessage = (): Nullable<HTMLElement> =>
+    screen.queryByText(/^Avatar change failed:/);
 
-  const selectFile = (file: File) => {
-    const fileInput = getFileInput();
-
-    Object.defineProperty(fileInput, 'files', { value: [file], configurable: true });
-    fileInput.dispatchEvent(new Event('change'));
-
-    fixture.detectChanges();
+  const selectFile = async (file: File): Promise<void> => {
+    await user.upload(getFileInput(), file);
   };
 
-  const submitForm = () => {
-    const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
-    formElement.dispatchEvent(new Event('submit', { cancelable: true }));
-
-    fixture.detectChanges();
+  // Выключенная кнопка не дает отправить форму: событие идет напрямую.
+  const submitForm = async (): Promise<void> => {
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await fixture.whenStable();
   };
 
   beforeEach(async () => {
+    // applyAccept: false - пользователь может выбрать «все файлы» в диалоге,
+    // и форма сама должна отсечь неподдерживаемый формат.
+    user = userEvent.setup({ applyAccept: false });
     changeAvatarServiceMock = IdentityMocks.changeAvatarService();
     createdObjectUrlCount = 0;
 
@@ -70,23 +70,13 @@ describe('ChangeAvatarForm', () => {
       currentUser: signal(currentUserMock),
     };
 
-    await TestBed.configureTestingModule({
-      imports: [ChangeAvatarForm],
+    ({ fixture, container } = await render(ChangeAvatarForm, {
       providers: [
-        {
-          provide: ChangeAvatarService,
-          useValue: changeAvatarServiceMock,
-        },
-        {
-          provide: CurrentSessionService,
-          useValue: currentSessionServiceMock,
-        },
+        { provide: ChangeAvatarService, useValue: changeAvatarServiceMock },
+        { provide: CurrentSessionService, useValue: currentSessionServiceMock },
       ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ChangeAvatarForm);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+      waitForStableOnRender: true,
+    }));
   });
 
   afterEach(() => {
@@ -95,99 +85,79 @@ describe('ChangeAvatarForm', () => {
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   describe('opened form', () => {
     it('should show no selected file and no preview', () => {
-      fixture.detectChanges();
-
       expect(getFileInput().files).toHaveLength(0);
       expect(createObjectUrlSpy).not.toHaveBeenCalled();
-      expect(getAvatarImage()?.getAttribute('src')).toBe(currentUserMock.avatar);
-      expect(getErrorMessage()).toBe('');
+      expect(getPreviewSrc()).toBe(currentUserMock.avatar);
+      expect(queryErrorMessage()).not.toBeInTheDocument();
     });
 
     it('should disable the submit button while no file is selected', () => {
-      fixture.detectChanges();
-
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
   });
 
   describe('supported file selected', () => {
-    it('should show the preview instead of the current avatar', () => {
-      fixture.detectChanges();
-
-      selectFile(pngFileMock);
+    it('should show the preview instead of the current avatar', async () => {
+      await selectFile(pngFileMock);
 
       expect(createObjectUrlSpy).toHaveBeenCalledOnce();
       expect(createObjectUrlSpy).toHaveBeenCalledWith(pngFileMock);
-      expect(getAvatarImage()?.getAttribute('src')).toBe('blob:mock/1');
+      expect(getPreviewSrc()).toBe('blob:mock/1');
     });
 
-    it('should keep the submit button enabled', () => {
-      fixture.detectChanges();
+    it('should keep the submit button enabled', async () => {
+      await selectFile(pngFileMock);
 
-      selectFile(pngFileMock);
-
-      expect(getSubmitButton().disabled).toBe(false);
+      expect(getSubmitButton()).toBeEnabled();
     });
   });
 
   describe('unsupported file selected', () => {
-    it('should not create a preview and should show the format error', () => {
-      fixture.detectChanges();
-
-      selectFile(pdfFileMock);
+    it('should not create a preview and should show the format error', async () => {
+      await selectFile(pdfFileMock);
 
       expect(createObjectUrlSpy).not.toHaveBeenCalled();
-      expect(getAvatarImage()?.getAttribute('src')).toBe(currentUserMock.avatar);
-      expect(getErrorMessage()).toContain('JPEG');
+      expect(getPreviewSrc()).toBe(currentUserMock.avatar);
+      expect(queryErrorMessage()).toHaveTextContent('JPEG');
     });
 
-    it('should disable the submit button', () => {
-      fixture.detectChanges();
+    it('should disable the submit button', async () => {
+      await selectFile(pdfFileMock);
 
-      selectFile(pdfFileMock);
-
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should not call changeAvatar on submit', () => {
-      fixture.detectChanges();
-
-      selectFile(pdfFileMock);
-      submitForm();
+    it('should not call changeAvatar on submit', async () => {
+      await selectFile(pdfFileMock);
+      await submitForm();
 
       expect(changeAvatarServiceMock.changeAvatar).not.toHaveBeenCalled();
-      expect(getErrorMessage()).toContain('JPEG');
+      expect(queryErrorMessage()).toHaveTextContent('JPEG');
     });
   });
 
   describe('submit without a selected file', () => {
     it('should disable the submit button', () => {
-      fixture.detectChanges();
-
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should not call changeAvatar and should ask to select a file', () => {
-      fixture.detectChanges();
-
-      submitForm();
+    it('should not call changeAvatar and should ask to select a file', async () => {
+      await submitForm();
 
       expect(changeAvatarServiceMock.changeAvatar).not.toHaveBeenCalled();
-      expect(getErrorMessage()).toContain('Select a file');
+      expect(queryErrorMessage()).toHaveTextContent('Select a file');
     });
   });
 
   describe('valid submit', () => {
-    it('should call changeAvatar with the selected file', () => {
-      fixture.detectChanges();
-
-      selectFile(pngFileMock);
-      submitForm();
+    it('should call changeAvatar with the selected file', async () => {
+      await selectFile(pngFileMock);
+      await user.click(getSubmitButton());
 
       expect(changeAvatarServiceMock.changeAvatar).toHaveBeenCalledOnce();
       expect(changeAvatarServiceMock.changeAvatar).toHaveBeenCalledWith({ file: pngFileMock });
@@ -195,62 +165,52 @@ describe('ChangeAvatarForm', () => {
   });
 
   describe('submitting state', () => {
-    it('should disable the file input and the submit button', () => {
+    it('should disable the file input and the submit button', async () => {
       changeAvatarServiceMock.isSubmitting.set(true);
-      fixture.detectChanges();
+      await fixture.whenStable();
 
-      expect(getFileInput().disabled).toBe(true);
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(getFileInput()).toBeDisabled();
+      expect(getSubmitButton()).toBeDisabled();
     });
   });
 
   describe('backend rejects the submission', () => {
-    it('should not show a submit error and should keep the selected file with its preview', () => {
-      fixture.detectChanges();
+    it('should not show a submit error and should keep the selected file with its preview', async () => {
+      await selectFile(pngFileMock);
+      await user.click(getSubmitButton());
 
-      selectFile(pngFileMock);
-      submitForm();
-
-      fixture.detectChanges();
-
-      expect(getErrorMessage()).toBe('');
-      expect(getAvatarImage()?.getAttribute('src')).toBe('blob:mock/1');
+      expect(queryErrorMessage()).not.toBeInTheDocument();
+      expect(getPreviewSrc()).toBe('blob:mock/1');
     });
   });
 
   describe('success state', () => {
-    it('should reset the form to the state without a selected file and preview, without a manual application tick', () => {
-      fixture.detectChanges();
-
-      selectFile(pngFileMock);
+    it('should reset the form to the state without a selected file and preview, without a manual application tick', async () => {
+      await selectFile(pngFileMock);
 
       changeAvatarServiceMock.succeeded$.next();
-      fixture.detectChanges();
+      await fixture.whenStable();
 
-      expect(getAvatarImage()?.getAttribute('src')).toBe(currentUserMock.avatar);
+      expect(getPreviewSrc()).toBe(currentUserMock.avatar);
 
-      submitForm();
+      await submitForm();
 
       expect(changeAvatarServiceMock.changeAvatar).not.toHaveBeenCalled();
-      expect(getErrorMessage()).toContain('Select a file');
+      expect(queryErrorMessage()).toHaveTextContent('Select a file');
     });
   });
 
   describe('object url lifecycle', () => {
-    it('should revoke the previous object url when another file is selected', () => {
-      fixture.detectChanges();
-
-      selectFile(pngFileMock);
-      selectFile(pngFileMock);
+    it('should revoke the previous object url when another file is selected', async () => {
+      await selectFile(pngFileMock);
+      await selectFile(otherPngFileMock);
 
       expect(revokeObjectUrlSpy).toHaveBeenCalledOnce();
       expect(revokeObjectUrlSpy).toHaveBeenCalledWith('blob:mock/1');
     });
 
-    it('should revoke the current object url on destroy', () => {
-      fixture.detectChanges();
-
-      selectFile(pngFileMock);
+    it('should revoke the current object url on destroy', async () => {
+      await selectFile(pngFileMock);
 
       fixture.destroy();
 

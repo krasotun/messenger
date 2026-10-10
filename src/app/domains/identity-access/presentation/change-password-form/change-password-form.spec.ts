@@ -1,4 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { outputBinding } from '@angular/core';
+import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
+import { userEvent, UserEvent } from '@testing-library/user-event';
 
 import { ChangePasswordService } from '../../application/change-password/change-password.service';
 
@@ -6,189 +8,164 @@ import { ChangePasswordForm } from './change-password-form';
 
 import { IdentityMocks } from '@domains/identity-access/testing';
 
+const requiredFieldError = 'This field is required';
+const mismatchError = 'Values do not match';
+
 describe('ChangePasswordForm', () => {
   let changePasswordServiceMock: ReturnType<typeof IdentityMocks.changePasswordService>;
-  let component: ChangePasswordForm;
-  let fixture: ComponentFixture<ChangePasswordForm>;
+  let user: UserEvent;
 
-  const submitForm = () => {
-    const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
-    formElement.dispatchEvent(new Event('submit'));
+  const renderForm = async () => {
+    const passwordChanged = vi.fn();
+
+    const result = await render(ChangePasswordForm, {
+      bindings: [outputBinding('passwordChanged', passwordChanged)],
+      providers: [{ provide: ChangePasswordService, useValue: changePasswordServiceMock }],
+      waitForStableOnRender: true,
+    });
+
+    return { ...result, passwordChanged };
   };
 
-  const getSubmitButton = (): HTMLButtonElement =>
-    fixture.nativeElement.querySelector('button[type="submit"]');
+  const getOldPasswordField = (): HTMLElement => screen.getByLabelText('Old password');
+  const getNewPasswordField = (): HTMLElement => screen.getByLabelText('New password');
+  const getRepeatField = (): HTMLElement => screen.getByLabelText('Repeat new password');
+  const getSubmitButton = (): HTMLElement => screen.getByRole('button', { name: 'Save' });
 
-  const getFieldErrors = (): HTMLElement[] =>
-    Array.from(fixture.nativeElement.querySelectorAll('.form-field__error'));
+  const fillForm = async (oldPassword: string, newPassword: string, repeatNewPassword: string) => {
+    await user.type(getOldPasswordField(), oldPassword);
+    await user.type(getNewPasswordField(), newPassword);
+    await user.type(getRepeatField(), repeatNewPassword);
+  };
 
   const getRepeatFieldError = (): HTMLElement | null =>
-    fixture.nativeElement.querySelector('.change-password-form__repeat-field .form-field__error');
+    screen.queryByText(mismatchError)?.closest('.change-password-form__repeat-field') ?? null;
 
-  const fillForm = (oldPassword: string, newPassword: string, repeatNewPassword: string) => {
-    component.changePasswordForm.setValue({
-      oldPassword,
-      newPassword,
-      repeatNewPassword,
-    });
-  };
-
-  beforeEach(async () => {
+  beforeEach(() => {
+    user = userEvent.setup();
     changePasswordServiceMock = IdentityMocks.changePasswordService();
-
-    await TestBed.configureTestingModule({
-      imports: [ChangePasswordForm],
-      providers: [
-        {
-          provide: ChangePasswordService,
-          useValue: changePasswordServiceMock,
-        },
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ChangePasswordForm);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should create', async () => {
+    const { fixture } = await renderForm();
+
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   describe('opened form', () => {
-    it('should show three empty fields', () => {
-      fixture.detectChanges();
+    it('should show three empty fields', async () => {
+      await renderForm();
 
-      expect(component.changePasswordForm.getRawValue()).toEqual({
-        oldPassword: '',
-        newPassword: '',
-        repeatNewPassword: '',
-      });
-
-      const inputEls: HTMLInputElement[] = Array.from(
-        fixture.nativeElement.querySelectorAll('input'),
-      );
-
-      expect(inputEls).toHaveLength(3);
-
-      inputEls.forEach((inputEl) => {
-        expect(inputEl.value).toBe('');
-      });
+      expect(getOldPasswordField()).toHaveValue('');
+      expect(getNewPasswordField()).toHaveValue('');
+      expect(getRepeatField()).toHaveValue('');
     });
   });
 
   describe('submit with empty fields', () => {
-    it('should not call changePassword', () => {
-      fixture.detectChanges();
+    // Кнопка выключена, пользовательского пути к submit нет: проверяем защиту.
+    it('should not call changePassword', async () => {
+      const { container } = await renderForm();
 
-      submitForm();
+      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
       expect(changePasswordServiceMock.changePassword).not.toHaveBeenCalled();
     });
   });
 
   describe('repeat does not match the new password', () => {
-    it('should not call changePassword', () => {
-      fixture.detectChanges();
+    it('should not call changePassword', async () => {
+      const { container } = await renderForm();
 
-      fillForm('oldPassword', 'newPassword', 'otherPassword');
+      await fillForm('oldPassword', 'newPassword', 'otherPassword');
 
-      submitForm();
+      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
       expect(changePasswordServiceMock.changePassword).not.toHaveBeenCalled();
     });
 
-    it('should disable the submit button after the repeat field loses focus', () => {
-      fixture.detectChanges();
+    it('should disable the submit button after the repeat field loses focus', async () => {
+      await renderForm();
 
-      fillForm('oldPassword', 'newPassword', 'otherPassword');
-      component.changePasswordForm.controls.repeatNewPassword.markAsTouched();
-      fixture.detectChanges();
+      await fillForm('oldPassword', 'newPassword', 'otherPassword');
+      await user.tab();
 
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should show a mismatch message under the repeat field', () => {
-      fixture.detectChanges();
+    it('should show a mismatch message under the repeat field', async () => {
+      await renderForm();
 
-      fillForm('oldPassword', 'newPassword', 'otherPassword');
-      component.changePasswordForm.controls.repeatNewPassword.markAsTouched();
-      fixture.detectChanges();
+      await fillForm('oldPassword', 'newPassword', 'otherPassword');
+      await user.tab();
 
-      expect(getRepeatFieldError()?.textContent?.trim()).toBe('Values do not match');
+      expect(getRepeatFieldError()).not.toBeNull();
     });
 
-    it('should hide the mismatch message once the repeat field is edited to match', () => {
-      fixture.detectChanges();
+    it('should hide the mismatch message once the repeat field is edited to match', async () => {
+      await renderForm();
 
-      fillForm('oldPassword', 'newPassword', 'otherPassword');
-      component.changePasswordForm.controls.repeatNewPassword.markAsTouched();
-      fixture.detectChanges();
+      await fillForm('oldPassword', 'newPassword', 'otherPassword');
+      await user.tab();
 
-      component.changePasswordForm.controls.repeatNewPassword.setValue('newPassword');
-      fixture.detectChanges();
+      await user.clear(getRepeatField());
+      await user.type(getRepeatField(), 'newPassword');
 
-      expect(getRepeatFieldError()).toBeNull();
+      expect(screen.queryByText(mismatchError)).not.toBeInTheDocument();
     });
 
-    it('should hide the mismatch message once the new password field is edited to match', () => {
-      fixture.detectChanges();
+    it('should hide the mismatch message once the new password field is edited to match', async () => {
+      await renderForm();
 
-      fillForm('oldPassword', 'newPassword', 'otherPassword');
-      component.changePasswordForm.controls.repeatNewPassword.markAsTouched();
-      fixture.detectChanges();
+      await fillForm('oldPassword', 'newPassword', 'otherPassword');
+      await user.tab();
 
-      component.changePasswordForm.controls.newPassword.setValue('otherPassword');
-      fixture.detectChanges();
+      await user.clear(getNewPasswordField());
+      await user.type(getNewPasswordField(), 'otherPassword');
 
-      expect(getRepeatFieldError()).toBeNull();
+      expect(screen.queryByText(mismatchError)).not.toBeInTheDocument();
     });
   });
 
   describe('submit button availability', () => {
-    it('should disable the submit button when fields are empty', () => {
-      fixture.detectChanges();
+    it('should disable the submit button when fields are empty', async () => {
+      await renderForm();
 
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should not show field errors on an untouched form', () => {
-      fixture.detectChanges();
+    it('should not show field errors on an untouched form', async () => {
+      await renderForm();
 
-      expect(getFieldErrors()).toHaveLength(0);
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(screen.queryByText(requiredFieldError)).not.toBeInTheDocument();
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should show a field error after the field loses focus while it stays empty', () => {
-      fixture.detectChanges();
+    it('should show a field error after the field loses focus while it stays empty', async () => {
+      await renderForm();
 
-      component.changePasswordForm.controls.oldPassword.markAsTouched();
-      fixture.detectChanges();
+      await user.click(getOldPasswordField());
+      await user.tab();
 
-      const fieldErrors = getFieldErrors();
-
-      expect(fieldErrors.length).toBeGreaterThan(0);
-      expect(fieldErrors.some((error) => error.textContent?.trim())).toBe(true);
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(screen.getByText(requiredFieldError)).toBeInTheDocument();
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should enable the submit button once the form becomes valid', () => {
-      fixture.detectChanges();
+    it('should enable the submit button once the form becomes valid', async () => {
+      await renderForm();
 
-      fillForm('oldPassword', 'newPassword', 'newPassword');
-      fixture.detectChanges();
+      await fillForm('oldPassword', 'newPassword', 'newPassword');
 
-      expect(getSubmitButton().disabled).toBe(false);
+      expect(getSubmitButton()).toBeEnabled();
     });
   });
 
   describe('valid submit', () => {
-    it('should call changePassword with the old and the new password only', () => {
-      fixture.detectChanges();
+    it('should call changePassword with the old and the new password only', async () => {
+      await renderForm();
 
-      fillForm('oldPassword', 'newPassword', 'newPassword');
-
-      submitForm();
+      await fillForm('oldPassword', 'newPassword', 'newPassword');
+      await user.click(getSubmitButton());
 
       expect(changePasswordServiceMock.changePassword).toHaveBeenCalledOnce();
       expect(changePasswordServiceMock.changePassword).toHaveBeenCalledWith({
@@ -199,48 +176,42 @@ describe('ChangePasswordForm', () => {
   });
 
   describe('submitting state', () => {
-    it('should disable submit button', () => {
+    it('should disable submit button', async () => {
+      const { fixture } = await renderForm();
+
       changePasswordServiceMock.isSubmitting.set(true);
-      fixture.detectChanges();
+      await fixture.whenStable();
 
-      const submitButton: HTMLButtonElement =
-        fixture.nativeElement.querySelector('button[type="submit"]');
-
-      expect(submitButton.disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should disable all controls', () => {
+    it('should disable all controls', async () => {
+      const { fixture } = await renderForm();
+
       changePasswordServiceMock.isSubmitting.set(true);
-      fixture.detectChanges();
+      await fixture.whenStable();
 
-      const inputEls: HTMLInputElement[] = fixture.nativeElement.querySelectorAll('input');
-
-      inputEls.forEach((inputEl) => {
-        expect(inputEl.disabled).toBe(true);
-      });
+      expect(getOldPasswordField()).toBeDisabled();
+      expect(getNewPasswordField()).toBeDisabled();
+      expect(getRepeatField()).toBeDisabled();
     });
   });
 
   describe('error state', () => {
-    it('should not render a submit error in the form', () => {
-      fixture.detectChanges();
+    it('should not render a submit error in the form', async () => {
+      const { container } = await renderForm();
 
-      const errorElement: HTMLElement | null = fixture.nativeElement.querySelector(
-        '.change-password-form__error',
-      );
-
-      expect(errorElement).toBeNull();
+      expect(container.querySelector('.change-password-form__error')).toBeNull();
     });
   });
 
   describe('success state', () => {
-    it('should emit passwordChanged when the service reports success, without a manual application tick', () => {
-      const passwordChangedSpy = vi.fn();
-      component.passwordChanged.subscribe(passwordChangedSpy);
+    it('should emit passwordChanged when the service reports success, without a manual application tick', async () => {
+      const { passwordChanged } = await renderForm();
 
       changePasswordServiceMock.succeeded$.next();
 
-      expect(passwordChangedSpy).toHaveBeenCalledOnce();
+      expect(passwordChanged).toHaveBeenCalledOnce();
     });
   });
 });
