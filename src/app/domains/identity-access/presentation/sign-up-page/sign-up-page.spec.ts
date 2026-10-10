@@ -1,15 +1,17 @@
 import { Component, output } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { render, screen } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
 
 import { SignUpForm } from '../sign-up-form/sign-up-form';
 
 import { SignUpPage } from './sign-up-page';
 
+// Заглушка формы дает кнопку, которой тест сообщает об успешной отправке.
 @Component({
   selector: 'app-sign-up-form',
-  template: '',
+  template: '<button type="button" (click)="signUpSucceeded.emit()">Sign up succeeded</button>',
 })
 class SignUpFormStub {
   readonly signUpSucceeded = output<void>();
@@ -22,41 +24,25 @@ class SignUpFormStub {
 class SignInPageStub {}
 
 describe('SignUp', () => {
-  let component: SignUpPage;
-  let fixture: ComponentFixture<SignUpPage>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [SignUpPage, SignUpFormStub],
+  const renderPage = () =>
+    render(SignUpPage, {
       providers: [provideRouter([{ path: 'sign-in', component: SignInPageStub }])],
-    })
-      .overrideComponent(SignUpPage, {
-        remove: {
-          imports: [SignUpForm],
-        },
-        add: {
-          imports: [SignUpFormStub],
-        },
-      })
-      .compileComponents();
+      importOverrides: [{ replace: SignUpForm, with: SignUpFormStub }],
+    });
 
-    fixture = TestBed.createComponent(SignUpPage);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
-  });
+  it('should create', async () => {
+    const { fixture } = await renderPage();
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   describe('goToSignIn', () => {
-    it('should navigate to sign-in page', () => {
-      const router = TestBed.inject(Router);
-      const navigateSpy = vi.spyOn(router, 'navigate');
+    it('should navigate to sign-in page', async () => {
+      const user = userEvent.setup();
+      await renderPage();
+      const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate');
 
-      const signUpForm = fixture.debugElement.query(By.directive(SignUpFormStub))
-        .componentInstance as SignUpFormStub;
-      signUpForm.signUpSucceeded.emit();
+      await user.click(screen.getByRole('button', { name: 'Sign up succeeded' }));
 
       expect(navigateSpy).toHaveBeenCalledWith(['sign-in']);
     });

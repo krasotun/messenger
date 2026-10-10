@@ -1,32 +1,21 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { inputBinding } from '@angular/core';
+import { render, screen } from '@testing-library/angular/zoneless';
 
 import { AuthFormShell } from './auth-form-shell';
 
 describe('AuthFormShell', () => {
-  let component: AuthFormShell;
-  let fixture: ComponentFixture<AuthFormShell>;
+  const renderShell = () =>
+    render(AuthFormShell, { bindings: [inputBinding('formTitle', () => 'Mock title')] });
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AuthFormShell],
-    }).compileComponents();
+  it('should create', async () => {
+    const { fixture } = await renderShell();
 
-    fixture = TestBed.createComponent(AuthFormShell);
-
-    fixture.componentRef.setInput('formTitle', 'Mock title');
-
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  it('should render form title', async () => {
+    await renderShell();
 
-  it('should render form title', () => {
-    const titleEl: HTMLHeadingElement =
-      fixture.nativeElement.querySelector('.auth-form-shell__title');
-
-    expect(titleEl.textContent).toContain('Mock title');
+    expect(screen.getByRole('heading', { name: 'Mock title' })).toBeInTheDocument();
   });
 });

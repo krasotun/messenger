@@ -1,6 +1,8 @@
 import { Component, signal, WritableSignal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture } from '@angular/core/testing';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
 
 import { Form } from './form';
 
@@ -60,21 +62,15 @@ class RequireChangesHost {
 
 describe('Form', () => {
   let fixture: ComponentFixture<TestHost>;
+  let container: HTMLElement;
   let host: TestHost;
 
-  const getSubmitButton = (): HTMLButtonElement =>
-    fixture.nativeElement.querySelector('button[type="submit"]');
-  const getFormEl = (): HTMLFormElement => fixture.nativeElement.querySelector('form');
-  const getFieldInput = (): HTMLInputElement => fixture.nativeElement.querySelector('input');
+  const getSubmitButton = (): HTMLElement => screen.getByRole('button', { name: 'Submit' });
+  const getFieldInput = (): HTMLElement => screen.getByRole('textbox');
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [TestHost],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(TestHost);
+    ({ fixture, container } = await render(TestHost, { waitForStableOnRender: true }));
     host = fixture.componentInstance;
-    await fixture.whenStable();
   });
 
   it('should create', () => {
@@ -82,49 +78,49 @@ describe('Form', () => {
   });
 
   it('should render the submit label', () => {
-    expect(getSubmitButton().textContent).toContain('Submit');
+    expect(getSubmitButton()).toBeInTheDocument();
   });
 
   it('should disable the submit button while the form is invalid', () => {
-    expect(getSubmitButton().disabled).toBe(true);
+    expect(getSubmitButton()).toBeDisabled();
   });
 
   it('should enable the submit button once the form becomes valid', async () => {
-    host.group.setValue({ name: 'a value' });
-    await fixture.whenStable();
+    await userEvent.setup().type(getFieldInput(), 'a value');
 
-    expect(getSubmitButton().disabled).toBe(false);
+    expect(getSubmitButton()).toBeEnabled();
   });
 
-  it('should reach the caller when a valid form is submitted', () => {
-    host.group.setValue({ name: 'a value' });
+  it('should reach the caller when a valid form is submitted', async () => {
+    const user = userEvent.setup();
 
-    getFormEl().dispatchEvent(new Event('submit'));
+    await user.type(getFieldInput(), 'a value');
+    await user.click(getSubmitButton());
 
     expect(host.submitted).toHaveBeenCalledOnce();
   });
 
+  // Кнопка у невалидной формы выключена: событие отправки идет напрямую.
   it('should not reach the caller when an invalid form is submitted', () => {
-    getFormEl().dispatchEvent(new Event('submit'));
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
     expect(host.submitted).not.toHaveBeenCalled();
   });
 
   it('should disable the submit button while submitting', async () => {
-    host.group.setValue({ name: 'a value' });
-    await fixture.whenStable();
+    await userEvent.setup().type(getFieldInput(), 'a value');
 
     host.isSubmitting.set(true);
     await fixture.whenStable();
 
-    expect(getSubmitButton().disabled).toBe(true);
+    expect(getSubmitButton()).toBeDisabled();
   });
 
   it('should disable projected fields while submitting', async () => {
     host.isSubmitting.set(true);
     await fixture.whenStable();
 
-    expect(getFieldInput().disabled).toBe(true);
+    expect(getFieldInput()).toBeDisabled();
   });
 
   it('should enable projected fields again once submitting ends', async () => {
@@ -134,36 +130,27 @@ describe('Form', () => {
     host.isSubmitting.set(false);
     await fixture.whenStable();
 
-    expect(getFieldInput().disabled).toBe(false);
+    expect(getFieldInput()).toBeEnabled();
   });
 });
 
 describe('Form with requireChanges', () => {
-  let fixture: ComponentFixture<RequireChangesHost>;
-  let host: RequireChangesHost;
-
-  const getSubmitButton = (): HTMLButtonElement =>
-    fixture.nativeElement.querySelector('button[type="submit"]');
+  const getSubmitButton = (): HTMLElement => screen.getByRole('button', { name: 'Save' });
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [RequireChangesHost],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(RequireChangesHost);
-    host = fixture.componentInstance;
-    await fixture.whenStable();
+    await render(RequireChangesHost, { waitForStableOnRender: true });
   });
 
   it('should disable the submit button for an untouched valid form', () => {
-    expect(getSubmitButton().disabled).toBe(true);
+    expect(getSubmitButton()).toBeDisabled();
   });
 
   it('should enable the submit button once the value changes', async () => {
-    host.group.markAsDirty();
-    host.group.setValue({ name: 'another value' });
-    await fixture.whenStable();
+    const user = userEvent.setup();
 
-    expect(getSubmitButton().disabled).toBe(false);
+    await user.clear(screen.getByRole('textbox'));
+    await user.type(screen.getByRole('textbox'), 'another value');
+
+    expect(getSubmitButton()).toBeEnabled();
   });
 });

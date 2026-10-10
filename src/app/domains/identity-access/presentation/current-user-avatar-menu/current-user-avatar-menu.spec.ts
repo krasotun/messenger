@@ -1,6 +1,8 @@
 import { signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import { render, screen } from '@testing-library/angular/zoneless';
+import { userEvent, UserEvent } from '@testing-library/user-event';
 import { of, throwError } from 'rxjs';
 
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
@@ -20,9 +22,11 @@ const currentUserMock = IdentityMocks.currentUser({
   displayName: 'displayName',
 });
 
+const avatarLabel = `Avatar ${currentUserMock.displayName}`;
+
 describe('CurrentUserAvatarMenu', () => {
-  let component: CurrentUserAvatarMenu;
   let fixture: ComponentFixture<CurrentUserAvatarMenu>;
+  let user: UserEvent;
 
   const currentUser = signal<Nullable<CurrentUser>>(currentUserMock);
 
@@ -35,54 +39,29 @@ describe('CurrentUserAvatarMenu', () => {
   };
   let modalServiceMock: ReturnType<typeof ModalMocks.modalService>;
 
-  function openMenuAndGetLogoutButton(): HTMLButtonElement {
-    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.current-user-avatar-menu__trigger',
-    );
-
-    popoverTrigger.dispatchEvent(new Event('click'));
-
-    fixture.detectChanges();
-
-    const buttons = Array.from(
-      document.querySelectorAll('.current-user-avatar-menu__action'),
-    ) as HTMLButtonElement[];
-
-    const logoutButton = buttons.find((button) => button.textContent?.trim() === 'Logout');
-
-    expect(logoutButton).toBeTruthy();
-
-    return logoutButton as HTMLButtonElement;
-  }
+  // Меню открывается в overlay, вне корня компонента: поиск идет по screen.
+  const clickMenuAction = async (name: string): Promise<void> => {
+    await user.click(screen.getByRole('button', { name: avatarLabel }));
+    await user.click(screen.getByRole('button', { name }));
+    await fixture.whenStable();
+  };
 
   beforeEach(async () => {
+    user = userEvent.setup();
     currentUser.set(currentUserMock);
     currentSessionServiceMock.logout.mockReset();
     currentSessionServiceMock.logout.mockReturnValue(of(void 0));
     routerMock.navigateByUrl.mockReset();
     modalServiceMock = ModalMocks.modalService();
 
-    await TestBed.configureTestingModule({
-      imports: [CurrentUserAvatarMenu],
+    ({ fixture } = await render(CurrentUserAvatarMenu, {
       providers: [
-        {
-          provide: CurrentSessionService,
-          useValue: currentSessionServiceMock,
-        },
-        {
-          provide: Router,
-          useValue: routerMock,
-        },
-        {
-          provide: ModalService,
-          useValue: modalServiceMock,
-        },
+        { provide: CurrentSessionService, useValue: currentSessionServiceMock },
+        { provide: Router, useValue: routerMock },
+        { provide: ModalService, useValue: modalServiceMock },
       ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(CurrentUserAvatarMenu);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+      waitForStableOnRender: true,
+    }));
   });
 
   afterEach(() => {
@@ -90,22 +69,14 @@ describe('CurrentUserAvatarMenu', () => {
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders avatar for current session user', async () => {
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const avatarEl = fixture.nativeElement.querySelector('.avatar');
-
-    expect(avatarEl).not.toBe(null);
-
-    const avatarImg = avatarEl.querySelector('.avatar__image');
-
-    expect(avatarImg.getAttribute('src')).toBe(currentUserMock.avatar);
-
-    expect(avatarImg.getAttribute('alt')).toBe(`Avatar ${currentUserMock.displayName}`);
+  it('renders avatar for current session user', () => {
+    expect(screen.getByRole('img', { name: avatarLabel })).toHaveAttribute(
+      'src',
+      currentUserMock.avatar,
+    );
   });
 
   it('renders one-letter fallback when current session user has no avatar', async () => {
@@ -114,79 +85,25 @@ describe('CurrentUserAvatarMenu', () => {
       avatar: null,
     });
 
-    fixture.detectChanges();
     await fixture.whenStable();
 
-    const avatarFallback = fixture.nativeElement.querySelector('.avatar__fallback');
-
-    expect(avatarFallback).not.toBe(null);
-    expect(avatarFallback.textContent.trim()).toBe('D');
-    expect(avatarFallback.getAttribute('aria-label')).toBe(`Avatar ${currentUserMock.displayName}`);
+    expect(screen.getByRole('img', { name: avatarLabel })).toHaveTextContent('D');
   });
 
   it('calls logout through CurrentSessionService when Logout is clicked', async () => {
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.current-user-avatar-menu__trigger',
-    );
-
-    popoverTrigger.dispatchEvent(new Event('click'));
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const buttons = Array.from(
-      document.querySelectorAll('.current-user-avatar-menu__action'),
-    ) as HTMLButtonElement[];
-
-    const logoutButton = buttons.find((button) => button.textContent?.trim() === 'Logout');
-
-    expect(logoutButton).toBeTruthy();
-
-    logoutButton?.dispatchEvent(new Event('click'));
+    await clickMenuAction('Logout');
 
     expect(currentSessionServiceMock.logout).toHaveBeenCalledOnce();
   });
 
   it('navigates to sign in after successful logout', async () => {
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const logoutButton = openMenuAndGetLogoutButton();
-
-    logoutButton.dispatchEvent(new Event('click'));
-
-    await fixture.whenStable();
+    await clickMenuAction('Logout');
 
     expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/sign-in');
   });
 
   it('opens update profile modal when Edit profile is clicked', async () => {
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.current-user-avatar-menu__trigger',
-    );
-
-    popoverTrigger.dispatchEvent(new Event('click'));
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const buttons = Array.from(
-      document.querySelectorAll('.current-user-avatar-menu__action'),
-    ) as HTMLButtonElement[];
-
-    const editProfileButton = buttons.find(
-      (button) => button.textContent?.trim() === 'Edit profile',
-    );
-
-    expect(editProfileButton).toBeTruthy();
-
-    editProfileButton?.dispatchEvent(new Event('click'));
+    await clickMenuAction('Edit profile');
 
     expect(modalServiceMock.open).toHaveBeenCalledWith(UpdateProfileModalContent, {
       title: 'Edit profile',
@@ -194,58 +111,13 @@ describe('CurrentUserAvatarMenu', () => {
   });
 
   it('closes the menu when Edit profile is clicked', async () => {
-    fixture.detectChanges();
-    await fixture.whenStable();
+    await clickMenuAction('Edit profile');
 
-    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.current-user-avatar-menu__trigger',
-    );
-
-    popoverTrigger.dispatchEvent(new Event('click'));
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const buttons = Array.from(
-      document.querySelectorAll('.current-user-avatar-menu__action'),
-    ) as HTMLButtonElement[];
-
-    const editProfileButton = buttons.find(
-      (button) => button.textContent?.trim() === 'Edit profile',
-    );
-
-    editProfileButton?.dispatchEvent(new Event('click'));
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(document.querySelector('.current-user-avatar-menu__actions')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Edit profile' })).not.toBeInTheDocument();
   });
 
   it('opens the change password modal when Change password is clicked', async () => {
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.current-user-avatar-menu__trigger',
-    );
-
-    popoverTrigger.dispatchEvent(new Event('click'));
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const buttons = Array.from(
-      document.querySelectorAll('.current-user-avatar-menu__action'),
-    ) as HTMLButtonElement[];
-
-    const changePasswordButton = buttons.find(
-      (button) => button.textContent?.trim() === 'Change password',
-    );
-
-    expect(changePasswordButton).toBeTruthy();
-
-    changePasswordButton?.dispatchEvent(new Event('click'));
+    await clickMenuAction('Change password');
 
     expect(modalServiceMock.open).toHaveBeenCalledWith(ChangePasswordModalContent, {
       title: 'Change password',
@@ -253,45 +125,15 @@ describe('CurrentUserAvatarMenu', () => {
   });
 
   it('closes the menu when Change password is clicked', async () => {
-    fixture.detectChanges();
-    await fixture.whenStable();
+    await clickMenuAction('Change password');
 
-    const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.current-user-avatar-menu__trigger',
-    );
-
-    popoverTrigger.dispatchEvent(new Event('click'));
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const buttons = Array.from(
-      document.querySelectorAll('.current-user-avatar-menu__action'),
-    ) as HTMLButtonElement[];
-
-    const changePasswordButton = buttons.find(
-      (button) => button.textContent?.trim() === 'Change password',
-    );
-
-    changePasswordButton?.dispatchEvent(new Event('click'));
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(document.querySelector('.current-user-avatar-menu__actions')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Change password' })).not.toBeInTheDocument();
   });
 
   it('navigates to sign in after logout error', async () => {
     currentSessionServiceMock.logout.mockReturnValue(throwError(() => 'mockError'));
 
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const logoutButton = openMenuAndGetLogoutButton();
-
-    logoutButton.dispatchEvent(new Event('click'));
-
-    await fixture.whenStable();
+    await clickMenuAction('Logout');
 
     expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/sign-in');
   });

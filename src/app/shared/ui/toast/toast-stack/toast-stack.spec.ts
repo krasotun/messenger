@@ -1,4 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { inputBinding, outputBinding } from '@angular/core';
+import { render, screen } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
 
 import { ToastStack, ToastStackItem } from './toast-stack';
 
@@ -21,107 +23,74 @@ function makeItem(id: number, notification: Notification = successNotification):
 }
 
 describe('ToastStack', () => {
-  let fixture: ComponentFixture<ToastStack>;
+  const renderStack = async (items: ToastStackItem[]) => {
+    const closed = vi.fn();
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ToastStack],
-    }).compileComponents();
+    const result = await render(ToastStack, {
+      bindings: [inputBinding('items', () => items), outputBinding('closed', closed)],
+    });
 
-    fixture = TestBed.createComponent(ToastStack);
-  });
+    return { ...result, closed };
+  };
 
-  function titles(): string[] {
-    const hostEl: HTMLElement = fixture.nativeElement;
+  // У каждого тоста своя кнопка закрытия: по ним считаются показанные тосты.
+  const getToastCloseButtons = (): HTMLElement[] =>
+    screen.queryAllByRole('button', { name: 'Close notification' });
 
-    return Array.from(hostEl.querySelectorAll('.app-toast__title')).map(
-      (el) => el.textContent?.trim() ?? '',
-    );
-  }
+  const titles = (): string[] =>
+    screen
+      .queryAllByText(new RegExp(`^(${successNotification.title}|${errorNotification.title})$`))
+      .map((element) => element.textContent?.trim() ?? '');
 
-  it('should keep an already shown notification visible when another one appears', () => {
-    fixture.componentRef.setInput('items', [
-      makeItem(2, errorNotification),
-      makeItem(1, successNotification),
-    ]);
-
-    fixture.detectChanges();
+  it('should keep an already shown notification visible when another one appears', async () => {
+    await renderStack([makeItem(2, errorNotification), makeItem(1, successNotification)]);
 
     expect(titles()).toHaveLength(2);
     expect(titles()).toContain(successNotification.title);
     expect(titles()).toContain(errorNotification.title);
   });
 
-  it('should render items in the given order, newest first', () => {
-    fixture.componentRef.setInput('items', [
-      makeItem(2, errorNotification),
-      makeItem(1, successNotification),
-    ]);
-
-    fixture.detectChanges();
+  it('should render items in the given order, newest first', async () => {
+    await renderStack([makeItem(2, errorNotification), makeItem(1, successNotification)]);
 
     expect(titles()).toEqual([errorNotification.title, successNotification.title]);
   });
 
-  it('should render no more than three notifications', () => {
-    fixture.componentRef.setInput('items', [makeItem(4), makeItem(3), makeItem(2), makeItem(1)]);
+  it('should render no more than three notifications', async () => {
+    await renderStack([makeItem(4), makeItem(3), makeItem(2), makeItem(1)]);
 
-    fixture.detectChanges();
-
-    expect(titles().length).toBe(3);
+    expect(getToastCloseButtons()).toHaveLength(3);
   });
 
-  it('should evict the oldest notification when a fourth appears', () => {
-    fixture.componentRef.setInput('items', [
+  it('should evict the oldest notification when a fourth appears', async () => {
+    await renderStack([
       makeItem(4, errorNotification),
       makeItem(3, successNotification),
       makeItem(2, successNotification),
       makeItem(1, successNotification),
     ]);
 
-    fixture.detectChanges();
-
-    const hostEl: HTMLElement = fixture.nativeElement;
-
-    expect(hostEl.querySelectorAll('.app-toast').length).toBe(3);
-    expect(hostEl.querySelectorAll('.app-toast_error').length).toBe(1);
+    expect(getToastCloseButtons()).toHaveLength(3);
+    expect(screen.getByText(errorNotification.title)).toBeInTheDocument();
   });
 
-  it('should not collapse two notifications with identical content', () => {
-    fixture.componentRef.setInput('items', [
-      makeItem(2, successNotification),
-      makeItem(1, successNotification),
-    ]);
+  it('should not collapse two notifications with identical content', async () => {
+    await renderStack([makeItem(2, successNotification), makeItem(1, successNotification)]);
 
-    fixture.detectChanges();
-
-    const hostEl: HTMLElement = fixture.nativeElement;
-
-    expect(hostEl.querySelectorAll('.app-toast').length).toBe(2);
+    expect(getToastCloseButtons()).toHaveLength(2);
   });
 
-  it('should emit closed with the item id when a toast requests close', () => {
-    fixture.componentRef.setInput('items', [makeItem(1, successNotification)]);
-    fixture.detectChanges();
+  it('should emit closed with the item id when a toast requests close', async () => {
+    const { closed } = await renderStack([makeItem(1, successNotification)]);
 
-    const closedSpy = vi.fn();
-    fixture.componentInstance.closed.subscribe(closedSpy);
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Close notification' }));
 
-    const closeButtonEl: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.app-toast__close-button',
-    );
-
-    closeButtonEl.click();
-
-    expect(closedSpy).toHaveBeenCalledWith(1);
+    expect(closed).toHaveBeenCalledWith(1);
   });
 
-  it('should declare itself as a live region', () => {
-    fixture.componentRef.setInput('items', []);
-    fixture.detectChanges();
+  it('should declare itself as a live region', async () => {
+    const { container } = await renderStack([]);
 
-    const hostEl: HTMLElement = fixture.nativeElement;
-
-    expect(hostEl.getAttribute('aria-live')).toBe('polite');
+    expect(container).toHaveAttribute('aria-live', 'polite');
   });
 });

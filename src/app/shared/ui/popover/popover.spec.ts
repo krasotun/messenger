@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { render, screen } from '@testing-library/angular/zoneless';
+import { userEvent, UserEvent } from '@testing-library/user-event';
 
 import { Popover } from '../popover/popover';
 
@@ -32,174 +33,91 @@ class TestHost {}
 class TestHostWithTwoTriggers {}
 
 describe('Popover', () => {
-  let fixture: ComponentFixture<TestHost>;
+  let user: UserEvent;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [TestHost, TestHostWithTwoTriggers],
-    }).compileComponents();
+  // Панель открывается в CDK overlay, вне корня хоста: поиск идет по screen.
+  const queryPanels = (): NodeListOf<Element> =>
+    document.querySelectorAll('.cdk-overlay-container .app-popover-panel');
 
-    fixture = TestBed.createComponent(TestHost);
+  const openPopover = async (): Promise<void> => {
+    await user.click(screen.getByTestId('popover-trigger'));
 
-    fixture.detectChanges();
+    expect(screen.getByTestId('popover-content')).toBeInTheDocument();
+  };
 
-    await fixture.whenStable();
+  beforeEach(() => {
+    user = userEvent.setup();
   });
 
   afterEach(() => {
     document.body.querySelectorAll('.cdk-overlay-container').forEach((element) => element.remove());
   });
 
-  describe('rendering', () => {
-    it('should not render popover content by default', () => {
-      const contentEl = fixture.nativeElement.querySelector('[data-testid="popover-content"]');
+  const renderHost = () => render(TestHost, { waitForStableOnRender: true });
 
-      expect(contentEl).toBeNull();
+  describe('rendering', () => {
+    it('should not render popover content by default', async () => {
+      await renderHost();
+
+      expect(screen.queryByTestId('popover-content')).not.toBeInTheDocument();
     });
 
     it('should create popover panel in CDK overlay container after host click', async () => {
-      const hostEl: HTMLDivElement = fixture.nativeElement.querySelector(
-        '[data-testid="popover-trigger"]',
-      );
+      await renderHost();
 
-      hostEl.dispatchEvent(new Event('click'));
+      await openPopover();
 
-      fixture.detectChanges();
-
-      await fixture.whenStable();
-
-      const overlayContainer = document.querySelector('.cdk-overlay-container');
-
-      const popoverPanel = overlayContainer?.querySelector('.app-popover-panel');
-
-      expect(popoverPanel).toBeTruthy();
+      expect(
+        screen.getByTestId('popover-content').closest('.cdk-overlay-container'),
+      ).not.toBeNull();
+      expect(queryPanels()).toHaveLength(1);
     });
 
     it('should remove popover after second click', async () => {
-      const hostEl: HTMLDivElement = fixture.nativeElement.querySelector(
-        '[data-testid="popover-trigger"]',
-      );
+      await renderHost();
 
-      hostEl.dispatchEvent(new Event('click'));
+      await openPopover();
 
-      fixture.detectChanges();
+      await user.click(screen.getByTestId('popover-trigger'));
 
-      await fixture.whenStable();
-
-      const overlayContainer = document.querySelector('.cdk-overlay-container');
-
-      const popoverPanel = overlayContainer?.querySelector('.app-popover-panel');
-
-      expect(popoverPanel).toBeTruthy();
-
-      hostEl.dispatchEvent(new Event('click'));
-
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      const secondPopoverPanel = document.querySelector(
-        '.cdk-overlay-container .app-popover-panel',
-      );
-
-      expect(secondPopoverPanel).toBeNull();
+      expect(screen.queryByTestId('popover-content')).not.toBeInTheDocument();
+      expect(queryPanels()).toHaveLength(0);
     });
 
     it('Escape should remove popover', async () => {
-      const hostEl: HTMLDivElement = fixture.nativeElement.querySelector(
-        '[data-testid="popover-trigger"]',
-      );
+      await renderHost();
 
-      hostEl.dispatchEvent(new Event('click'));
+      await openPopover();
 
-      fixture.detectChanges();
+      await user.keyboard('{Escape}');
 
-      await fixture.whenStable();
-
-      const overlayContainer = document.querySelector('.cdk-overlay-container');
-
-      const popoverPanel = overlayContainer?.querySelector('.app-popover-panel');
-
-      expect(popoverPanel).toBeTruthy();
-
-      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-
-      fixture.detectChanges();
-
-      await fixture.whenStable();
-
-      const secondPopoverPanel = document.querySelector(
-        '.cdk-overlay-container .app-popover-panel',
-      );
-
-      expect(secondPopoverPanel).toBeNull();
+      expect(screen.queryByTestId('popover-content')).not.toBeInTheDocument();
+      expect(queryPanels()).toHaveLength(0);
     });
 
     it('outside click should remove popover', async () => {
-      const hostEl: HTMLDivElement = fixture.nativeElement.querySelector(
-        '[data-testid="popover-trigger"]',
-      );
+      await renderHost();
 
-      hostEl.dispatchEvent(new Event('click'));
+      await openPopover();
 
-      fixture.detectChanges();
+      await user.click(document.body);
 
-      await fixture.whenStable();
-
-      const overlayContainer = document.querySelector('.cdk-overlay-container');
-
-      const popoverPanel = overlayContainer?.querySelector('.app-popover-panel');
-
-      expect(popoverPanel).toBeTruthy();
-
-      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      const secondPopoverPanel = document.querySelector(
-        '.cdk-overlay-container .app-popover-panel',
-      );
-
-      expect(secondPopoverPanel).toBeNull();
+      expect(screen.queryByTestId('popover-content')).not.toBeInTheDocument();
+      expect(queryPanels()).toHaveLength(0);
     });
 
     it('should render only one popover when another trigger is clicked', async () => {
-      const fixtureWithTwoTriggers = TestBed.createComponent(TestHostWithTwoTriggers);
-      fixtureWithTwoTriggers.detectChanges();
-      await fixtureWithTwoTriggers.whenStable();
+      await render(TestHostWithTwoTriggers, { waitForStableOnRender: true });
 
-      const firstTriggerEl: HTMLDivElement = fixtureWithTwoTriggers.nativeElement.querySelector(
-        '[data-testid="first-popover-trigger"]',
-      );
-      const secondTriggerEl: HTMLDivElement = fixtureWithTwoTriggers.nativeElement.querySelector(
-        '[data-testid="second-popover-trigger"]',
-      );
+      await user.click(screen.getByTestId('first-popover-trigger'));
 
-      firstTriggerEl.dispatchEvent(new Event('click'));
-      fixtureWithTwoTriggers.detectChanges();
-      await fixtureWithTwoTriggers.whenStable();
+      expect(screen.getByTestId('first-popover-content')).toBeInTheDocument();
 
-      const firstPopoverContent = document.querySelector(
-        '.cdk-overlay-container [data-testid="first-popover-content"]',
-      );
+      await user.click(screen.getByTestId('second-popover-trigger'));
 
-      expect(firstPopoverContent).toBeTruthy();
-
-      secondTriggerEl.dispatchEvent(new Event('click'));
-      fixtureWithTwoTriggers.detectChanges();
-      await fixtureWithTwoTriggers.whenStable();
-
-      const firstPopoverContentAfterSecondClick = document.querySelector(
-        '.cdk-overlay-container [data-testid="first-popover-content"]',
-      );
-      const secondPopoverContent = document.querySelector(
-        '.cdk-overlay-container [data-testid="second-popover-content"]',
-      );
-      const popoverPanels = document.querySelectorAll('.cdk-overlay-container .app-popover-panel');
-
-      expect(firstPopoverContentAfterSecondClick).toBeNull();
-      expect(secondPopoverContent).toBeTruthy();
-      expect(popoverPanels).toHaveLength(1);
+      expect(screen.queryByTestId('first-popover-content')).not.toBeInTheDocument();
+      expect(screen.getByTestId('second-popover-content')).toBeInTheDocument();
+      expect(queryPanels()).toHaveLength(1);
     });
   });
 });

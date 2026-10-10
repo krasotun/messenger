@@ -1,4 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component, inputBinding, outputBinding } from '@angular/core';
+import { render, screen } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
 
 import { Toast } from './toast';
 
@@ -16,133 +18,119 @@ const errorNotification: Notification = {
   text: 'Wrong password',
 };
 
+const firstClosedSpy = vi.fn();
+const secondClosedSpy = vi.fn();
+
+@Component({
+  imports: [Toast],
+  template: `
+    <app-toast [notification]="first" [delayMs]="1000" (closed)="firstClosed()"></app-toast>
+    <app-toast [notification]="second" [delayMs]="2000" (closed)="secondClosed()"></app-toast>
+  `,
+})
+class TwoToastsHost {
+  readonly first = successNotification;
+  readonly second = errorNotification;
+  readonly firstClosed = firstClosedSpy;
+  readonly secondClosed = secondClosedSpy;
+}
+
 describe('Toast', () => {
-  let fixture: ComponentFixture<Toast>;
+  const renderToast = async (notification: Notification, delayMs?: number) => {
+    const closed = vi.fn();
 
-  beforeEach(async () => {
+    const result = await render(Toast, {
+      bindings: [
+        inputBinding('notification', () => notification),
+        ...(delayMs === undefined ? [] : [inputBinding('delayMs', () => delayMs)]),
+        outputBinding('closed', closed),
+      ],
+    });
+
+    return { ...result, closed };
+  };
+
+  beforeEach(() => {
     vi.useFakeTimers();
-
-    await TestBed.configureTestingModule({
-      imports: [Toast],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(Toast);
-    fixture.componentRef.setInput('notification', successNotification);
-
-    fixture.detectChanges();
   });
 
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  it('should render notification title and text', () => {
-    const toastEl: HTMLElement = fixture.nativeElement;
+  it('should render notification title and text', async () => {
+    await renderToast(successNotification);
 
-    expect(toastEl.querySelector('.app-toast__title')?.textContent?.trim()).toBe('Password change');
-    expect(toastEl.querySelector('.app-toast__text')?.textContent?.trim()).toBe(
-      'Password changed successfully',
-    );
+    expect(screen.getByText('Password change')).toBeInTheDocument();
+    expect(screen.getByText('Password changed successfully')).toBeInTheDocument();
   });
 
-  it('should apply success modifier class for success kind', () => {
-    const toastEl: HTMLElement = fixture.nativeElement;
+  it('should apply success modifier class for success kind', async () => {
+    const { container } = await renderToast(successNotification);
 
-    expect(toastEl.classList.contains('app-toast_success')).toBe(true);
-    expect(toastEl.classList.contains('app-toast_error')).toBe(false);
+    expect(container).toHaveClass('app-toast_success');
+    expect(container).not.toHaveClass('app-toast_error');
   });
 
-  it('should apply error modifier class for error kind', () => {
-    fixture.componentRef.setInput('notification', errorNotification);
-    fixture.detectChanges();
+  it('should apply error modifier class for error kind', async () => {
+    const { container } = await renderToast(errorNotification);
 
-    const toastEl: HTMLElement = fixture.nativeElement;
-
-    expect(toastEl.classList.contains('app-toast_error')).toBe(true);
-    expect(toastEl.classList.contains('app-toast_success')).toBe(false);
+    expect(container).toHaveClass('app-toast_error');
+    expect(container).not.toHaveClass('app-toast_success');
   });
 
   describe('closing by button', () => {
-    it('should emit closed when close button is clicked', () => {
-      const closedSpy = vi.fn();
+    // Таймеры поддельные: user-event двигает их сам.
+    const clickClose = (): Promise<void> =>
+      userEvent
+        .setup({ advanceTimers: vi.advanceTimersByTime })
+        .click(screen.getByRole('button', { name: 'Close notification' }));
 
-      fixture.componentInstance.closed.subscribe(closedSpy);
+    it('should emit closed when close button is clicked', async () => {
+      const { closed } = await renderToast(successNotification);
 
-      const closeButtonEl: HTMLButtonElement = fixture.nativeElement.querySelector(
-        '.app-toast__close-button',
-      );
+      await clickClose();
 
-      closeButtonEl.click();
-
-      expect(closedSpy).toHaveBeenCalledOnce();
+      expect(closed).toHaveBeenCalledOnce();
     });
 
-    it('should not emit closed again from the timer after the button was clicked', () => {
-      const closedSpy = vi.fn();
+    it('should not emit closed again from the timer after the button was clicked', async () => {
+      const { closed } = await renderToast(successNotification);
 
-      fixture.componentInstance.closed.subscribe(closedSpy);
-
-      const closeButtonEl: HTMLButtonElement = fixture.nativeElement.querySelector(
-        '.app-toast__close-button',
-      );
-
-      closeButtonEl.click();
+      await clickClose();
 
       vi.advanceTimersByTime(DEFAULT_NOTIFICATION_DELAY_MS);
 
-      expect(closedSpy).toHaveBeenCalledOnce();
+      expect(closed).toHaveBeenCalledOnce();
     });
   });
 
   describe('fading', () => {
-    it('should emit closed after default delay when delayMs is not given', () => {
-      const closedSpy = vi.fn();
-
-      fixture.componentInstance.closed.subscribe(closedSpy);
+    it('should emit closed after default delay when delayMs is not given', async () => {
+      const { closed } = await renderToast(successNotification);
 
       vi.advanceTimersByTime(DEFAULT_NOTIFICATION_DELAY_MS - 1);
-      expect(closedSpy).not.toHaveBeenCalled();
+      expect(closed).not.toHaveBeenCalled();
 
       vi.advanceTimersByTime(1);
-      expect(closedSpy).toHaveBeenCalledOnce();
+      expect(closed).toHaveBeenCalledOnce();
     });
 
-    it('should emit closed after given delayMs, not the default', () => {
-      const customFixture = TestBed.createComponent(Toast);
-
-      customFixture.componentRef.setInput('notification', successNotification);
-      customFixture.componentRef.setInput('delayMs', 1000);
-      customFixture.detectChanges();
-
-      const closedSpy = vi.fn();
-
-      customFixture.componentInstance.closed.subscribe(closedSpy);
+    it('should emit closed after given delayMs, not the default', async () => {
+      const { closed } = await renderToast(successNotification, 1000);
 
       vi.advanceTimersByTime(999);
-      expect(closedSpy).not.toHaveBeenCalled();
+      expect(closed).not.toHaveBeenCalled();
 
       vi.advanceTimersByTime(1);
-      expect(closedSpy).toHaveBeenCalledOnce();
+      expect(closed).toHaveBeenCalledOnce();
     });
 
-    it('should fade neighboring toasts independently', () => {
-      const firstFixture = TestBed.createComponent(Toast);
+    it('should fade neighboring toasts independently', async () => {
+      firstClosedSpy.mockReset();
+      secondClosedSpy.mockReset();
 
-      firstFixture.componentRef.setInput('notification', successNotification);
-      firstFixture.componentRef.setInput('delayMs', 1000);
-      firstFixture.detectChanges();
-
-      const secondFixture = TestBed.createComponent(Toast);
-
-      secondFixture.componentRef.setInput('notification', errorNotification);
-      secondFixture.componentRef.setInput('delayMs', 2000);
-      secondFixture.detectChanges();
-
-      const firstClosedSpy = vi.fn();
-      const secondClosedSpy = vi.fn();
-
-      firstFixture.componentInstance.closed.subscribe(firstClosedSpy);
-      secondFixture.componentInstance.closed.subscribe(secondClosedSpy);
+      await render(TwoToastsHost);
 
       vi.advanceTimersByTime(1000);
 

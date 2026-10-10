@@ -1,145 +1,106 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { inputBinding, signal, WritableSignal } from '@angular/core';
+import { ComponentFixture } from '@angular/core/testing';
+import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
 
 import { Avatar } from './avatar';
 
+import { Nullable } from '@shared/types';
+
+type AvatarSize = ReturnType<Avatar['size']>;
+
 describe('Avatar', () => {
   let fixture: ComponentFixture<Avatar>;
+  let container: HTMLElement;
+  let imageUrl: WritableSignal<Nullable<string>>;
+  let size: WritableSignal<AvatarSize>;
+  let name: WritableSignal<string>;
+
+  // И картинка, и заглушка - role="img" с подписью: различаются тегом.
+  const getAvatar = (): HTMLElement => screen.getByRole('img', { name: 'mockLabel' });
+
+  const update = async (change: () => void): Promise<void> => {
+    change();
+    await fixture.whenStable();
+  };
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Avatar],
-    }).compileComponents();
+    imageUrl = signal<Nullable<string>>(null);
+    size = signal<AvatarSize>('md');
+    name = signal('');
 
-    fixture = TestBed.createComponent(Avatar);
-
-    fixture.componentRef.setInput('label', 'mockLabel');
-
-    await fixture.whenStable();
+    ({ fixture, container } = await render(Avatar, {
+      bindings: [
+        inputBinding('label', () => 'mockLabel'),
+        inputBinding('imageUrl', imageUrl),
+        inputBinding('size', size),
+        inputBinding('name', name),
+      ],
+      waitForStableOnRender: true,
+    }));
   });
 
   describe('rendering', () => {
     it('renders image when imageUrl is provided', async () => {
       const imageSrcMock = 'http://mock-image.jpg';
 
-      fixture.componentRef.setInput('imageUrl', imageSrcMock);
+      await update(() => imageUrl.set(imageSrcMock));
 
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      const avatarImg: HTMLImageElement = fixture.nativeElement.querySelector('.avatar__image');
-
-      expect(avatarImg).not.toBeNull();
-
-      expect(avatarImg.getAttribute('src')).toBe(imageSrcMock);
-      expect(avatarImg.getAttribute('alt')).toBe('mockLabel');
-
-      const avatarFallback: HTMLDivElement =
-        fixture.nativeElement.querySelector('.avatar__fallback');
-
-      expect(avatarFallback).toBeNull();
+      expect(getAvatar().tagName).toBe('IMG');
+      expect(getAvatar()).toHaveAttribute('src', imageSrcMock);
+      expect(getAvatar()).toHaveAttribute('alt', 'mockLabel');
     });
 
     it('renders fallback when imageUrl is empty', () => {
-      const avatarFallback: HTMLDivElement =
-        fixture.nativeElement.querySelector('.avatar__fallback');
-
-      expect(avatarFallback).not.toBeNull();
+      expect(getAvatar().tagName).not.toBe('IMG');
     });
 
     it('renders fallback after image loading error', async () => {
-      const imageSrcMock = 'http://mock-image.jpg';
+      await update(() => imageUrl.set('http://mock-image.jpg'));
 
-      fixture.componentRef.setInput('imageUrl', imageSrcMock);
+      await update(() => fireEvent.error(getAvatar()));
 
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      const avatarImg: HTMLImageElement = fixture.nativeElement.querySelector('.avatar__image');
-
-      avatarImg.dispatchEvent(new Event('error'));
-
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      const errorAvatarImg: HTMLImageElement =
-        fixture.nativeElement.querySelector('.avatar__image');
-
-      expect(errorAvatarImg).toBeNull();
-
-      const avatarFallback: HTMLDivElement =
-        fixture.nativeElement.querySelector('.avatar__fallback');
-
-      expect(avatarFallback).not.toBeNull();
+      expect(getAvatar().tagName).not.toBe('IMG');
     });
 
     it('retries rendering an image after imageUrl changes', async () => {
-      fixture.componentRef.setInput('imageUrl', 'http://mock-image.jpg');
+      await update(() => imageUrl.set('http://mock-image.jpg'));
 
-      fixture.detectChanges();
-      await fixture.whenStable();
+      await update(() => fireEvent.error(getAvatar()));
 
-      fixture.nativeElement.querySelector('.avatar__image').dispatchEvent(new Event('error'));
+      expect(getAvatar().tagName).not.toBe('IMG');
 
-      fixture.detectChanges();
-      await fixture.whenStable();
+      await update(() => imageUrl.set('http://other-mock-image.jpg'));
 
-      expect(fixture.nativeElement.querySelector('.avatar__image')).toBeNull();
-
-      fixture.componentRef.setInput('imageUrl', 'http://other-mock-image.jpg');
-
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      const retriedImg: HTMLImageElement = fixture.nativeElement.querySelector('.avatar__image');
-
-      expect(retriedImg).not.toBeNull();
-      expect(retriedImg.getAttribute('src')).toBe('http://other-mock-image.jpg');
+      expect(getAvatar().tagName).toBe('IMG');
+      expect(getAvatar()).toHaveAttribute('src', 'http://other-mock-image.jpg');
     });
 
     it('uses provided accessible label for fallback', () => {
-      const avatarFallback: HTMLDivElement =
-        fixture.nativeElement.querySelector('.avatar__fallback');
-
-      expect(avatarFallback.getAttribute('aria-label')).toBe('mockLabel');
-      expect(avatarFallback.getAttribute('role')).toBe('img');
+      expect(getAvatar()).toHaveAttribute('aria-label', 'mockLabel');
+      expect(getAvatar()).toHaveAttribute('role', 'img');
     });
 
     it('applies selected predefined size', async () => {
-      const avatarEl: HTMLDivElement = fixture.nativeElement.querySelector('.avatar');
+      const getAvatarRoot = (): Element | null => container.querySelector('.avatar');
 
-      expect(avatarEl.classList.contains('avatar_md')).toBe(true);
+      expect(getAvatarRoot()).toHaveClass('avatar_md');
 
-      fixture.componentRef.setInput('size', 'sm');
+      await update(() => size.set('sm'));
 
-      fixture.detectChanges();
-      await fixture.whenStable();
-
-      const newAvatarEl: HTMLDivElement = fixture.nativeElement.querySelector('.avatar');
-
-      expect(newAvatarEl.classList.contains('avatar_md')).toBe(false);
-      expect(newAvatarEl.classList.contains('avatar_sm')).toBe(true);
+      expect(getAvatarRoot()).not.toHaveClass('avatar_md');
+      expect(getAvatarRoot()).toHaveClass('avatar_sm');
     });
 
     it('renders the first letter of the name in upper case as the fallback', async () => {
-      fixture.componentRef.setInput('name', '  maria');
+      await update(() => name.set('  maria'));
 
-      await fixture.whenStable();
-
-      const avatarFallback: HTMLDivElement =
-        fixture.nativeElement.querySelector('.avatar__fallback');
-
-      expect(avatarFallback.textContent?.trim()).toBe('M');
+      expect(getAvatar()).toHaveTextContent(/^M$/);
     });
 
     it('renders an empty fallback for a blank name', async () => {
-      fixture.componentRef.setInput('name', '   ');
+      await update(() => name.set('   '));
 
-      await fixture.whenStable();
-
-      const avatarFallback: HTMLDivElement =
-        fixture.nativeElement.querySelector('.avatar__fallback');
-
-      expect(avatarFallback.textContent?.trim()).toBe('');
+      expect(getAvatar().textContent?.trim()).toBe('');
     });
   });
 });

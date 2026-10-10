@@ -1,5 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { render, screen, within } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
 
 import { ModalRef } from '../modal-ref';
 
@@ -23,61 +25,45 @@ class TestHost {
 
 describe('ModalShell', () => {
   let fixture: ComponentFixture<TestHost>;
+  let container: HTMLElement;
 
   async function renderWithTitle(title: string | undefined): Promise<void> {
     fixture.componentInstance.title.set(title);
 
-    fixture.detectChanges();
-
     await fixture.whenStable();
   }
 
+  const getCloseButton = (): HTMLElement => screen.getByRole('button', { name: 'Close' });
+
+  // Шапка - элемент раскладки без роли: ищется по классу.
+  const getHeader = (): HTMLElement =>
+    container.querySelector('.app-modal-shell__header') as HTMLElement;
+
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [TestHost],
+    ({ fixture, container } = await render(TestHost, {
       providers: [ModalRef],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(TestHost);
-
-    fixture.detectChanges();
-
-    await fixture.whenStable();
+      waitForStableOnRender: true,
+    }));
   });
 
   it('should render content component inside shell', () => {
-    const shellEl = fixture.nativeElement.querySelector('.app-modal-shell');
-    const contentEl = shellEl.querySelector('[data-testid="shell-content"]');
-
-    expect(contentEl).toBeTruthy();
+    expect(within(screen.getByRole('dialog')).getByTestId('shell-content')).toBeInTheDocument();
   });
 
   it('should render always visible close button', () => {
-    const closeButtonEl = fixture.nativeElement.querySelector('.app-modal-shell__close-button');
-
-    expect(closeButtonEl).toBeTruthy();
+    expect(getCloseButton()).toBeVisible();
   });
 
   it('should name the close button for a screen reader', () => {
-    const closeButtonEl: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.app-modal-shell__close-button',
-    );
-
-    expect(closeButtonEl.getAttribute('aria-label')).toBe('Close');
+    expect(getCloseButton()).toHaveAccessibleName('Close');
   });
 
-  it('should call ModalRef.close() when close button is clicked', () => {
+  it('should call ModalRef.close() when close button is clicked', async () => {
     const modalRef = TestBed.inject(ModalRef);
 
     vi.spyOn(modalRef, 'close');
 
-    const closeButtonEl: HTMLButtonElement = fixture.nativeElement.querySelector(
-      '.app-modal-shell__close-button',
-    );
-
-    closeButtonEl.dispatchEvent(new MouseEvent('click'));
-
-    fixture.detectChanges();
+    await userEvent.setup().click(getCloseButton());
 
     expect(modalRef.close).toHaveBeenCalled();
   });
@@ -86,9 +72,9 @@ describe('ModalShell', () => {
     // Конкретные пиксели не проверяем - они хрупкие. Утверждение теста в том,
     // что содержимое вообще отделено от границ окна.
     it('should separate content from shell edges', () => {
-      const shellEl: HTMLElement = fixture.nativeElement.querySelector('.app-modal-shell');
-
-      const { paddingTop, paddingRight, paddingBottom, paddingLeft } = getComputedStyle(shellEl);
+      const { paddingTop, paddingRight, paddingBottom, paddingLeft } = getComputedStyle(
+        screen.getByRole('dialog'),
+      );
 
       for (const padding of [paddingTop, paddingRight, paddingBottom, paddingLeft]) {
         expect(parseFloat(padding)).toBeGreaterThan(0);
@@ -100,55 +86,39 @@ describe('ModalShell', () => {
     it('should place title and close button in the same row', async () => {
       await renderWithTitle('Edit profile');
 
-      const headerEl: HTMLElement = fixture.nativeElement.querySelector('.app-modal-shell__header');
+      const header = within(getHeader());
 
-      expect(headerEl).toBeTruthy();
-
-      const titleEl = headerEl.querySelector('.app-modal-shell__title');
-      const closeButtonEl = headerEl.querySelector('.app-modal-shell__close-button');
-
-      expect(titleEl).toBeTruthy();
-      expect(closeButtonEl).toBeTruthy();
+      expect(header.getByRole('heading', { name: 'Edit profile' })).toBeInTheDocument();
+      expect(header.getByRole('button', { name: 'Close' })).toBeInTheDocument();
     });
 
     it('should render given title', async () => {
       await renderWithTitle('Edit profile');
 
-      const titleEl: HTMLElement = fixture.nativeElement.querySelector('.app-modal-shell__title');
-
-      expect(titleEl.textContent?.trim()).toBe('Edit profile');
+      expect(screen.getByRole('heading', { name: 'Edit profile' })).toBeInTheDocument();
     });
 
     it('should keep close button in header when title is not given', () => {
-      const headerEl: HTMLElement = fixture.nativeElement.querySelector('.app-modal-shell__header');
+      const header = within(getHeader());
 
-      expect(headerEl.querySelector('.app-modal-shell__title')).toBeNull();
-      expect(headerEl.querySelector('.app-modal-shell__close-button')).toBeTruthy();
+      expect(header.queryByRole('heading')).not.toBeInTheDocument();
+      expect(header.getByRole('button', { name: 'Close' })).toBeInTheDocument();
     });
   });
 
   describe('accessible name', () => {
     it('should expose shell as a dialog', () => {
-      const shellEl: HTMLElement = fixture.nativeElement.querySelector('.app-modal-shell');
-
-      expect(shellEl.getAttribute('role')).toBe('dialog');
-      expect(shellEl.getAttribute('aria-modal')).toBe('true');
+      expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true');
     });
 
     it('should name the dialog by its title', async () => {
       await renderWithTitle('Edit profile');
 
-      const shellEl: HTMLElement = fixture.nativeElement.querySelector('.app-modal-shell');
-      const titleEl: HTMLElement = fixture.nativeElement.querySelector('.app-modal-shell__title');
-
-      expect(shellEl.getAttribute('aria-labelledby')).toBe(titleEl.id);
-      expect(titleEl.id).toBeTruthy();
+      expect(screen.getByRole('dialog', { name: 'Edit profile' })).toBeInTheDocument();
     });
 
     it('should not reference a title when it is not given', () => {
-      const shellEl: HTMLElement = fixture.nativeElement.querySelector('.app-modal-shell');
-
-      expect(shellEl.getAttribute('aria-labelledby')).toBeNull();
+      expect(screen.getByRole('dialog')).not.toHaveAttribute('aria-labelledby');
     });
   });
 });

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { render, screen } from '@testing-library/angular/zoneless';
 
 import { Input } from './input';
 
@@ -22,19 +23,11 @@ describe('Input', () => {
   let fixture: ComponentFixture<TestHost>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [TestHost],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(TestHost);
-
-    await fixture.whenStable();
+    ({ fixture } = await render(TestHost, { waitForStableOnRender: true }));
   });
 
   it('should not mark an untouched invalid control as invalid', () => {
-    const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
-
-    expect(inputEl.getAttribute('aria-invalid')).toBe('false');
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'false');
   });
 
   it('should mark a touched invalid control as invalid', async () => {
@@ -42,9 +35,7 @@ describe('Input', () => {
 
     await fixture.whenStable();
 
-    const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
-
-    expect(inputEl.getAttribute('aria-invalid')).toBe('true');
+    expect(screen.getByRole('textbox')).toBeInvalid();
   });
 
   it('should clear the invalid state once the value is fixed', async () => {
@@ -54,23 +45,14 @@ describe('Input', () => {
     fixture.componentInstance.control.setValue('a value');
     await fixture.whenStable();
 
-    const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
-
-    expect(inputEl.getAttribute('aria-invalid')).toBe('false');
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'false');
   });
 });
 
 describe('Input without a control', () => {
   it('should not mark the field as invalid', async () => {
-    await TestBed.configureTestingModule({
-      imports: [PlainTestHost],
-    }).compileComponents();
+    await render(PlainTestHost, { waitForStableOnRender: true });
 
-    const fixture = TestBed.createComponent(PlainTestHost);
-    await fixture.whenStable();
-
-    const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
-
-    expect(inputEl.getAttribute('aria-invalid')).toBe('false');
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'false');
   });
 });
