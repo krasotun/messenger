@@ -1,125 +1,77 @@
-import { inputBinding, outputBinding, signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { Mock } from 'vitest';
+import { inputBinding, outputBinding } from '@angular/core';
+import { render, screen } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
 
 import { ChatUserRow } from './chat-user-row';
 
-import { ChatUser } from '@domains/chats/application/chat-user.type';
-import { Nullable } from '@shared/types';
-import { Avatar } from '@shared/ui/avatar/avatar';
+import { ChatMocks } from '@domains/chats/testing';
 
-const chatUserMock = signal<ChatUser>({
-  id: 2,
-  name: 'Johnny',
-  avatar: '/avatar.png',
-});
+const chatUserMock = ChatMocks.chatUser({ id: 2, name: 'Johnny', avatar: '/avatar.png' });
 
-const isCurrentUserMock = signal(false);
+const renderRow = async (options: { isCurrentUser?: boolean; canRemove?: boolean } = {}) => {
+  const removeRequested = vi.fn();
 
-const canRemoveMock = signal(false);
+  await render(ChatUserRow, {
+    bindings: [
+      inputBinding('user', () => chatUserMock),
+      inputBinding('isCurrentUser', () => options.isCurrentUser ?? false),
+      inputBinding('canRemove', () => options.canRemove ?? false),
+      outputBinding('removeRequested', removeRequested),
+    ],
+  });
+
+  return { removeRequested };
+};
 
 describe('ChatUserRow', () => {
-  let fixture: ComponentFixture<ChatUserRow>;
-  let removeRequestedSpy: Mock<() => void>;
+  it("shows the chat user's avatar", async () => {
+    await renderRow();
 
-  const getRemoveButton = (): Nullable<HTMLButtonElement> =>
-    fixture.nativeElement.querySelector('.chat-user-row__remove-user-button');
-
-  beforeEach(async () => {
-    removeRequestedSpy = vi.fn();
-
-    isCurrentUserMock.set(false);
-    canRemoveMock.set(false);
-
-    await TestBed.configureTestingModule({
-      imports: [ChatUserRow],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ChatUserRow, {
-      bindings: [
-        inputBinding('user', chatUserMock),
-        inputBinding('isCurrentUser', isCurrentUserMock),
-        inputBinding('canRemove', canRemoveMock),
-        outputBinding('removeRequested', removeRequestedSpy),
-      ],
-    });
-    await fixture.whenStable();
+    expect(screen.getByRole('img', { name: 'Avatar Johnny' })).toHaveAttribute(
+      'src',
+      '/avatar.png',
+    );
   });
 
-  it("shows the chat user's avatar", () => {
-    const userAvatar: Nullable<Avatar> =
-      fixture.debugElement.query(By.directive(Avatar))?.componentInstance ?? null;
+  it('shows the chat user name', async () => {
+    await renderRow();
 
-    if (userAvatar === null) {
-      throw new Error('Avatar not found');
-    }
-
-    expect(userAvatar.imageUrl()).toBe(chatUserMock().avatar);
-  });
-
-  it('shows the chat user name', () => {
-    const hostElement: HTMLElement = fixture.nativeElement;
-
-    expect(hostElement.textContent).toContain(chatUserMock().name);
+    expect(screen.getByText('Johnny')).toBeInTheDocument();
   });
 
   it('marks the current user row with (you)', async () => {
-    isCurrentUserMock.set(true);
+    await renderRow({ isCurrentUser: true });
 
-    await fixture.whenStable();
-
-    const hostElement: HTMLElement = fixture.nativeElement;
-
-    expect(hostElement.textContent).toContain('(you)');
+    expect(screen.getByText('(you)')).toBeInTheDocument();
   });
 
-  it('does not mark another chat user row with (you)', () => {
-    const hostElement: HTMLElement = fixture.nativeElement;
+  it('does not mark another chat user row with (you)', async () => {
+    await renderRow();
 
-    expect(hostElement.textContent).not.toContain('(you)');
+    expect(screen.queryByText('(you)')).not.toBeInTheDocument();
   });
 
   describe('removing a user from chat', () => {
-    it('user can see remove button if he can remove users from chat', async () => {
-      canRemoveMock.set(true);
+    it('user can see remove button labelled with user name if they can remove users from chat', async () => {
+      await renderRow({ canRemove: true });
 
-      await fixture.whenStable();
-
-      expect(getRemoveButton()).not.toBe(null);
+      expect(screen.getByRole('button', { name: 'Remove Johnny' })).toBeInTheDocument();
     });
 
-    it('remove button has aria label with user name and remove word', async () => {
-      canRemoveMock.set(true);
+    it('user does not see remove button if they cannot remove users from chat', async () => {
+      await renderRow();
 
-      await fixture.whenStable();
-      const removeButton = getRemoveButton();
-
-      if (removeButton === null) {
-        throw new Error('No remove button found');
-      }
-
-      expect(removeButton?.getAttribute('aria-label')).toBe('Remove Johnny');
-    });
-
-    it('user not see remove button if he cannnot remove users from chat', () => {
-      expect(getRemoveButton()).toBe(null);
+      // Без имени: поиск по неверной подписи тоже вернул бы null, и тест прошел бы впустую.
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 
     it('click on button emits removeRequested', async () => {
-      canRemoveMock.set(true);
+      const user = userEvent.setup();
+      const { removeRequested } = await renderRow({ canRemove: true });
 
-      await fixture.whenStable();
+      await user.click(screen.getByRole('button', { name: 'Remove Johnny' }));
 
-      const removeButton = getRemoveButton();
-
-      if (removeButton === null) {
-        throw new Error('No remove button found');
-      }
-
-      removeButton.click();
-
-      expect(removeRequestedSpy).toHaveBeenCalledOnce();
+      expect(removeRequested).toHaveBeenCalledOnce();
     });
   });
 });

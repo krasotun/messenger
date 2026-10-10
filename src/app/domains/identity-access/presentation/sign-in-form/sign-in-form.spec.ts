@@ -1,5 +1,7 @@
-import { signal, WritableSignal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { outputBinding, signal, WritableSignal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { fireEvent, render, screen, within } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
 import { Subject } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../../application/auth.gateway';
@@ -14,6 +16,8 @@ import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
 
+const requiredFieldError = 'This field is required';
+
 let signInServiceMock: {
   isSubmitting: WritableSignal<boolean>;
   succeeded$: Subject<void>;
@@ -22,118 +26,108 @@ let signInServiceMock: {
 
 describe('SignInForm', () => {
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
-  let component: SignInForm;
-  let fixture: ComponentFixture<SignInForm>;
 
-  const getSubmitButton = (): HTMLButtonElement =>
-    fixture.nativeElement.querySelector('button[type="submit"]');
+  // SignInService живет в providers компонента, поэтому подменяется через
+  // overrideComponent: у zoneless-render нет опции componentProviders.
+  const renderForm = async () => {
+    const signInSucceeded = vi.fn();
 
-  const getFieldErrors = (): HTMLElement[] =>
-    Array.from(fixture.nativeElement.querySelectorAll('.form-field__error'));
+    const result = await render(SignInForm, {
+      bindings: [outputBinding('signInSucceeded', signInSucceeded)],
+      configureTestBed: (testBed) =>
+        testBed.overrideComponent(SignInForm, {
+          set: { providers: [{ provide: SignInService, useValue: signInServiceMock }] },
+        }),
+      waitForStableOnRender: true,
+    });
 
-  beforeEach(async () => {
+    return { ...result, signInSucceeded };
+  };
+
+  const getSubmitButton = (): HTMLElement => screen.getByRole('button', { name: 'Log in' });
+
+  beforeEach(() => {
     notifierMock = NotificationMocks.notifier();
     signInServiceMock = {
       isSubmitting: signal(false),
       succeeded$: new Subject<void>(),
       signIn: vi.fn(),
     };
-    TestBed.configureTestingModule({
-      imports: [SignInForm],
-    });
-
-    TestBed.overrideComponent(SignInForm, {
-      set: {
-        providers: [
-          {
-            provide: SignInService,
-            useValue: signInServiceMock,
-          },
-        ],
-      },
-    });
-
-    await TestBed.compileComponents();
-
-    fixture = TestBed.createComponent(SignInForm);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should create', async () => {
+    const { fixture } = await renderForm();
+
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   describe('invalid submit', () => {
-    it('should not call signIn when form is invalid', () => {
-      fixture.detectChanges();
+    // Кнопка отправки у невалидной формы выключена, пользовательского пути
+    // к submit нет: событие отправляется напрямую, чтобы проверить защиту.
+    it('should not call signIn when form is invalid', async () => {
+      const { container } = await renderForm();
 
-      const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
-      formElement.dispatchEvent(new Event('submit'));
+      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
       expect(signInServiceMock.signIn).not.toHaveBeenCalled();
     });
 
-    it('should not render a submit error in the form', () => {
-      fixture.detectChanges();
+    it('should not render a submit error in the form', async () => {
+      const { container } = await renderForm();
 
-      const errorElement: HTMLElement | null =
-        fixture.nativeElement.querySelector('.sign-in-form__error');
-
-      expect(errorElement).toBeNull();
+      expect(container.querySelector('.sign-in-form__error')).toBeNull();
     });
   });
 
   describe('submit button availability', () => {
-    it('should disable the submit button when the sign-in form is empty', () => {
-      fixture.detectChanges();
+    it('should disable the submit button when the sign-in form is empty', async () => {
+      await renderForm();
 
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should not show field errors on an untouched form', () => {
-      fixture.detectChanges();
+    it('should not show field errors on an untouched form', async () => {
+      await renderForm();
 
-      expect(getFieldErrors()).toHaveLength(0);
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(screen.queryByText(requiredFieldError)).not.toBeInTheDocument();
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should show a field error after the field loses focus while it stays empty', () => {
-      fixture.detectChanges();
+    it('should show a field error after the field loses focus while it stays empty', async () => {
+      const user = userEvent.setup();
+      await renderForm();
 
-      component.signInForm.controls.login.markAsTouched();
-      fixture.detectChanges();
+      await user.click(screen.getByLabelText('Login'));
+      await user.tab();
 
-      const fieldErrors = getFieldErrors();
-
-      expect(fieldErrors.length).toBeGreaterThan(0);
-      expect(fieldErrors.some((error) => error.textContent?.trim())).toBe(true);
-      expect(getSubmitButton().disabled).toBe(true);
+      expect(screen.getByText(requiredFieldError)).toBeInTheDocument();
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should enable the submit button once the form becomes valid', () => {
-      fixture.detectChanges();
+    it('should enable the submit button once the form becomes valid', async () => {
+      const user = userEvent.setup();
+      await renderForm();
 
-      component.signInForm.setValue({ login: 'Mock', password: 'secret' });
-      fixture.detectChanges();
+      await user.type(screen.getByLabelText('Login'), 'Mock');
+      await user.type(screen.getByLabelText('Password'), 'secret');
 
-      expect(getSubmitButton().disabled).toBe(false);
+      expect(getSubmitButton()).toBeEnabled();
     });
   });
 
   describe('valid submit', () => {
-    it('should call signIn with form value when submitted form is valid', () => {
-      fixture.detectChanges();
+    it('should call signIn with form value when submitted form is valid', async () => {
+      const user = userEvent.setup();
+      await renderForm();
 
       const mockFormValue = {
         login: 'Mock',
         password: 'qfndjkjnk&(YY',
       };
 
-      component.signInForm.setValue(mockFormValue);
-
-      const formElement: HTMLFormElement = fixture.nativeElement.querySelector('form');
-      formElement.dispatchEvent(new Event('submit'));
+      await user.type(screen.getByLabelText('Login'), mockFormValue.login);
+      await user.type(screen.getByLabelText('Password'), mockFormValue.password);
+      await user.click(getSubmitButton());
 
       expect(signInServiceMock.signIn).toHaveBeenCalledOnce();
       expect(signInServiceMock.signIn).toHaveBeenCalledWith(mockFormValue);
@@ -141,36 +135,33 @@ describe('SignInForm', () => {
   });
 
   describe('submitting state', () => {
-    it('should disable submit button', () => {
+    it('should disable submit button', async () => {
+      const { fixture } = await renderForm();
+
       signInServiceMock.isSubmitting.set(true);
-      fixture.detectChanges();
+      await fixture.whenStable();
 
-      const submitButton: HTMLButtonElement =
-        fixture.nativeElement.querySelector('button[type="submit"]');
-
-      expect(submitButton.disabled).toBe(true);
+      expect(getSubmitButton()).toBeDisabled();
     });
 
-    it('should disable all controls', () => {
+    it('should disable all controls', async () => {
+      const { fixture } = await renderForm();
+
       signInServiceMock.isSubmitting.set(true);
-      fixture.detectChanges();
+      await fixture.whenStable();
 
-      const inputEls: HTMLInputElement[] = fixture.nativeElement.querySelectorAll('input');
-
-      inputEls.forEach((inputEl) => {
-        expect(inputEl.disabled).toBe(true);
-      });
+      expect(screen.getByLabelText('Login')).toBeDisabled();
+      expect(screen.getByLabelText('Password')).toBeDisabled();
     });
   });
 
   describe('success state', () => {
-    it('should emit signInSucceeded when the service reports success, without a manual application tick', () => {
-      const signInSucceededSpy = vi.fn();
-      component.signInSucceeded.subscribe(signInSucceededSpy);
+    it('should emit signInSucceeded when the service reports success, without a manual application tick', async () => {
+      const { signInSucceeded } = await renderForm();
 
       signInServiceMock.succeeded$.next();
 
-      expect(signInSucceededSpy).toHaveBeenCalledOnce();
+      expect(signInSucceeded).toHaveBeenCalledOnce();
     });
   });
 
@@ -186,71 +177,61 @@ describe('SignInForm', () => {
       password: 'secret',
     };
 
-    const openForm = async (): Promise<ComponentFixture<SignInForm>> => {
-      const openedFixture = TestBed.createComponent(SignInForm);
-      await openedFixture.whenStable();
-      openedFixture.detectChanges();
+    const providers = () => [
+      { provide: AUTH_GATEWAY, useValue: authGatewayMock },
+      { provide: CurrentSessionService, useValue: currentSessionServiceMock },
+      { provide: NOTIFIER, useValue: notifierMock },
+    ];
 
-      return openedFixture;
+    const fillAndSubmit = async (form: HTMLElement): Promise<void> => {
+      const user = userEvent.setup();
+      const formQueries = within(form);
+
+      await user.type(formQueries.getByLabelText('Login'), mockSignInValue.login);
+      await user.type(formQueries.getByLabelText('Password'), mockSignInValue.password);
+      await user.click(formQueries.getByRole('button', { name: 'Log in' }));
     };
 
-    const submit = (openedFixture: ComponentFixture<SignInForm>): void => {
-      openedFixture.componentInstance.signInForm.setValue(mockSignInValue);
-      openedFixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
-    };
-
-    beforeEach(async () => {
-      TestBed.resetTestingModule();
-
+    beforeEach(() => {
       authGatewayMock = IdentityMocks.authGateway();
       currentSessionServiceMock = { restoreCurrentSession: vi.fn() };
-
-      TestBed.configureTestingModule({
-        imports: [SignInForm],
-        providers: [
-          { provide: AUTH_GATEWAY, useValue: authGatewayMock },
-          { provide: CurrentSessionService, useValue: currentSessionServiceMock },
-          { provide: NOTIFIER, useValue: notifierMock },
-        ],
-      });
-
-      await TestBed.compileComponents();
     });
 
+    // render настраивает TestBed и второй раз в одном тесте не вызывается:
+    // повторное открытие формы идет через TestBed.createComponent.
     it('should keep the reopened form usable while the previous submit has not answered yet', async () => {
       authGatewayMock.signIn.mockReturnValue(new Subject());
 
-      const firstFixture = await openForm();
-      submit(firstFixture);
+      const { fixture: firstFixture, container } = await render(SignInForm, {
+        providers: providers(),
+      });
+      await fillAndSubmit(container);
       await firstFixture.whenStable();
 
       firstFixture.destroy();
 
-      const reopenedFixture = await openForm();
-      reopenedFixture.componentInstance.signInForm.setValue(mockSignInValue);
-      reopenedFixture.detectChanges();
+      const reopenedFixture = TestBed.createComponent(SignInForm);
+      await reopenedFixture.whenStable();
+      const reopenedForm = within(reopenedFixture.nativeElement);
 
-      const submitButton: HTMLButtonElement =
-        reopenedFixture.nativeElement.querySelector('button[type="submit"]');
-      const inputEls: HTMLInputElement[] = Array.from(
-        reopenedFixture.nativeElement.querySelectorAll('input'),
-      );
+      const user = userEvent.setup();
+      await user.type(reopenedForm.getByLabelText('Login'), mockSignInValue.login);
+      await user.type(reopenedForm.getByLabelText('Password'), mockSignInValue.password);
 
-      expect(submitButton.disabled).toBe(false);
-      inputEls.forEach((inputEl) => {
-        expect(inputEl.disabled).toBe(false);
-      });
+      expect(reopenedForm.getByRole('button', { name: 'Log in' })).toBeEnabled();
+      expect(reopenedForm.getByLabelText('Login')).toBeEnabled();
+      expect(reopenedForm.getByLabelText('Password')).toBeEnabled();
     });
 
     it('should not cancel the submit when the form is closed before the gateway answers', async () => {
       const signIn$ = new Subject<{ authenticated: true }>();
       authGatewayMock.signIn.mockReturnValue(signIn$);
 
-      const openedFixture = await openForm();
-      submit(openedFixture);
-      await openedFixture.whenStable();
+      const { fixture, container } = await render(SignInForm, { providers: providers() });
+      await fillAndSubmit(container);
+      await fixture.whenStable();
 
-      openedFixture.destroy();
+      fixture.destroy();
 
       signIn$.error(new ApplicationError('Mock error'));
 
