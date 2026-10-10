@@ -9,8 +9,10 @@ import { SignInService } from '../../application/sign-in/sign-in.service';
 
 import { SignInForm } from './sign-in-form';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 
 let signInServiceMock: {
   isSubmitting: WritableSignal<boolean>;
@@ -18,12 +20,8 @@ let signInServiceMock: {
   signIn: ReturnType<typeof vi.fn>;
 };
 
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
-
 describe('SignInForm', () => {
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let component: SignInForm;
   let fixture: ComponentFixture<SignInForm>;
 
@@ -34,6 +32,7 @@ describe('SignInForm', () => {
     Array.from(fixture.nativeElement.querySelectorAll('.form-field__error'));
 
   beforeEach(async () => {
+    notifierMock = NotificationMocks.notifier();
     signInServiceMock = {
       isSubmitting: signal(false),
       succeeded$: new Subject<void>(),
@@ -176,9 +175,7 @@ describe('SignInForm', () => {
   });
 
   describe('flow lifetime', () => {
-    let authGatewayMock: {
-      signIn: ReturnType<typeof vi.fn>;
-    };
+    let authGatewayMock: ReturnType<typeof IdentityMocks.authGateway>;
 
     let currentSessionServiceMock: {
       restoreCurrentSession: ReturnType<typeof vi.fn>;
@@ -205,11 +202,8 @@ describe('SignInForm', () => {
     beforeEach(async () => {
       TestBed.resetTestingModule();
 
-      authGatewayMock = { signIn: vi.fn() };
+      authGatewayMock = IdentityMocks.authGateway();
       currentSessionServiceMock = { restoreCurrentSession: vi.fn() };
-
-      notifierMock.success.mockReset();
-      notifierMock.error.mockReset();
 
       TestBed.configureTestingModule({
         imports: [SignInForm],

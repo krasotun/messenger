@@ -3,48 +3,32 @@ import { Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
-import { CurrentSessionResult } from '../current-session/current-session-result.type';
 import { CurrentSessionStatus } from '../current-session/current-session-status.type';
 import { CurrentSessionService } from '../current-session/current-session.service';
 import { CurrentUser } from '../current-session/current-user.type';
 import { USER_GATEWAY } from '../user.gateway';
 
-import { UpdateProfileInput } from './update-profile-input.type';
 import { UpdateProfileResult } from './update-profile-result.type';
 import { UpdateProfileService } from './update-profile.service';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
-
-const authGatewayMock = {
-  currentSession: vi.fn(),
-  logout: vi.fn(),
-};
-
-const userGatewayMock = {
-  updateProfile: vi.fn(),
-};
+import { NotificationMocks } from '@shared/notifications/testing';
 
 const routerMock = {
   navigate: vi.fn(),
   navigateByUrl: vi.fn(),
 };
 
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
-
-const currentUserMock: CurrentUser = {
-  id: 1,
+const currentUserMock = IdentityMocks.currentUser({
   firstName: 'firstName',
   secondName: 'secondName',
   displayName: 'displayName',
   login: 'login',
   email: 'email',
   phone: 'phone',
-  avatar: null,
-};
+});
 
 const updatedUserMock: CurrentUser = {
   ...currentUserMock,
@@ -53,32 +37,30 @@ const updatedUserMock: CurrentUser = {
   email: 'updated@email.email',
 };
 
-const updateProfileInputMock: UpdateProfileInput = {
+const updateProfileInputMock = IdentityMocks.updateProfileInput({
   firstName: 'updatedFirstName',
   secondName: 'secondName',
   displayName: 'updatedDisplayName',
   login: 'login',
   email: 'updated@email.email',
   phone: 'phone',
-};
+});
 
-const authenticatedSessionMock: CurrentSessionResult = {
-  status: CurrentSessionStatus.Authenticated,
-  user: currentUserMock,
-};
+const authenticatedSessionMock = IdentityMocks.authenticatedSession(currentUserMock);
 
 describe('UpdateProfileService', () => {
+  let authGatewayMock: ReturnType<typeof IdentityMocks.authGateway>;
+  let userGatewayMock: ReturnType<typeof IdentityMocks.userGateway>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let service: UpdateProfileService;
   let currentSessionService: CurrentSessionService;
 
   beforeEach(() => {
-    authGatewayMock.currentSession.mockReset();
-    authGatewayMock.logout.mockReset();
-    userGatewayMock.updateProfile.mockReset();
+    authGatewayMock = IdentityMocks.authGateway();
+    userGatewayMock = IdentityMocks.userGateway();
+    notifierMock = NotificationMocks.notifier();
     routerMock.navigate.mockReset();
     routerMock.navigateByUrl.mockReset();
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
 
     TestBed.configureTestingModule({
       providers: [

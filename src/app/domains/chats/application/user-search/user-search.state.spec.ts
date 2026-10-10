@@ -4,24 +4,17 @@ import { of, Subject } from 'rxjs';
 import { UserSearchStatus } from './user-search-status.type';
 import { createUserSearchState, UserSearchState } from './user-search.state';
 
-import { SearchUsersResult, SearchUsersService, User } from '@domains/identity-access';
+import { SearchUsersResult, SearchUsersService } from '@domains/identity-access';
+import { IdentityMocks } from '@domains/identity-access/testing';
 
-const searchUsersServiceMock = {
-  searchUsers: vi.fn(),
-} as unknown as SearchUsersService;
-
-const userMock: User = {
-  id: 2,
-  login: 'jane.roe',
-  name: 'Janie',
-  avatar: null,
-};
+const userMock = IdentityMocks.user({ login: 'jane.roe', name: 'Janie' });
 
 const debounceMs = 300;
 
 describe('createUserSearchState', () => {
   let login$: Subject<string>;
   let state: UserSearchState;
+  let searchUsersServiceMock: ReturnType<typeof IdentityMocks.searchUsersService>;
 
   const search = (login: string): void => {
     login$.next(login);
@@ -30,14 +23,14 @@ describe('createUserSearchState', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.mocked(searchUsersServiceMock.searchUsers).mockReset();
+    searchUsersServiceMock = IdentityMocks.searchUsersService();
 
     login$ = new Subject<string>();
 
     TestBed.configureTestingModule({});
 
     state = TestBed.runInInjectionContext(() =>
-      createUserSearchState(searchUsersServiceMock, login$),
+      createUserSearchState(searchUsersServiceMock as unknown as SearchUsersService, login$),
     );
   });
 
@@ -53,7 +46,7 @@ describe('createUserSearchState', () => {
     });
 
     it('should go back to not started when the query is cleared', () => {
-      vi.mocked(searchUsersServiceMock.searchUsers).mockReturnValue(of({ users: [userMock] }));
+      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       search('jane');
 
@@ -67,15 +60,13 @@ describe('createUserSearchState', () => {
 
   describe('users found', () => {
     it('should expose the found users after the debounce delay', () => {
-      vi.mocked(searchUsersServiceMock.searchUsers).mockReturnValue(
-        new Subject<SearchUsersResult>(),
-      );
+      searchUsersServiceMock.searchUsers.mockReturnValue(new Subject<SearchUsersResult>());
 
       login$.next('jane');
 
       expect(searchUsersServiceMock.searchUsers).not.toHaveBeenCalled();
 
-      vi.mocked(searchUsersServiceMock.searchUsers).mockReturnValue(of({ users: [userMock] }));
+      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       vi.advanceTimersByTime(debounceMs);
 
@@ -86,7 +77,7 @@ describe('createUserSearchState', () => {
 
   describe('nobody found', () => {
     it('should expose a nobody found result, distinct from not started', () => {
-      vi.mocked(searchUsersServiceMock.searchUsers).mockReturnValue(of({ users: [] }));
+      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [] }));
 
       search('nobody');
 
@@ -99,7 +90,7 @@ describe('createUserSearchState', () => {
       const firstResponse$ = new Subject<SearchUsersResult>();
       const secondResponse$ = new Subject<SearchUsersResult>();
 
-      vi.mocked(searchUsersServiceMock.searchUsers)
+      searchUsersServiceMock.searchUsers
         .mockReturnValueOnce(firstResponse$)
         .mockReturnValueOnce(secondResponse$);
 

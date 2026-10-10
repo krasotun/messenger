@@ -1,7 +1,6 @@
-import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Subject, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 
 import { ChangePasswordService } from '../../application/change-password/change-password.service';
 import { USER_GATEWAY } from '../../application/user.gateway';
@@ -9,41 +8,23 @@ import { ChangePasswordForm } from '../change-password-form/change-password-form
 
 import { ChangePasswordModalContent } from './change-password-modal-content';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 import { ModalRef } from '@shared/ui/modal/modal-ref';
-
-let changePasswordServiceMock: {
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  changePassword: ReturnType<typeof vi.fn>;
-};
-
-let modalRefMock: {
-  close: ReturnType<typeof vi.fn>;
-};
-
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
+import { ModalMocks } from '@shared/ui/modal/testing';
 
 describe('ChangePasswordModalContent', () => {
+  let changePasswordServiceMock: ReturnType<typeof IdentityMocks.changePasswordService>;
+  let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let fixture: ComponentFixture<ChangePasswordModalContent>;
 
   beforeEach(async () => {
-    changePasswordServiceMock = {
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      changePassword: vi.fn(),
-    };
-
-    modalRefMock = {
-      close: vi.fn(),
-    };
-
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
+    changePasswordServiceMock = IdentityMocks.changePasswordService();
+    modalRefMock = ModalMocks.modalRef();
+    notifierMock = NotificationMocks.notifier();
 
     TestBed.configureTestingModule({
       imports: [ChangePasswordModalContent],
@@ -99,10 +80,7 @@ describe('ChangePasswordModalContent', () => {
   });
 
   describe('flow lifetime', () => {
-    let userGatewayMock: {
-      updateProfile: ReturnType<typeof vi.fn>;
-      changePassword: ReturnType<typeof vi.fn>;
-    };
+    let userGatewayMock: ReturnType<typeof IdentityMocks.userGateway>;
 
     const openModal = async (): Promise<ComponentFixture<ChangePasswordModalContent>> => {
       const openedFixture = TestBed.createComponent(ChangePasswordModalContent);
@@ -134,10 +112,10 @@ describe('ChangePasswordModalContent', () => {
     beforeEach(async () => {
       TestBed.resetTestingModule();
 
-      userGatewayMock = {
-        updateProfile: vi.fn(),
-        changePassword: vi.fn(() => throwError(() => new ApplicationError('Mock error'))),
-      };
+      userGatewayMock = IdentityMocks.userGateway();
+      userGatewayMock.changePassword.mockImplementation(() =>
+        throwError(() => new ApplicationError('Mock error')),
+      );
 
       TestBed.configureTestingModule({
         imports: [ChangePasswordModalContent],

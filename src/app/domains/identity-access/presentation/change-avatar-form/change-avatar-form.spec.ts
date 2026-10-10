@@ -1,6 +1,5 @@
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
 
 import { ChangeAvatarService } from '../../application/change-avatar/change-avatar.service';
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
@@ -8,33 +7,22 @@ import { CurrentUser } from '../../application/current-session/current-user.type
 
 import { ChangeAvatarForm } from './change-avatar-form';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { Nullable } from '@shared/types';
-
-let changeAvatarServiceMock: {
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  changeAvatar: ReturnType<typeof vi.fn>;
-};
 
 let currentSessionServiceMock: {
   currentUser: WritableSignal<Nullable<CurrentUser>>;
 };
 
-const currentUserMock: CurrentUser = {
-  id: 1,
-  firstName: 'firstName',
-  secondName: 'secondName',
-  displayName: 'displayName',
-  login: 'login',
-  email: 'email',
-  phone: 'phone',
+const currentUserMock = IdentityMocks.currentUser({
   avatar: 'https://mock.host/resources/path/to/avatar.png',
-};
+});
 
 const pngFileMock = new File(['mockContent'], 'avatar.png', { type: 'image/png' });
 const pdfFileMock = new File(['mockContent'], 'avatar.pdf', { type: 'application/pdf' });
 
 describe('ChangeAvatarForm', () => {
+  let changeAvatarServiceMock: ReturnType<typeof IdentityMocks.changeAvatarService>;
   let component: ChangeAvatarForm;
   let fixture: ComponentFixture<ChangeAvatarForm>;
   let createObjectUrlSpy: ReturnType<typeof vi.spyOn>;
@@ -70,18 +58,13 @@ describe('ChangeAvatarForm', () => {
   };
 
   beforeEach(async () => {
+    changeAvatarServiceMock = IdentityMocks.changeAvatarService();
     createdObjectUrlCount = 0;
 
     createObjectUrlSpy = vi
       .spyOn(URL, 'createObjectURL')
       .mockImplementation(() => `blob:mock/${(createdObjectUrlCount += 1)}`);
     revokeObjectUrlSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
-
-    changeAvatarServiceMock = {
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      changeAvatar: vi.fn(),
-    };
 
     currentSessionServiceMock = {
       currentUser: signal(currentUserMock),

@@ -4,17 +4,17 @@ import { Chat } from '../../application/chat.type';
 
 import { ChatListItem } from './chat-list-item';
 
-const chatMock: Chat = {
-  id: 1,
+import { ChatMocks } from '@domains/chats/testing';
+
+const chatMock = ChatMocks.chat({
   title: 'Analytics Q3',
   avatar: 'https://mock.host/resources/path/to/chat-avatar.png',
   unreadCount: 3,
-  createdBy: 1,
   lastMessage: {
     authorName: 'John',
     content: 'the report is ready',
   },
-};
+});
 
 describe('ChatListItem', () => {
   let component: ChatListItem;

@@ -7,36 +7,25 @@ import { CHAT_GATEWAY } from '../chat.gateway';
 import { CreateChatResult } from './create-chat-result.type';
 import { CreateChatService } from './create-chat.service';
 
+import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
-
-const chatGatewayMock = {
-  chats: vi.fn(),
-  createChat: vi.fn(),
-};
-
-const chatListServiceMock = {
-  loadChats: vi.fn(),
-};
-
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
+import { NotificationMocks } from '@shared/notifications/testing';
 
 const createChatResultMock: CreateChatResult = {
   id: 1,
 };
 
 describe('CreateChatService', () => {
+  let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
+  let chatListServiceMock: ReturnType<typeof ChatMocks.chatListService>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let service: CreateChatService;
 
   beforeEach(() => {
-    chatGatewayMock.chats.mockReset();
-    chatGatewayMock.createChat.mockReset();
-    chatListServiceMock.loadChats.mockReset();
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
+    chatGatewayMock = ChatMocks.chatGateway();
+    chatListServiceMock = ChatMocks.chatListService();
+    notifierMock = NotificationMocks.notifier();
 
     TestBed.configureTestingModule({
       providers: [

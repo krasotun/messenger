@@ -7,19 +7,12 @@ import { ChatUsersPanel } from './chat-users-panel';
 
 import { ChatUser } from '@domains/chats/application/chat-user.type';
 import { ChatUserRow } from '@domains/chats/presentation/chat-user-row/chat-user-row';
+import { ChatMocks } from '@domains/chats/testing';
 import { Nullable } from '@shared/types';
 
-const currentUserMock: ChatUser = {
-  id: 2,
-  name: 'Johnny',
-  avatar: null,
-};
+const currentUserMock = ChatMocks.chatUser({ id: 2 });
 
-const anotherUserMock: ChatUser = {
-  id: 3,
-  name: 'Billy',
-  avatar: null,
-};
+const anotherUserMock = ChatMocks.chatUser({ id: 3, name: 'Billy' });
 
 const chatUsersMock = signal([currentUserMock, anotherUserMock]);
 

@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
-import { CurrentSessionResult } from '../current-session/current-session-result.type';
 import { CurrentSessionStatus } from '../current-session/current-session-status.type';
 import { CurrentSessionService } from '../current-session/current-session.service';
 import { CurrentUser } from '../current-session/current-user.type';
@@ -13,38 +12,17 @@ import { ChangeAvatarInput } from './change-avatar-input.type';
 import { ChangeAvatarResult } from './change-avatar-result.type';
 import { ChangeAvatarService } from './change-avatar.service';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
-
-const authGatewayMock = {
-  currentSession: vi.fn(),
-  logout: vi.fn(),
-};
-
-const userGatewayMock = {
-  changeAvatar: vi.fn(),
-};
+import { NotificationMocks } from '@shared/notifications/testing';
 
 const routerMock = {
   navigate: vi.fn(),
   navigateByUrl: vi.fn(),
 };
 
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
-
-const currentUserMock: CurrentUser = {
-  id: 1,
-  firstName: 'firstName',
-  secondName: 'secondName',
-  displayName: 'displayName',
-  login: 'login',
-  email: 'email',
-  phone: 'phone',
-  avatar: null,
-};
+const currentUserMock = IdentityMocks.currentUser();
 
 const updatedUserMock: CurrentUser = {
   ...currentUserMock,
@@ -55,23 +33,21 @@ const changeAvatarInputMock: ChangeAvatarInput = {
   file: new File(['mockContent'], 'avatar.png', { type: 'image/png' }),
 };
 
-const authenticatedSessionMock: CurrentSessionResult = {
-  status: CurrentSessionStatus.Authenticated,
-  user: currentUserMock,
-};
+const authenticatedSessionMock = IdentityMocks.authenticatedSession(currentUserMock);
 
 describe('ChangeAvatarService', () => {
+  let authGatewayMock: ReturnType<typeof IdentityMocks.authGateway>;
+  let userGatewayMock: ReturnType<typeof IdentityMocks.userGateway>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let service: ChangeAvatarService;
   let currentSessionService: CurrentSessionService;
 
   beforeEach(() => {
-    authGatewayMock.currentSession.mockReset();
-    authGatewayMock.logout.mockReset();
-    userGatewayMock.changeAvatar.mockReset();
+    authGatewayMock = IdentityMocks.authGateway();
+    userGatewayMock = IdentityMocks.userGateway();
+    notifierMock = NotificationMocks.notifier();
     routerMock.navigate.mockReset();
     routerMock.navigateByUrl.mockReset();
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
 
     TestBed.configureTestingModule({
       providers: [

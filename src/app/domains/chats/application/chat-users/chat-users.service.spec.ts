@@ -7,23 +7,17 @@ import { CHAT_GATEWAY } from '../chat.gateway';
 import { ChatUsersStatus } from './chat-users-status.type';
 import { ChatUsersService } from './chat-users.service';
 
+import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 
-const chatGatewayMock = {
-  chatUsers: vi.fn(),
-};
-
-const chatUserMock: ChatUser = {
-  id: 2,
-  name: 'Johnny',
-  avatar: null,
-};
+const chatUserMock = ChatMocks.chatUser({ id: 2, name: 'Johnny' });
 
 describe('ChatUsersService', () => {
   let service: ChatUsersService;
+  let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
 
   beforeEach(() => {
-    chatGatewayMock.chatUsers.mockReset();
+    chatGatewayMock = ChatMocks.chatGateway();
 
     TestBed.configureTestingModule({
       providers: [
@@ -112,11 +106,7 @@ describe('ChatUsersService', () => {
     });
 
     describe('when a newer request starts before the previous one responds', () => {
-      const previousChatUserMock: ChatUser = {
-        id: 3,
-        name: 'Previous',
-        avatar: null,
-      };
+      const previousChatUserMock = ChatMocks.chatUser({ id: 3, name: 'Previous' });
 
       let previousResponse: Subject<ChatUser[]>;
       let latestResponse: Subject<ChatUser[]>;

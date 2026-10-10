@@ -6,17 +6,10 @@ import { AUTH_GATEWAY } from '../auth.gateway';
 import { SignUpInput } from './sign-up-input.type';
 import { SignUpService } from './sign-up.service';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
-
-const authGatewayMock = {
-  signUp: vi.fn(),
-};
-
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
+import { NotificationMocks } from '@shared/notifications/testing';
 
 const signUpInputMock: SignUpInput = {
   firstName: 'mockFirstName',
@@ -28,13 +21,13 @@ const signUpInputMock: SignUpInput = {
 };
 
 describe('SignUpService', () => {
+  let authGatewayMock: ReturnType<typeof IdentityMocks.authGateway>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let service: SignUpService;
 
   beforeEach(() => {
-    authGatewayMock.signUp.mockReset();
-
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
+    authGatewayMock = IdentityMocks.authGateway();
+    notifierMock = NotificationMocks.notifier();
 
     TestBed.configureTestingModule({
       providers: [

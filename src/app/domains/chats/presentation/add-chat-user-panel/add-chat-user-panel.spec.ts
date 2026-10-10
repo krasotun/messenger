@@ -5,27 +5,20 @@ import { AddChatUserService } from '../../application/add-chat-user/add-chat-use
 
 import { AddChatUserPanel } from './add-chat-user-panel';
 
-import { SearchUsersResult, SearchUsersService, User } from '@domains/identity-access';
+import { SearchUsersResult, SearchUsersService } from '@domains/identity-access';
+import { IdentityMocks } from '@domains/identity-access/testing';
 
 let addChatUserServiceMock: {
   succeeded$: Subject<void>;
   addChatUser: ReturnType<typeof vi.fn>;
 };
 
-const searchUsersServiceMock = {
-  searchUsers: vi.fn(),
-};
-
-const userMock: User = {
-  id: 2,
-  login: 'jane.roe',
-  name: 'Janie',
-  avatar: null,
-};
+const userMock = IdentityMocks.user({ login: 'jane.roe', name: 'Janie' });
 
 const debounceMs = 300;
 
 describe('AddChatUserPanel', () => {
+  let searchUsersServiceMock: ReturnType<typeof IdentityMocks.searchUsersService>;
   let fixture: ComponentFixture<AddChatUserPanel>;
   let component: AddChatUserPanel;
 
@@ -37,14 +30,13 @@ describe('AddChatUserPanel', () => {
   const getText = (): string => fixture.nativeElement.textContent;
 
   beforeEach(async () => {
+    searchUsersServiceMock = IdentityMocks.searchUsersService();
     vi.useFakeTimers();
 
     addChatUserServiceMock = {
       succeeded$: new Subject<void>(),
       addChatUser: vi.fn(),
     };
-
-    searchUsersServiceMock.searchUsers.mockReset();
 
     await TestBed.configureTestingModule({
       imports: [AddChatUserPanel],

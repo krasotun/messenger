@@ -5,17 +5,11 @@ import { of, Subject } from 'rxjs';
 
 import { ChatsPage } from './chats-page';
 
+import { ChatMocks } from '@domains/chats/testing';
 import { CurrentSessionService } from '@domains/identity-access';
 import { ConfirmationService } from '@shared/ui/confirmation';
 
-const chatMock = {
-  id: 1,
-  title: 'Analytics Q3',
-  avatar: null,
-  unreadCount: 0,
-  createdBy: 1,
-  lastMessage: null,
-};
+const chatMock = ChatMocks.chat({ title: 'Analytics Q3' });
 
 describe('chats routing', () => {
   let routes: Routes;

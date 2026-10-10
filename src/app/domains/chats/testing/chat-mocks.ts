@@ -1,8 +1,12 @@
+import { signal } from '@angular/core';
 import { Subject } from 'rxjs';
 
+import { ChatListService } from '../application/chat-list/chat-list.service';
 import { ChatUser } from '../application/chat-user.type';
+import { ChatUsersService } from '../application/chat-users/chat-users.service';
 import { ChatGateway } from '../application/chat.gateway';
 import { Chat } from '../application/chat.type';
+import { CreateChatService } from '../application/create-chat/create-chat.service';
 import { DeleteChatService } from '../application/delete-chat/delete-chat.service';
 import { RemoveChatUserService } from '../application/remove-chat-user/remove-chat-user.service';
 
@@ -42,6 +46,20 @@ export const ChatMocks = {
 
   removeChatUserService: () => ({
     removeChatUser: vi.fn<RemoveChatUserService['removeChatUser']>(),
+    succeeded$: new Subject<void>(),
+  }),
+
+  chatListService: () => ({
+    loadChats: vi.fn<ChatListService['loadChats']>(),
+  }),
+
+  chatUsersService: () => ({
+    loadChatUsers: vi.fn<ChatUsersService['loadChatUsers']>(),
+  }),
+
+  createChatService: () => ({
+    createChat: vi.fn<CreateChatService['createChat']>(),
+    isSubmitting: signal(false),
     succeeded$: new Subject<void>(),
   }),
 };

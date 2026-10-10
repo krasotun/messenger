@@ -6,6 +6,7 @@ import { ConfirmationData } from '../confirmation-data.type';
 import { ConfirmationDialog } from './confirmation-dialog';
 
 import { ModalRef } from '@shared/ui/modal/modal-ref';
+import { ModalMocks } from '@shared/ui/modal/testing';
 
 const DANGEROUS_DATA: ConfirmationData = {
   title: 'Delete chat',
@@ -15,9 +16,8 @@ const DANGEROUS_DATA: ConfirmationData = {
   isDangerous: true,
 };
 
-let modalRefMock: { close: ReturnType<typeof vi.fn> };
-
 describe('ConfirmationDialog', () => {
+  let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
   let fixture: ComponentFixture<ConfirmationDialog>;
 
   async function renderWith(data: ConfirmationData): Promise<void> {
@@ -27,7 +27,7 @@ describe('ConfirmationDialog', () => {
   }
 
   beforeEach(async () => {
-    modalRefMock = { close: vi.fn() };
+    modalRefMock = ModalMocks.modalRef();
 
     TestBed.configureTestingModule({
       imports: [ConfirmationDialog],

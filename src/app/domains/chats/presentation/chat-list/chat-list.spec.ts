@@ -8,30 +8,16 @@ import { CreateChatModalContent } from '../create-chat-modal-content/create-chat
 
 import { ChatList } from './chat-list';
 
+import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 import { ModalService } from '@shared/ui/modal/modal-service';
+import { ModalMocks } from '@shared/ui/modal/testing';
 
-const chatGatewayMock = {
-  chats: vi.fn(),
-};
-
-const modalServiceMock = {
-  open: vi.fn(),
-};
-
-const chatMock: Chat = {
-  id: 1,
-  title: 'Analytics Q3',
-  avatar: null,
-  unreadCount: 3,
-  createdBy: 1,
-  lastMessage: {
-    authorName: 'John',
-    content: 'the report is ready',
-  },
-};
+const chatMock = ChatMocks.chat();
 
 describe('ChatList', () => {
+  let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
+  let modalServiceMock: ReturnType<typeof ModalMocks.modalService>;
   let component: ChatList;
   let fixture: ComponentFixture<ChatList>;
 
@@ -45,9 +31,9 @@ describe('ChatList', () => {
   const getText = (): string => fixture.nativeElement.textContent;
 
   beforeEach(async () => {
-    chatGatewayMock.chats.mockReset();
+    chatGatewayMock = ChatMocks.chatGateway();
+    modalServiceMock = ModalMocks.modalService();
     chatGatewayMock.chats.mockReturnValue(of([chatMock]));
-    modalServiceMock.open.mockReset();
 
     await TestBed.configureTestingModule({
       imports: [ChatList],

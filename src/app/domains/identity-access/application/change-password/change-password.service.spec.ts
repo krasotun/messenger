@@ -3,75 +3,50 @@ import { Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
-import { CurrentSessionResult } from '../current-session/current-session-result.type';
 import { CurrentSessionStatus } from '../current-session/current-session-status.type';
 import { CurrentSessionService } from '../current-session/current-session.service';
-import { CurrentUser } from '../current-session/current-user.type';
 import { USER_GATEWAY } from '../user.gateway';
 
 import { ChangePasswordInput } from './change-password-input.type';
 import { ChangePasswordResult } from './change-password-result.type';
 import { ChangePasswordService } from './change-password.service';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
-
-const authGatewayMock = {
-  currentSession: vi.fn(),
-  logout: vi.fn(),
-};
-
-const userGatewayMock = {
-  changePassword: vi.fn(),
-};
+import { NotificationMocks } from '@shared/notifications/testing';
 
 const routerMock = {
   navigate: vi.fn(),
   navigateByUrl: vi.fn(),
 };
 
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
-
-const currentUserMock: CurrentUser = {
-  id: 1,
-  firstName: 'firstName',
-  secondName: 'secondName',
-  displayName: 'displayName',
-  login: 'login',
-  email: 'email',
-  phone: 'phone',
-  avatar: null,
-};
+const currentUserMock = IdentityMocks.currentUser();
 
 const changePasswordInputMock: ChangePasswordInput = {
   oldPassword: 'oldPassword',
   newPassword: 'newPassword',
 };
 
-const authenticatedSessionMock: CurrentSessionResult = {
-  status: CurrentSessionStatus.Authenticated,
-  user: currentUserMock,
-};
+const authenticatedSessionMock = IdentityMocks.authenticatedSession(currentUserMock);
 
 const changePasswordResultMock: ChangePasswordResult = {
   passwordChanged: true,
 };
 
 describe('ChangePasswordService', () => {
+  let authGatewayMock: ReturnType<typeof IdentityMocks.authGateway>;
+  let userGatewayMock: ReturnType<typeof IdentityMocks.userGateway>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let service: ChangePasswordService;
   let currentSessionService: CurrentSessionService;
 
   beforeEach(() => {
-    authGatewayMock.currentSession.mockReset();
-    authGatewayMock.logout.mockReset();
-    userGatewayMock.changePassword.mockReset();
+    authGatewayMock = IdentityMocks.authGateway();
+    userGatewayMock = IdentityMocks.userGateway();
+    notifierMock = NotificationMocks.notifier();
     routerMock.navigate.mockReset();
     routerMock.navigateByUrl.mockReset();
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
 
     TestBed.configureTestingModule({
       providers: [

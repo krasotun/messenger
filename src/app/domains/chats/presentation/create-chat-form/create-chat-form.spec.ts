@@ -1,18 +1,13 @@
-import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
 
 import { CreateChatService } from '../../application/create-chat/create-chat.service';
 
 import { CreateChatForm } from './create-chat-form';
 
-let createChatServiceMock: {
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  createChat: ReturnType<typeof vi.fn>;
-};
+import { ChatMocks } from '@domains/chats/testing';
 
 describe('CreateChatForm', () => {
+  let createChatServiceMock: ReturnType<typeof ChatMocks.createChatService>;
   let component: CreateChatForm;
   let fixture: ComponentFixture<CreateChatForm>;
 
@@ -32,11 +27,7 @@ describe('CreateChatForm', () => {
     fixture.nativeElement.querySelector('.form-field__error');
 
   beforeEach(async () => {
-    createChatServiceMock = {
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      createChat: vi.fn(),
-    };
+    createChatServiceMock = ChatMocks.createChatService();
 
     await TestBed.configureTestingModule({
       imports: [CreateChatForm],

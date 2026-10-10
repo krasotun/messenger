@@ -1,14 +1,12 @@
-import { signal, WritableSignal } from '@angular/core';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { of, Subject, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../../application/auth.gateway';
 import { ChangeAvatarService } from '../../application/change-avatar/change-avatar.service';
 import { CurrentSessionStatus } from '../../application/current-session/current-session-status.type';
 import { CurrentSessionService } from '../../application/current-session/current-session.service';
-import { CurrentUser } from '../../application/current-session/current-user.type';
-import { UpdateProfileInput } from '../../application/update-profile/update-profile-input.type';
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 import { USER_GATEWAY } from '../../application/user.gateway';
 import { ChangeAvatarForm } from '../change-avatar-form/change-avatar-form';
@@ -16,51 +14,30 @@ import { UpdateProfileForm } from '../update-profile-form/update-profile-form';
 
 import { UpdateProfileModalContent } from './update-profile-modal-content';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 import { ModalRef } from '@shared/ui/modal/modal-ref';
+import { ModalMocks } from '@shared/ui/modal/testing';
 
-const currentUserMock: CurrentUser = {
-  id: 1,
+const currentUserMock = IdentityMocks.currentUser({
   firstName: 'firstName',
   secondName: 'secondName',
   displayName: 'displayName',
   login: 'login',
   email: 'email@mock.ru',
   phone: '+79991234567',
-  avatar: null,
-};
+});
 
-const initialValuesMock: UpdateProfileInput = {
+const initialValuesMock = IdentityMocks.updateProfileInput({
   firstName: 'firstName',
   secondName: 'secondName',
   displayName: 'displayName',
   login: 'login',
   email: 'email@mock.ru',
   phone: '+79991234567',
-};
-
-let updateProfileServiceMock: {
-  initialValues: WritableSignal<UpdateProfileInput>;
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  updateProfile: ReturnType<typeof vi.fn>;
-};
-
-let changeAvatarServiceMock: {
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  changeAvatar: ReturnType<typeof vi.fn>;
-};
-
-let modalRefMock: {
-  close: ReturnType<typeof vi.fn>;
-};
-
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
+});
 
 const pngFileMock = new File(['mockContent'], 'avatar.png', { type: 'image/png' });
 
@@ -96,28 +73,17 @@ const submitUpdateProfileForm = (fixture: ComponentFixture<UpdateProfileModalCon
 };
 
 describe('UpdateProfileModalContent', () => {
+  let updateProfileServiceMock: ReturnType<typeof IdentityMocks.updateProfileService>;
+  let changeAvatarServiceMock: ReturnType<typeof IdentityMocks.changeAvatarService>;
+  let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let fixture: ComponentFixture<UpdateProfileModalContent>;
 
   beforeEach(async () => {
-    updateProfileServiceMock = {
-      initialValues: signal(initialValuesMock),
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      updateProfile: vi.fn(),
-    };
-
-    changeAvatarServiceMock = {
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      changeAvatar: vi.fn(),
-    };
-
-    modalRefMock = {
-      close: vi.fn(),
-    };
-
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
+    updateProfileServiceMock = IdentityMocks.updateProfileService(initialValuesMock);
+    changeAvatarServiceMock = IdentityMocks.changeAvatarService();
+    modalRefMock = ModalMocks.modalRef();
+    notifierMock = NotificationMocks.notifier();
 
     TestBed.configureTestingModule({
       imports: [UpdateProfileModalContent],
@@ -220,11 +186,7 @@ describe('UpdateProfileModalContent', () => {
   });
 
   describe('flow lifetime', () => {
-    let userGatewayMock: {
-      updateProfile: ReturnType<typeof vi.fn>;
-      changePassword: ReturnType<typeof vi.fn>;
-      changeAvatar: ReturnType<typeof vi.fn>;
-    };
+    let userGatewayMock: ReturnType<typeof IdentityMocks.userGateway>;
 
     const openModal = async (): Promise<ComponentFixture<UpdateProfileModalContent>> => {
       const openedFixture = TestBed.createComponent(UpdateProfileModalContent);
@@ -246,11 +208,13 @@ describe('UpdateProfileModalContent', () => {
     beforeEach(async () => {
       TestBed.resetTestingModule();
 
-      userGatewayMock = {
-        updateProfile: vi.fn(() => throwError(() => new ApplicationError('Mock error'))),
-        changePassword: vi.fn(),
-        changeAvatar: vi.fn(() => throwError(() => new ApplicationError('Mock error'))),
-      };
+      userGatewayMock = IdentityMocks.userGateway();
+      userGatewayMock.updateProfile.mockImplementation(() =>
+        throwError(() => new ApplicationError('Mock error')),
+      );
+      userGatewayMock.changeAvatar.mockImplementation(() =>
+        throwError(() => new ApplicationError('Mock error')),
+      );
 
       TestBed.configureTestingModule({
         imports: [UpdateProfileModalContent],

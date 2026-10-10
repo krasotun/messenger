@@ -1,18 +1,13 @@
-import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
 
 import { ChangePasswordService } from '../../application/change-password/change-password.service';
 
 import { ChangePasswordForm } from './change-password-form';
 
-let changePasswordServiceMock: {
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  changePassword: ReturnType<typeof vi.fn>;
-};
+import { IdentityMocks } from '@domains/identity-access/testing';
 
 describe('ChangePasswordForm', () => {
+  let changePasswordServiceMock: ReturnType<typeof IdentityMocks.changePasswordService>;
   let component: ChangePasswordForm;
   let fixture: ComponentFixture<ChangePasswordForm>;
 
@@ -39,11 +34,7 @@ describe('ChangePasswordForm', () => {
   };
 
   beforeEach(async () => {
-    changePasswordServiceMock = {
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      changePassword: vi.fn(),
-    };
+    changePasswordServiceMock = IdentityMocks.changePasswordService();
 
     await TestBed.configureTestingModule({
       imports: [ChangePasswordForm],
