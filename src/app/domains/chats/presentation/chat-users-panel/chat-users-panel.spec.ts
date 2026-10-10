@@ -1,21 +1,27 @@
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { inputBinding, outputBinding } from '@angular/core';
-import { render, screen, within } from '@testing-library/angular/zoneless';
+import { render, screen } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
 
 import { ChatUsersPanel } from './chat-users-panel';
 
-import { ChatMocks } from '@domains/chats/testing';
+import { ChatMocks, ChatUserRowHarness } from '@domains/chats/testing';
 
 const currentUserMock = ChatMocks.chatUser({ id: 2, name: 'Johnny' });
 
 const anotherUserMock = ChatMocks.chatUser({ id: 3, name: 'Billy' });
 
+// Панель проверяется Testing Library, а строки участников - через
+// ChatUserRowHarness: разметку строки спек панели не знает.
 describe('ChatUsersPanel', () => {
+  let loader: HarnessLoader;
+
   const renderPanel = async (options: { canRemoveChatUsers?: boolean } = {}) => {
     const closed = vi.fn();
     const removeRequested = vi.fn();
 
-    await render(ChatUsersPanel, {
+    const { fixture } = await render(ChatUsersPanel, {
       bindings: [
         inputBinding('chatUsers', () => [currentUserMock, anotherUserMock]),
         inputBinding('currentUserId', () => currentUserMock.id),
@@ -25,10 +31,13 @@ describe('ChatUsersPanel', () => {
       ],
     });
 
+    loader = TestbedHarnessEnvironment.loader(fixture);
+
     return { closed, removeRequested };
   };
 
-  const getRow = (name: string): HTMLElement => screen.getByText(name).closest('li') as HTMLElement;
+  const getRow = (name: string): Promise<ChatUserRowHarness> =>
+    loader.getHarness(ChatUserRowHarness.with({ name }));
 
   it('shows the chat user count in the Members · N title', async () => {
     await renderPanel();
@@ -39,23 +48,21 @@ describe('ChatUsersPanel', () => {
   it('shows a row for each chat user', async () => {
     await renderPanel();
 
-    const rows = screen.getAllByRole('listitem');
+    const rows = await loader.getAllHarnesses(ChatUserRowHarness);
 
-    expect(rows).toHaveLength(2);
-    expect(within(rows[0]).getByText('Johnny')).toBeInTheDocument();
-    expect(within(rows[1]).getByText('Billy')).toBeInTheDocument();
+    expect(await Promise.all(rows.map((row) => row.getName()))).toEqual(['Johnny', 'Billy']);
   });
 
   it('marks the current user row', async () => {
     await renderPanel();
 
-    expect(within(getRow('Johnny')).getByText('(you)')).toBeInTheDocument();
+    expect(await (await getRow('Johnny')).isCurrentUser()).toBe(true);
   });
 
   it('does not mark other chat user rows', async () => {
     await renderPanel();
 
-    expect(within(getRow('Billy')).queryByText('(you)')).not.toBeInTheDocument();
+    expect(await (await getRow('Billy')).isCurrentUser()).toBe(false);
   });
 
   it('emits closed when Close members is pressed', async () => {
@@ -70,29 +77,27 @@ describe('ChatUsersPanel', () => {
   it('offers removal for other chat user rows when removal is allowed', async () => {
     await renderPanel({ canRemoveChatUsers: true });
 
-    expect(
-      within(getRow('Billy')).getByRole('button', { name: 'Remove Billy' }),
-    ).toBeInTheDocument();
+    expect(await (await getRow('Billy')).canRemove()).toBe(true);
   });
 
   it('does not offer removal for the current user row when removal is allowed', async () => {
     await renderPanel({ canRemoveChatUsers: true });
 
-    expect(within(getRow('Johnny')).queryByRole('button')).not.toBeInTheDocument();
+    expect(await (await getRow('Johnny')).canRemove()).toBe(false);
   });
 
   it('offers removal for no row when removal is not allowed', async () => {
     await renderPanel();
 
-    expect(within(getRow('Johnny')).queryByRole('button')).not.toBeInTheDocument();
-    expect(within(getRow('Billy')).queryByRole('button')).not.toBeInTheDocument();
+    const rows = await loader.getAllHarnesses(ChatUserRowHarness);
+
+    expect(await Promise.all(rows.map((row) => row.canRemove()))).toEqual([false, false]);
   });
 
   it('emits removeRequested with the chat user when their row requests removal', async () => {
-    const user = userEvent.setup();
     const { removeRequested } = await renderPanel({ canRemoveChatUsers: true });
 
-    await user.click(screen.getByRole('button', { name: 'Remove Billy' }));
+    await (await getRow('Billy')).remove();
 
     expect(removeRequested).toHaveBeenCalledWith(anotherUserMock);
   });
