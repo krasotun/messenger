@@ -1,10 +1,10 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
+import { TestBed } from '@angular/core/testing';
+import { fireEvent, render, within } from '@testing-library/angular/zoneless';
+import { userEvent } from '@testing-library/user-event';
 import { throwError } from 'rxjs';
 
 import { CHAT_GATEWAY } from '../../application/chat.gateway';
 import { CreateChatService } from '../../application/create-chat/create-chat.service';
-import { CreateChatForm } from '../create-chat-form/create-chat-form';
 
 import { CreateChatModalContent } from './create-chat-modal-content';
 
@@ -19,51 +19,38 @@ describe('CreateChatModalContent', () => {
   let createChatServiceMock: ReturnType<typeof ChatMocks.createChatService>;
   let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
-  let fixture: ComponentFixture<CreateChatModalContent>;
 
-  beforeEach(async () => {
+  const sharedProviders = () => [
+    { provide: ModalRef, useValue: modalRefMock },
+    { provide: NOTIFIER, useValue: notifierMock },
+  ];
+
+  // CreateChatService живет в providers компонента модалки.
+  const renderModal = () =>
+    render(CreateChatModalContent, {
+      providers: sharedProviders(),
+      configureTestBed: (testBed) =>
+        testBed.overrideComponent(CreateChatModalContent, {
+          set: { providers: [{ provide: CreateChatService, useValue: createChatServiceMock }] },
+        }),
+      waitForStableOnRender: true,
+    });
+
+  beforeEach(() => {
     createChatServiceMock = ChatMocks.createChatService();
     modalRefMock = ModalMocks.modalRef();
     notifierMock = NotificationMocks.notifier();
-
-    TestBed.configureTestingModule({
-      imports: [CreateChatModalContent],
-      providers: [
-        {
-          provide: ModalRef,
-          useValue: modalRefMock,
-        },
-        {
-          provide: NOTIFIER,
-          useValue: notifierMock,
-        },
-      ],
-    });
-
-    TestBed.overrideComponent(CreateChatModalContent, {
-      set: {
-        providers: [
-          {
-            provide: CreateChatService,
-            useValue: createChatServiceMock,
-          },
-        ],
-      },
-    });
-
-    await TestBed.compileComponents();
-
-    fixture = TestBed.createComponent(CreateChatModalContent);
-    await fixture.whenStable();
   });
 
-  it('should create', () => {
+  it('should create', async () => {
+    const { fixture } = await renderModal();
+
     expect(fixture.componentInstance).toBeTruthy();
   });
 
   describe('successful creation', () => {
-    it('should close the modal without a manual application tick', () => {
-      fixture.detectChanges();
+    it('should close the modal without a manual application tick', async () => {
+      await renderModal();
 
       createChatServiceMock.succeeded$.next();
 
@@ -72,20 +59,19 @@ describe('CreateChatModalContent', () => {
   });
 
   describe('closing without submitting', () => {
-    it('should not call createChat', () => {
-      fixture.detectChanges();
+    it('should not call createChat', async () => {
+      await renderModal();
 
       expect(createChatServiceMock.createChat).not.toHaveBeenCalled();
     });
   });
 
   describe('empty title', () => {
-    it('should not call createChat and should not close the modal', () => {
-      fixture.detectChanges();
+    // Кнопка выключена, пользовательского пути к submit нет: проверяем защиту.
+    it('should not call createChat and should not close the modal', async () => {
+      const { container } = await renderModal();
 
-      fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
-
-      fixture.detectChanges();
+      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
       expect(createChatServiceMock.createChat).not.toHaveBeenCalled();
       expect(modalRefMock.close).not.toHaveBeenCalled();
@@ -95,75 +81,37 @@ describe('CreateChatModalContent', () => {
   describe('flow lifetime', () => {
     let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
 
-    const openModal = async (): Promise<ComponentFixture<CreateChatModalContent>> => {
-      const openedFixture = TestBed.createComponent(CreateChatModalContent);
-      await openedFixture.whenStable();
-      openedFixture.detectChanges();
-
-      return openedFixture;
-    };
-
-    const submitWithError = async (
-      openedFixture: ComponentFixture<CreateChatModalContent>,
-    ): Promise<void> => {
-      const form: CreateChatForm = openedFixture.debugElement.query(
-        By.directive(CreateChatForm),
-      ).componentInstance;
-
-      form.createChatForm.setValue({ title: 'typedTitle' });
-
-      openedFixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
-
-      await openedFixture.whenStable();
-      openedFixture.detectChanges();
-    };
-
-    beforeEach(async () => {
-      TestBed.resetTestingModule();
-
+    beforeEach(() => {
       chatGatewayMock = ChatMocks.chatGateway();
       chatGatewayMock.createChat.mockImplementation(() =>
         throwError(() => new ApplicationError('Mock error')),
       );
-
-      TestBed.configureTestingModule({
-        imports: [CreateChatModalContent],
-        providers: [
-          {
-            provide: CHAT_GATEWAY,
-            useValue: chatGatewayMock,
-          },
-          {
-            provide: ModalRef,
-            useValue: modalRefMock,
-          },
-          {
-            provide: NOTIFIER,
-            useValue: notifierMock,
-          },
-        ],
-      });
-
-      await TestBed.compileComponents();
     });
 
+    // render настраивает TestBed и второй раз в одном тесте не вызывается:
+    // повторное открытие модалки идет через TestBed.createComponent.
     it('should show an empty form without an error when reopened after a failed creation', async () => {
-      const failedFixture = await openModal();
+      const user = userEvent.setup();
+      const { fixture: failedFixture, container } = await render(CreateChatModalContent, {
+        providers: [...sharedProviders(), { provide: CHAT_GATEWAY, useValue: chatGatewayMock }],
+        waitForStableOnRender: true,
+      });
+      const failedModal = within(container);
 
-      await submitWithError(failedFixture);
+      await user.type(failedModal.getByLabelText('Title'), 'typedTitle');
+      await user.click(failedModal.getByRole('button', { name: 'Create' }));
+      await failedFixture.whenStable();
 
       expect(notifierMock.error).toHaveBeenCalledWith('Failed to create chat', 'Mock error');
-      expect(failedFixture.nativeElement.querySelector('.create-chat-form__error')).toBeNull();
+      expect(container.querySelector('.create-chat-form__error')).toBeNull();
 
       failedFixture.destroy();
 
-      const reopenedFixture = await openModal();
+      const reopenedFixture = TestBed.createComponent(CreateChatModalContent);
+      await reopenedFixture.whenStable();
+      const reopenedModal = within(reopenedFixture.nativeElement);
 
-      const reopenedTitleInput: HTMLInputElement =
-        reopenedFixture.nativeElement.querySelector('input');
-
-      expect(reopenedTitleInput.value).toBe('');
-
+      expect(reopenedModal.getByLabelText('Title')).toHaveValue('');
       expect(reopenedFixture.nativeElement.querySelector('.create-chat-form__error')).toBeNull();
     });
   });
