@@ -5,7 +5,9 @@ import { ConfirmationData } from './confirmation-data.type';
 import { ConfirmationDialog } from './confirmation-dialog/confirmation-dialog';
 import { ConfirmationService } from './confirmation.service';
 
+import { ModalRef } from '@shared/ui/modal/modal-ref';
 import { ModalService } from '@shared/ui/modal/modal-service';
+import { ModalMocks } from '@shared/ui/modal/testing';
 
 const DATA: ConfirmationData = {
   title: 'Delete chat',
@@ -17,18 +19,17 @@ const DATA: ConfirmationData = {
 
 let closed$: Subject<boolean | undefined>;
 
-const modalServiceMock = {
-  open: vi.fn(),
-};
-
 describe('ConfirmationService', () => {
+  let modalServiceMock: ReturnType<typeof ModalMocks.modalService>;
   let service: ConfirmationService;
 
   beforeEach(() => {
+    modalServiceMock = ModalMocks.modalService();
     closed$ = new Subject<boolean | undefined>();
-
-    modalServiceMock.open.mockReset();
-    modalServiceMock.open.mockReturnValue({ closed$: closed$.asObservable() });
+    // Сервису нужен только closed$: остальной ModalRef в этом тесте не участвует.
+    modalServiceMock.open.mockReturnValue({
+      closed$: closed$.asObservable(),
+    } as unknown as ModalRef);
 
     TestBed.configureTestingModule({
       providers: [{ provide: ModalService, useValue: modalServiceMock }],

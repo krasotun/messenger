@@ -2,29 +2,20 @@ import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
-import { CurrentSessionResult } from '../current-session/current-session-result.type';
 import { CurrentSessionStatus } from '../current-session/current-session-status.type';
 import { CurrentSessionService } from '../current-session/current-session.service';
-import { CurrentUser } from '../current-session/current-user.type';
 
 import { SignInInput } from './sign-in-input.type';
 import { SignInService } from './sign-in.service';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
-
-const authGatewayMock = {
-  signIn: vi.fn(),
-};
+import { NotificationMocks } from '@shared/notifications/testing';
 
 const currentSessionServiceMock = {
   restoreCurrentSession: vi.fn(),
   logout: vi.fn(),
-};
-
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
 };
 
 const signInInputMock: SignInInput = {
@@ -32,33 +23,21 @@ const signInInputMock: SignInInput = {
   password: 'mockPassword',
 };
 
-const currentUserMock: CurrentUser = {
-  id: 1,
-  avatar: null,
-  displayName: 'displayName',
-  email: 'email',
-  firstName: 'firstName',
-  login: 'login',
-  phone: 'phone',
-  secondName: 'secondName',
-};
+const currentUserMock = IdentityMocks.currentUser();
 
-const successResponseMock: CurrentSessionResult = {
-  status: CurrentSessionStatus.Authenticated,
-  user: currentUserMock,
-};
+const successResponseMock = IdentityMocks.authenticatedSession(currentUserMock);
 
 describe('SignIn', () => {
+  let authGatewayMock: ReturnType<typeof IdentityMocks.authGateway>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let service: SignInService;
 
   beforeEach(() => {
-    authGatewayMock.signIn.mockReset();
+    authGatewayMock = IdentityMocks.authGateway();
+    notifierMock = NotificationMocks.notifier();
 
     currentSessionServiceMock.restoreCurrentSession.mockReset();
     currentSessionServiceMock.logout.mockReset();
-
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
 
     TestBed.configureTestingModule({
       providers: [

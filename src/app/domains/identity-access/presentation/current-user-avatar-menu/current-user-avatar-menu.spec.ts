@@ -10,19 +10,15 @@ import { UpdateProfileModalContent } from '../update-profile-modal-content/updat
 
 import { CurrentUserAvatarMenu } from './current-user-avatar-menu';
 
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { Nullable } from '@shared/types';
 import { ModalService } from '@shared/ui/modal/modal-service';
+import { ModalMocks } from '@shared/ui/modal/testing';
 
-const currentUserMock: CurrentUser = {
-  id: 1,
+const currentUserMock = IdentityMocks.currentUser({
   avatar: 'http://avatar.mock',
   displayName: 'displayName',
-  email: 'email',
-  firstName: 'firstName',
-  login: 'login',
-  phone: 'phone',
-  secondName: 'secondName',
-};
+});
 
 describe('CurrentUserAvatarMenu', () => {
   let component: CurrentUserAvatarMenu;
@@ -37,9 +33,7 @@ describe('CurrentUserAvatarMenu', () => {
   const routerMock = {
     navigateByUrl: vi.fn(),
   };
-  const modalServiceMock = {
-    open: vi.fn(),
-  };
+  let modalServiceMock: ReturnType<typeof ModalMocks.modalService>;
 
   function openMenuAndGetLogoutButton(): HTMLButtonElement {
     const popoverTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
@@ -66,7 +60,7 @@ describe('CurrentUserAvatarMenu', () => {
     currentSessionServiceMock.logout.mockReset();
     currentSessionServiceMock.logout.mockReturnValue(of(void 0));
     routerMock.navigateByUrl.mockReset();
-    modalServiceMock.open.mockReset();
+    modalServiceMock = ModalMocks.modalService();
 
     await TestBed.configureTestingModule({
       imports: [CurrentUserAvatarMenu],

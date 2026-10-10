@@ -1,7 +1,6 @@
-import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Subject, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 
 import { CHAT_GATEWAY } from '../../application/chat.gateway';
 import { CreateChatService } from '../../application/create-chat/create-chat.service';
@@ -9,41 +8,23 @@ import { CreateChatForm } from '../create-chat-form/create-chat-form';
 
 import { CreateChatModalContent } from './create-chat-modal-content';
 
+import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 import { ModalRef } from '@shared/ui/modal/modal-ref';
-
-let createChatServiceMock: {
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  createChat: ReturnType<typeof vi.fn>;
-};
-
-let modalRefMock: {
-  close: ReturnType<typeof vi.fn>;
-};
-
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
+import { ModalMocks } from '@shared/ui/modal/testing';
 
 describe('CreateChatModalContent', () => {
+  let createChatServiceMock: ReturnType<typeof ChatMocks.createChatService>;
+  let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let fixture: ComponentFixture<CreateChatModalContent>;
 
   beforeEach(async () => {
-    createChatServiceMock = {
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      createChat: vi.fn(),
-    };
-
-    modalRefMock = {
-      close: vi.fn(),
-    };
-
-    notifierMock.success.mockReset();
-    notifierMock.error.mockReset();
+    createChatServiceMock = ChatMocks.createChatService();
+    modalRefMock = ModalMocks.modalRef();
+    notifierMock = NotificationMocks.notifier();
 
     TestBed.configureTestingModule({
       imports: [CreateChatModalContent],
@@ -112,10 +93,7 @@ describe('CreateChatModalContent', () => {
   });
 
   describe('flow lifetime', () => {
-    let chatGatewayMock: {
-      chats: ReturnType<typeof vi.fn>;
-      createChat: ReturnType<typeof vi.fn>;
-    };
+    let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
 
     const openModal = async (): Promise<ComponentFixture<CreateChatModalContent>> => {
       const openedFixture = TestBed.createComponent(CreateChatModalContent);
@@ -143,10 +121,10 @@ describe('CreateChatModalContent', () => {
     beforeEach(async () => {
       TestBed.resetTestingModule();
 
-      chatGatewayMock = {
-        chats: vi.fn(),
-        createChat: vi.fn(() => throwError(() => new ApplicationError('Mock error'))),
-      };
+      chatGatewayMock = ChatMocks.chatGateway();
+      chatGatewayMock.createChat.mockImplementation(() =>
+        throwError(() => new ApplicationError('Mock error')),
+      );
 
       TestBed.configureTestingModule({
         imports: [CreateChatModalContent],

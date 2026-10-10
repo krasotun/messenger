@@ -7,8 +7,10 @@ import { SignUpForm } from './sign-up-form';
 import { AUTH_GATEWAY } from '@domains/identity-access/application/auth.gateway';
 import { SignUpInput } from '@domains/identity-access/application/sign-up/sign-up-input.type';
 import { SignUpService } from '@domains/identity-access/application/sign-up/sign-up.service';
+import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 
 let signUpServiceMock: {
   isSubmitting: WritableSignal<boolean>;
@@ -16,12 +18,8 @@ let signUpServiceMock: {
   signUp: ReturnType<typeof vi.fn>;
 };
 
-const notifierMock = {
-  success: vi.fn(),
-  error: vi.fn(),
-};
-
 describe('SignUpForm', () => {
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let component: SignUpForm;
   let fixture: ComponentFixture<SignUpForm>;
 
@@ -41,6 +39,7 @@ describe('SignUpForm', () => {
     Array.from(fixture.nativeElement.querySelectorAll('.form-field__error'));
 
   beforeEach(async () => {
+    notifierMock = NotificationMocks.notifier();
     signUpServiceMock = {
       isSubmitting: signal(false),
       succeeded$: new Subject<void>(),
@@ -179,9 +178,7 @@ describe('SignUpForm', () => {
   });
 
   describe('flow lifetime', () => {
-    let authGatewayMock: {
-      signUp: ReturnType<typeof vi.fn>;
-    };
+    let authGatewayMock: ReturnType<typeof IdentityMocks.authGateway>;
 
     const mockSignUpValue: SignUpInput = validFormValue;
 
@@ -201,10 +198,7 @@ describe('SignUpForm', () => {
     beforeEach(async () => {
       TestBed.resetTestingModule();
 
-      authGatewayMock = { signUp: vi.fn() };
-
-      notifierMock.success.mockReset();
-      notifierMock.error.mockReset();
+      authGatewayMock = IdentityMocks.authGateway();
 
       TestBed.configureTestingModule({
         imports: [SignUpForm],

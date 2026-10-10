@@ -1,29 +1,15 @@
-import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
 
-import { UpdateProfileInput } from '../../application/update-profile/update-profile-input.type';
 import { UpdateProfileService } from '../../application/update-profile/update-profile.service';
 
 import { UpdateProfileForm } from './update-profile-form';
 
-const initialValuesMock: UpdateProfileInput = {
-  firstName: 'firstName',
-  secondName: 'secondName',
-  displayName: 'displayName',
-  login: 'login',
-  email: 'email@mock.ru',
-  phone: '+79991234567',
-};
+import { IdentityMocks } from '@domains/identity-access/testing';
 
-let updateProfileServiceMock: {
-  initialValues: WritableSignal<UpdateProfileInput>;
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  updateProfile: ReturnType<typeof vi.fn>;
-};
+const initialValuesMock = IdentityMocks.updateProfileInput();
 
 describe('UpdateProfileForm', () => {
+  let updateProfileServiceMock: ReturnType<typeof IdentityMocks.updateProfileService>;
   let component: UpdateProfileForm;
   let fixture: ComponentFixture<UpdateProfileForm>;
 
@@ -39,12 +25,7 @@ describe('UpdateProfileForm', () => {
     Array.from(fixture.nativeElement.querySelectorAll('.form-field__error'));
 
   beforeEach(async () => {
-    updateProfileServiceMock = {
-      initialValues: signal(initialValuesMock),
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      updateProfile: vi.fn(),
-    };
+    updateProfileServiceMock = IdentityMocks.updateProfileService(initialValuesMock);
 
     await TestBed.configureTestingModule({
       imports: [UpdateProfileForm],

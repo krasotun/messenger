@@ -7,29 +7,17 @@ import { Chat } from '../chat.type';
 import { ChatListStatus } from './chat-list-status.type';
 import { ChatListService } from './chat-list.service';
 
+import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 
-const chatGatewayMock = {
-  chats: vi.fn(),
-};
-
-const chatMock: Chat = {
-  id: 1,
-  title: 'Analytics Q3',
-  avatar: null,
-  unreadCount: 3,
-  createdBy: 1,
-  lastMessage: {
-    authorName: 'John',
-    content: 'the report is ready',
-  },
-};
+const chatMock = ChatMocks.chat();
 
 describe('ChatListService', () => {
   let service: ChatListService;
+  let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
 
   beforeEach(() => {
-    chatGatewayMock.chats.mockReset();
+    chatGatewayMock = ChatMocks.chatGateway();
 
     TestBed.configureTestingModule({
       providers: [

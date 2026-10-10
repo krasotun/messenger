@@ -2,29 +2,16 @@ import { Component, getDebugNode, input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { ChatUser } from '../../application/chat-user.type';
-import { Chat } from '../../application/chat.type';
-
 import { SelectedChatHeader } from './selected-chat-header';
 
 import { AddChatUserPanel } from '@domains/chats/presentation/add-chat-user-panel/add-chat-user-panel';
 import { ChatUserStack } from '@domains/chats/presentation/chat-user-stack/chat-user-stack';
+import { ChatMocks } from '@domains/chats/testing';
 import { Nullable } from '@shared/types';
 
-const chatMock: Chat = {
-  id: 1,
-  title: 'Analytics Q3',
-  avatar: null,
-  unreadCount: 0,
-  createdBy: 1,
-  lastMessage: null,
-};
+const chatMock = ChatMocks.chat({ title: 'Analytics Q3' });
 
-const chatUserMock: ChatUser = {
-  id: 2,
-  name: 'Johnny',
-  avatar: null,
-};
+const chatUserMock = ChatMocks.chatUser();
 
 @Component({
   selector: 'app-add-chat-user-panel',
