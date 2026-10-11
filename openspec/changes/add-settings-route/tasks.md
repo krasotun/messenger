@@ -1,6 +1,14 @@
+## 0. Истечение сессии
+
+- [ ] 0.1 Дописать падающие спеки `src/app/domains/identity-access/application/current-session/current-session.service.spec.ts`: `expireCurrentSession()` очищает **Текущего пользователя** и переводит **Статус сессии** в `Anonymous`, запроса к бэкенду нет
+- [ ] 0.2 Реализовать `expireCurrentSession()` в `current-session.service.ts`, проверив, что спеки 0.1 зеленые
+- [ ] 0.3 Написать падающие спеки `src/app/core/http/session-expiry.interceptor.spec.ts` (`HttpTestingController`): `401` при `Authenticated` - **Текущая сессия** сброшена, **Уведомление** `Session expired` с текстом `Please sign in again.`, переход на `/sign-in`, ошибка дошла до вызывающего; `401` при `Anonymous` и `Loading` - ничего из этого; два `401` подряд - одно **Уведомление** и один переход; ошибка с другим статусом - ничего из этого
+- [ ] 0.4 Реализовать `src/app/core/http/session-expiry.interceptor.ts` и подключить его в конце `withInterceptors` в `src/app/app.config.ts`, проверив, что спеки 0.3 зеленые
+- [ ] 0.5 Прогнать `npm run lint` и `npm run test:ci`
+
 ## 1. Свежий профиль в application
 
-- [ ] 1.1 Написать падающие спеки `src/app/domains/identity-access/application/refresh-current-user/refresh-current-user.service.spec.ts`: ответ `Authenticated` обновляет **Текущую сессию** и отдает **Текущего пользователя**; ответ `Anonymous` и ошибка шлюза показывают **Уведомление** об ошибке (текст из **Ошибки приложения**, при его отсутствии - generic), поток завершается без значения, а **Текущая сессия** и **Статус сессии** не меняются
+- [ ] 1.1 Написать падающие спеки `src/app/domains/identity-access/application/refresh-current-user/refresh-current-user.service.spec.ts`: ответ `Authenticated` обновляет **Текущую сессию** и отдает **Текущего пользователя**; ответ `Anonymous` завершает поток без значения и без **Уведомления**; ошибка шлюза показывает **Уведомление** об ошибке (текст из **Ошибки приложения**, при его отсутствии - generic) и завершает поток без значения; в обоих случаях **Текущая сессия** и **Статус сессии** не меняются
 - [ ] 1.2 Реализовать `refresh-current-user.service.ts` (`providedIn: 'root'`, `AUTH_GATEWAY.currentSession()`, `CurrentSessionService.updateCurrentUser`, `NOTIFIER`) и экспортировать его из `src/app/domains/identity-access/index.ts`, проверив, что спеки 1.1 зеленые
 - [ ] 1.3 Прогнать `npm run lint` и `npm run test:ci`
 
@@ -16,7 +24,7 @@
 
 ## 3. Стражи ухода и выхода
 
-- [ ] 3.1 Написать падающие спеки `src/app/core/routing/unsaved-changes.guard.spec.ts`: без изменений - `true` без подтверждения; с изменениями - подтверждение `Discard changes` с `Discard`, `isDangerous` и предметом раздела; согласие - `true`, отказ - `false`
+- [ ] 3.1 Написать падающие спеки `src/app/core/routing/unsaved-changes.guard.spec.ts`: без изменений - `true` без подтверждения; с изменениями - подтверждение `Discard changes` с `Discard`, `isDangerous` и предметом раздела; согласие - `true`, отказ - `false`; **Статус сессии** не `Authenticated` - `true` без подтверждения
 - [ ] 3.2 Реализовать `src/app/core/routing/unsaved-changes.guard.ts` с интерфейсом `HasUnsavedChanges` и `CanDeactivateFn`, проверив, что спеки 3.1 зеленые
 - [ ] 3.3 Написать падающие спеки `src/app/core/routing/logout.guard.spec.ts`: страж выполняет **Выход** и отдает `UrlTree` на `/sign-in` и на успехе, и на ошибке запроса
 - [ ] 3.4 Реализовать `src/app/core/routing/logout.guard.ts`, проверив, что спеки 3.3 зеленые
@@ -44,7 +52,7 @@
 
 ## 6. Сквозные сценарии и макет
 
-- [ ] 6.1 Написать e2e `e2e/settings/settings.spec.ts`: вход в **Настройки** из меню открывает `/settings/profile`; уход с измененным профилем - отказ оставляет значение, согласие уводит к **Чатам**; «назад» в браузере с изменениями спрашивает подтверждение; переход в раздел пароля с введенным паролем спрашивает подтверждение; **Выход** с изменениями - отказ оставляет сессию и раздел, согласие уводит на `/sign-in`
+- [ ] 6.1 Написать e2e `e2e/settings/settings.spec.ts`: вход в **Настройки** из меню открывает `/settings/profile`; уход с измененным профилем - отказ оставляет значение, согласие уводит к **Чатам**; «назад» в браузере с изменениями спрашивает подтверждение; переход в раздел пароля с введенным паролем спрашивает подтверждение; **Выход** с изменениями - отказ оставляет сессию и раздел, согласие уводит на `/sign-in`; **Истечение сессии** - `page.route` отвечает `401` на сохранение измененного профиля: **Уведомление** `Session expired` и переход на `/sign-in` без подтверждения ухода
 - [ ] 6.2 Заменить скриншотные e2e профиля и пароля на `e2e/settings/settings.screenshot.spec.ts` (`settings profile @visual`, `settings password @visual`), обновить `current-user-menu @visual` под новое меню; эталоны взять из артефакта `test-results` job `visual`
 - [ ] 6.3 Сверить снимки с артбордами канваса `Main`, `Password` и меню на `Navigating`
 - [ ] 6.4 Прогнать `npm run lint`, `npm run test:ci`, `npm run e2e` и дождаться зеленого job `visual` в CI
