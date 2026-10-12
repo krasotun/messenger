@@ -26,7 +26,12 @@ class HomePageStub {}
 describe('SignIn', () => {
   const renderPage = () =>
     render(SignInPage, {
-      providers: [provideRouter([{ path: '', component: HomePageStub }])],
+      providers: [
+        provideRouter([
+          { path: '', component: HomePageStub },
+          { path: 'sign-in', component: SignInPage },
+        ]),
+      ],
       importOverrides: [{ replace: SignInForm, with: SignInFormStub }],
     });
 
@@ -39,12 +44,14 @@ describe('SignIn', () => {
   describe('goToHome', () => {
     it('should navigate to home page', async () => {
       const user = userEvent.setup();
-      await renderPage();
-      const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate');
+      const { fixture } = await renderPage();
+      // Страница входа открыта по своему адресу, как в приложении.
+      await TestBed.inject(Router).navigateByUrl('/sign-in');
 
       await user.click(screen.getByRole('button', { name: 'Sign in succeeded' }));
+      await fixture.whenStable();
 
-      expect(navigateSpy).toHaveBeenCalledWith(['/']);
+      expect(TestBed.inject(Router).url).toBe('/');
     });
   });
 });

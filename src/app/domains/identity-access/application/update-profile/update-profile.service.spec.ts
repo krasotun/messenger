@@ -1,5 +1,6 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
@@ -15,11 +16,6 @@ import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
-
-const routerMock = {
-  navigate: vi.fn(),
-  navigateByUrl: vi.fn(),
-};
 
 const currentUserMock = IdentityMocks.currentUser({
   firstName: 'firstName',
@@ -59,8 +55,6 @@ describe('UpdateProfileService', () => {
     authGatewayMock = IdentityMocks.authGateway();
     userGatewayMock = IdentityMocks.userGateway();
     notifierMock = NotificationMocks.notifier();
-    routerMock.navigate.mockReset();
-    routerMock.navigateByUrl.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -72,10 +66,7 @@ describe('UpdateProfileService', () => {
           provide: USER_GATEWAY,
           useValue: userGatewayMock,
         },
-        {
-          provide: Router,
-          useValue: routerMock,
-        },
+        provideRouter([]),
         {
           provide: NOTIFIER,
           useValue: notifierMock,
@@ -187,11 +178,12 @@ describe('UpdateProfileService', () => {
         expect(service.initialValues().firstName).toBe('updatedFirstName');
       });
 
-      it('should not navigate', () => {
+      it('should not navigate', async () => {
         service.updateProfile(updateProfileInputMock);
 
-        expect(routerMock.navigate).not.toHaveBeenCalled();
-        expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
       });
     });
 
@@ -219,11 +211,12 @@ describe('UpdateProfileService', () => {
         expect(currentSessionService.currentUser()).toEqual(currentUserMock);
       });
 
-      it('should not navigate', () => {
+      it('should not navigate', async () => {
         service.updateProfile(updateProfileInputMock);
 
-        expect(routerMock.navigate).not.toHaveBeenCalled();
-        expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
       });
     });
   });

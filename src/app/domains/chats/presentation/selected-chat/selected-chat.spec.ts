@@ -1,6 +1,6 @@
-import { inputBinding, signal, WritableSignal } from '@angular/core';
+import { Component, inputBinding, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { render, screen, within } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
 import { of, throwError } from 'rxjs';
@@ -27,6 +27,12 @@ const secondChatUserMock = ChatMocks.chatUser({ id: 3, name: 'Billie' });
 
 const chatCreatorMock = IdentityMocks.currentUser({ id: 1 });
 
+@Component({
+  selector: 'app-chats-page',
+  template: '',
+})
+class ChatsPageStub {}
+
 describe('SelectedChat', () => {
   let fixture: ComponentFixture<SelectedChat>;
   let chatId: WritableSignal<string>;
@@ -46,10 +52,6 @@ describe('SelectedChat', () => {
   let deleteChatServiceMock: ReturnType<typeof ChatMocks.deleteChatService>;
   let removeChatUserServiceMock: ReturnType<typeof ChatMocks.removeChatUserService>;
 
-  const routerMock = {
-    navigateByUrl: vi.fn(),
-  };
-
   // Сервисы удаления живут в providers компонента и подменяются через
   // overrideComponent; список чатов загружается до рендера, как это делает
   // страница чатов.
@@ -65,7 +67,10 @@ describe('SelectedChat', () => {
         { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
         { provide: CurrentSessionService, useValue: currentSessionServiceMock },
         { provide: ConfirmationService, useValue: confirmationServiceMock },
-        { provide: Router, useValue: routerMock },
+        provideRouter([
+          { path: '', component: ChatsPageStub },
+          { path: ':chatId', component: ChatsPageStub },
+        ]),
       ],
       configureTestBed: (testBed) => {
         testBed.overrideComponent(SelectedChat, {
@@ -137,8 +142,6 @@ describe('SelectedChat', () => {
 
     deleteChatServiceMock = ChatMocks.deleteChatService();
     removeChatUserServiceMock = ChatMocks.removeChatUserService();
-
-    routerMock.navigateByUrl.mockReset();
   });
 
   describe('loading the chat users', () => {
@@ -255,10 +258,13 @@ describe('SelectedChat', () => {
 
     it('navigates to / when the chat is deleted', async () => {
       await createComponent('1');
+      // Выбранный чат открыт по своему адресу, как на странице чатов.
+      await TestBed.inject(Router).navigateByUrl('/1');
 
       deleteChatServiceMock.succeeded$.next();
+      await fixture.whenStable();
 
-      expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/');
+      expect(TestBed.inject(Router).url).toBe('/');
     });
   });
 
