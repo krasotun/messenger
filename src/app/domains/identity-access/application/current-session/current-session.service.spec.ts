@@ -188,4 +188,30 @@ describe('CurrentSessionService', () => {
       expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
     });
   });
+
+  describe('expireCurrentSession', () => {
+    it('should clear current user', () => {
+      service.updateCurrentUser(currentUserMock);
+
+      service.expireCurrentSession();
+
+      expect(service.currentUser()).toBe(null);
+    });
+
+    it('should set Anonymous status', () => {
+      service.updateCurrentUser(currentUserMock);
+
+      service.expireCurrentSession();
+
+      expect(service.status()).toBe(CurrentSessionStatus.Anonymous);
+    });
+
+    it('should not call auth gateway logout', () => {
+      service.updateCurrentUser(currentUserMock);
+
+      service.expireCurrentSession();
+
+      expect(authGatewayMock.logout).not.toHaveBeenCalled();
+    });
+  });
 });

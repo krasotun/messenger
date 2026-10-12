@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { Subject } from 'rxjs';
+import { vi } from 'vitest';
 
 import { AuthGateway } from '../application/auth.gateway';
 import { ChangeAvatarService } from '../application/change-avatar/change-avatar.service';
@@ -54,6 +55,10 @@ export const IdentityMocks = {
   authenticatedSession: (user: CurrentUser = currentUser()): CurrentSessionResult => ({
     status: CurrentSessionStatus.Authenticated,
     user,
+  }),
+
+  anonymousSession: (): CurrentSessionResult => ({
+    status: CurrentSessionStatus.Anonymous,
   }),
 
   authGateway: () => ({
