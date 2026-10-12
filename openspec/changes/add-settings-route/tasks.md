@@ -1,10 +1,12 @@
 ## 0. Истечение сессии
 
-- [ ] 0.1 Дописать падающие спеки `src/app/domains/identity-access/application/current-session/current-session.service.spec.ts`: `expireCurrentSession()` очищает **Текущего пользователя** и переводит **Статус сессии** в `Anonymous`, запроса к бэкенду нет
-- [ ] 0.2 Реализовать `expireCurrentSession()` в `current-session.service.ts`, проверив, что спеки 0.1 зеленые
-- [ ] 0.3 Написать падающие спеки `src/app/core/http/session-expiry.interceptor.spec.ts` (`HttpTestingController`): `401` при `Authenticated` - **Текущая сессия** сброшена, **Уведомление** `Session expired` с текстом `Please sign in again.`, переход на `/sign-in`, ошибка дошла до вызывающего; `401` при `Anonymous` и `Loading` - ничего из этого; два `401` подряд - одно **Уведомление** и один переход; ошибка с другим статусом - ничего из этого
-- [ ] 0.4 Реализовать `src/app/core/http/session-expiry.interceptor.ts` и подключить его в конце `withInterceptors` в `src/app/app.config.ts`, проверив, что спеки 0.3 зеленые
-- [ ] 0.5 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 0.1 Дописать падающие спеки `src/app/domains/identity-access/application/current-session/current-session.service.spec.ts`: `expireCurrentSession()` очищает **Текущего пользователя** и переводит **Статус сессии** в `Anonymous`, запроса к бэкенду нет
+- [x] 0.2 Реализовать `expireCurrentSession()` в `current-session.service.ts`, проверив, что спеки 0.1 зеленые
+- [x] 0.3 Написать падающие спеки `src/app/core/session/session-expiry.service.spec.ts` (настоящие `CurrentSessionService` и `Router`, двойники `AUTH_GATEWAY` и `NOTIFIER`): после `handle()` **Статус сессии** - `Anonymous`, показано **Уведомление** `Session expired` с текстом `Please sign in again.`, адрес - `/sign-in`
+- [x] 0.4 Реализовать `src/app/core/session/session-expiry.service.ts`, проверив, что спеки 0.3 зеленые
+- [x] 0.5 Написать падающие спеки `src/app/core/http/session-expiry.interceptor.spec.ts` (`HttpTestingController`, настоящие `CurrentSessionService` и `SessionExpiryService`, двойники `AUTH_GATEWAY` и `NOTIFIER`): `401` при `Authenticated` - **Статус сессии** стал `Anonymous`, ошибка дошла до вызывающего; ошибка с другим статусом - сессия осталась `Authenticated`; `401` при `Anonymous` и `Loading` - **Уведомления** нет
+- [x] 0.6 Реализовать `src/app/core/http/session-expiry.interceptor.ts` и подключить его в конце `withInterceptors` в `src/app/app.config.ts`, проверив, что спеки 0.5 зеленые
+- [x] 0.7 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 1. Свежий профиль в application
 

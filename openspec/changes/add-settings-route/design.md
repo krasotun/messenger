@@ -66,8 +66,9 @@
 │                    (шапка тоже свежая)
 │                  → currentUser во вход ProfileSettings          [4]
 │                  → profile во вход UpdateProfileForm            [2]
-│    401 → sessionExpiryInterceptor: Истечение сессии             [0]
-│            → сессия Anonymous, Уведомление, /sign-in
+│    401 → sessionExpiryInterceptor (распознает)                  [0]
+│            → SessionExpiryService.handle(): сессия Anonymous,
+│              Уведомление, /sign-in
 │          шлюз → Anonymous → поток пуст, без Уведомления         [1]
 │    ошибка → Уведомление, поток пуст                             [1]
 │           → навигация отменена, человек в Чатах                 [4]
@@ -214,30 +215,41 @@ ADR не пишем: решение легко откатить - условие
 превью, имя файла, `Cancel` и `Upload`. Ошибка формата - строкой под строкой.
 `Cancel` сбрасывает выбор (`_selectFile(null)`).
 
-### 9. Истечение сессии - перехватчик в `core/http`
+### 9. Истечение сессии - перехватчик распознает, сервис реагирует
 
 `sessionExpiryInterceptor` (`core/http`) стоит в конце `withInterceptors`
-(`app.config.ts`). На `HttpErrorResponse` со статусом `401` при
+(`app.config.ts`) и только распознает **Истечение сессии**: на
+`HttpErrorResponse` со статусом `401` при
 `CurrentSessionService.status() === Authenticated` он зовет
+`SessionExpiryService.handle()`. Ошибка идет дальше вызывающему без изменений.
+
+Реакция - в `SessionExpiryService` (`core/session`, `providedIn: 'root'`):
 `CurrentSessionService.expireCurrentSession()` (новый метод: сессия в
 `Anonymous`, без запроса), `NOTIFIER.error('Session expired', 'Please sign in
-again.')` и `Router.navigateByUrl('/sign-in')`. Ошибка идет дальше
-вызывающему без изменений.
+again.')` и `Router.navigateByUrl('/sign-in')`. Отдельно от перехватчика -
+потому что ее же позовет лента на WebSocket, где `HttpClient` не участвует;
+так же разделяет пример `authRedirectInterceptor` в документации Angular
+(https://angular.dev/guide/http/interceptors). В `core`, а не в домене:
+сервисам `application` роутер не нужен ни одному, а `core` уже связывает
+домен с роутером (`logoutGuard`).
 
 Проверка статуса отсекает сразу три случая без списка URL: `401` при **Входе**
 и **Регистрации** (статус `Anonymous`), при **Восстановлении сессии** на
 старте (`Loading`) и повторные `401` параллельных запросов - первый уже
 перевел статус в `Anonymous`.
 
-**Уведомление** и переход - в перехватчике, а не в `CurrentSessionService`:
+**Уведомление** и переход - в `SessionExpiryService`, а не в `CurrentSessionService`:
 сервис сессии остается тихим состоянием, **Уведомления** показывает слой
 выше - как у сценариев в `application`. `expireCurrentSession()` отдельно от
 `logout()`: тот шлет запрос к бэкенду.
 
 `unsavedChangesGuard` при статусе не `Authenticated` отдает `true` без
-подтверждения: к переходу на `/sign-in` перехватчик уже сбросил сессию.
+подтверждения: к переходу на `/sign-in` `SessionExpiryService` уже сбросил
+сессию.
 
-Альтернативы: обработка в каждом шлюзе - повтор в каждом; перехватчик гасит
+Альтернативы: перехватчик сам сбрасывает, уведомляет и уводит - отклонено,
+сцепляет распознавание с реакцией; обработка в каждом шлюзе - повтор в каждом;
+перехватчик гасит
 ошибку в `EMPTY`, чтобы **Уведомление** было одно, - отклонено в разборе,
 сценарии получают ошибку как обычно.
 
@@ -322,24 +334,24 @@ ADR не пишем: перехватчик легко убрать - услов
 
 ## Уровни тестов
 
-| Требование / сценарии                                                           | Уровень                                                                                                 |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Страница Настроек: меню, `/settings` → профиль, прямой адрес, переходы, возврат | component (`SettingsPage`, меню), routing (`RouterTestingHarness` на `settings.routes`), e2e            |
-| Свежий профиль: данные из ответа, сессия обновлена                              | application (`RefreshCurrentUserService`), component (`ProfileSettings` получает вход)                  |
-| Свежий профиль: ошибка, экран прежний                                           | application (Уведомление, сессия не тронута; `Anonymous` - без Уведомления), routing                    |
-| Истечение сессии: `401` при `Authenticated`, не при другом статусе, один раз    | interceptor (`HttpTestingController`), application (`expireCurrentSession`), e2e (`page.route` → `401`) |
-| Истечение сессии: несохраненные изменения не держат                             | guard (`unsavedChangesGuard`)                                                                           |
-| Раздел пароля данных не ждет                                                    | routing                                                                                                 |
-| Подтверждение ухода: есть / нет изменений, согласие, отказ                      | guard (`unsavedChangesGuard`), component (`hasUnsavedChanges` форм и разделов)                          |
-| Подтверждение ухода: «назад» в браузере, между разделами                        | e2e                                                                                                     |
-| `beforeunload`                                                                  | component (событие отменено / не отменено)                                                              |
-| Выход с изменениями: отказ без запроса, согласие                                | guard (`logoutGuard`), e2e                                                                              |
-| Профиль: успех оставляет форму, Save недоступна                                 | component (`UpdateProfileForm`)                                                                         |
-| Пароль: очистка после успеха                                                    | component (`ChangePasswordForm`)                                                                        |
-| Аватар: действия после выбора, `Cancel`, ошибка формата                         | component (`ChangeAvatarForm`)                                                                          |
-| Политика доступа к `/settings`                                                  | routing                                                                                                 |
-| Индикатор: долгий / быстрый / отмена                                            | component (`NavigationProgress`, fake timers)                                                           |
-| Вид страницы                                                                    | e2e `@visual`: профиль и пароль по умолчанию                                                            |
+| Требование / сценарии                                                           | Уровень                                                                                                                                   |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Страница Настроек: меню, `/settings` → профиль, прямой адрес, переходы, возврат | component (`SettingsPage`, меню), routing (`RouterTestingHarness` на `settings.routes`), e2e                                              |
+| Свежий профиль: данные из ответа, сессия обновлена                              | application (`RefreshCurrentUserService`), component (`ProfileSettings` получает вход)                                                    |
+| Свежий профиль: ошибка, экран прежний                                           | application (Уведомление, сессия не тронута; `Anonymous` - без Уведомления), routing                                                      |
+| Истечение сессии: `401` при `Authenticated`, не при другом статусе, один раз    | interceptor (`HttpTestingController`), service (`SessionExpiryService`), application (`expireCurrentSession`), e2e (`page.route` → `401`) |
+| Истечение сессии: несохраненные изменения не держат                             | guard (`unsavedChangesGuard`)                                                                                                             |
+| Раздел пароля данных не ждет                                                    | routing                                                                                                                                   |
+| Подтверждение ухода: есть / нет изменений, согласие, отказ                      | guard (`unsavedChangesGuard`), component (`hasUnsavedChanges` форм и разделов)                                                            |
+| Подтверждение ухода: «назад» в браузере, между разделами                        | e2e                                                                                                                                       |
+| `beforeunload`                                                                  | component (событие отменено / не отменено)                                                                                                |
+| Выход с изменениями: отказ без запроса, согласие                                | guard (`logoutGuard`), e2e                                                                                                                |
+| Профиль: успех оставляет форму, Save недоступна                                 | component (`UpdateProfileForm`)                                                                                                           |
+| Пароль: очистка после успеха                                                    | component (`ChangePasswordForm`)                                                                                                          |
+| Аватар: действия после выбора, `Cancel`, ошибка формата                         | component (`ChangeAvatarForm`)                                                                                                            |
+| Политика доступа к `/settings`                                                  | routing                                                                                                                                   |
+| Индикатор: долгий / быстрый / отмена                                            | component (`NavigationProgress`, fake timers)                                                                                             |
+| Вид страницы                                                                    | e2e `@visual`: профиль и пароль по умолчанию                                                                                              |
 
 ## Risks / Trade-offs
 

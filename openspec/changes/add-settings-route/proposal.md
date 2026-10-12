@@ -61,7 +61,7 @@ Issue: #221
 
 - core: дерево маршрутов (`app.routes.ts`), маршрут выхода и его страж,
   индикатор навигации в оболочке, перехватчик `sessionExpiryInterceptor` в
-  `core/http`.
+  `core/http`, `SessionExpiryService` в `core/session`.
 - presentation (`identity-access`): страница **Настроек** и две дочерние,
   стражи ухода, resolver; меню текущего пользователя; удаление
   `update-profile-modal-content` и `change-password-modal-content`; разметка

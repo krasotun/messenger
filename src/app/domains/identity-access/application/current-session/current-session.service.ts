@@ -59,6 +59,10 @@ export class CurrentSessionService {
     );
   }
 
+  expireCurrentSession(): void {
+    this._markAnonymous();
+  }
+
   private _markAnonymous(): void {
     this._currentUser.set(null);
     this._status.set(CurrentSessionStatus.Anonymous);
