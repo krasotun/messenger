@@ -39,12 +39,12 @@ describe('SignUp', () => {
   describe('goToSignIn', () => {
     it('should navigate to sign-in page', async () => {
       const user = userEvent.setup();
-      await renderPage();
-      const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate');
+      const { fixture } = await renderPage();
 
       await user.click(screen.getByRole('button', { name: 'Sign up succeeded' }));
+      await fixture.whenStable();
 
-      expect(navigateSpy).toHaveBeenCalledWith(['sign-in']);
+      expect(TestBed.inject(Router).url).toBe('/sign-in');
     });
   });
 });

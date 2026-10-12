@@ -1,5 +1,6 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
@@ -16,11 +17,6 @@ import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
-
-const routerMock = {
-  navigate: vi.fn(),
-  navigateByUrl: vi.fn(),
-};
 
 const currentUserMock = IdentityMocks.currentUser();
 
@@ -46,8 +42,6 @@ describe('ChangeAvatarService', () => {
     authGatewayMock = IdentityMocks.authGateway();
     userGatewayMock = IdentityMocks.userGateway();
     notifierMock = NotificationMocks.notifier();
-    routerMock.navigate.mockReset();
-    routerMock.navigateByUrl.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -59,10 +53,7 @@ describe('ChangeAvatarService', () => {
           provide: USER_GATEWAY,
           useValue: userGatewayMock,
         },
-        {
-          provide: Router,
-          useValue: routerMock,
-        },
+        provideRouter([]),
         {
           provide: NOTIFIER,
           useValue: notifierMock,
@@ -143,11 +134,12 @@ describe('ChangeAvatarService', () => {
         expect(currentSessionService.status()).toBe(CurrentSessionStatus.Authenticated);
       });
 
-      it('should not navigate', () => {
+      it('should not navigate', async () => {
         service.changeAvatar(changeAvatarInputMock);
 
-        expect(routerMock.navigate).not.toHaveBeenCalled();
-        expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
       });
     });
 
@@ -175,11 +167,12 @@ describe('ChangeAvatarService', () => {
         expect(currentSessionService.currentUser()).toEqual(currentUserMock);
       });
 
-      it('should not navigate', () => {
+      it('should not navigate', async () => {
         service.changeAvatar(changeAvatarInputMock);
 
-        expect(routerMock.navigate).not.toHaveBeenCalled();
-        expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
       });
     });
   });

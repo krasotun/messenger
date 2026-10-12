@@ -1,6 +1,6 @@
-import { signal } from '@angular/core';
-import { ComponentFixture } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Component, signal } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { render, screen } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
 import { of, throwError } from 'rxjs';
@@ -24,6 +24,12 @@ const currentUserMock = IdentityMocks.currentUser({
 
 const avatarLabel = `Avatar ${currentUserMock.displayName}`;
 
+@Component({
+  selector: 'app-sign-in-page',
+  template: '',
+})
+class SignInPageStub {}
+
 describe('CurrentUserAvatarMenu', () => {
   let fixture: ComponentFixture<CurrentUserAvatarMenu>;
   let user: UserEvent;
@@ -33,9 +39,6 @@ describe('CurrentUserAvatarMenu', () => {
   const currentSessionServiceMock = {
     currentUser: currentUser.asReadonly(),
     logout: vi.fn(() => of(void 0)),
-  };
-  const routerMock = {
-    navigateByUrl: vi.fn(),
   };
   let modalServiceMock: ReturnType<typeof ModalMocks.modalService>;
 
@@ -51,13 +54,12 @@ describe('CurrentUserAvatarMenu', () => {
     currentUser.set(currentUserMock);
     currentSessionServiceMock.logout.mockReset();
     currentSessionServiceMock.logout.mockReturnValue(of(void 0));
-    routerMock.navigateByUrl.mockReset();
     modalServiceMock = ModalMocks.modalService();
 
     ({ fixture } = await render(CurrentUserAvatarMenu, {
       providers: [
         { provide: CurrentSessionService, useValue: currentSessionServiceMock },
-        { provide: Router, useValue: routerMock },
+        provideRouter([{ path: 'sign-in', component: SignInPageStub }]),
         { provide: ModalService, useValue: modalServiceMock },
       ],
       waitForStableOnRender: true,
@@ -99,7 +101,7 @@ describe('CurrentUserAvatarMenu', () => {
   it('navigates to sign in after successful logout', async () => {
     await clickMenuAction('Logout');
 
-    expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/sign-in');
+    expect(TestBed.inject(Router).url).toBe('/sign-in');
   });
 
   it('opens update profile modal when Edit profile is clicked', async () => {
@@ -135,6 +137,6 @@ describe('CurrentUserAvatarMenu', () => {
 
     await clickMenuAction('Logout');
 
-    expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/sign-in');
+    expect(TestBed.inject(Router).url).toBe('/sign-in');
   });
 });
