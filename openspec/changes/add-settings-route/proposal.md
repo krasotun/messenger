@@ -67,7 +67,7 @@ Issue: #221
   `update-profile-modal-content` и `change-password-modal-content`; разметка
   `change-avatar-form`.
 - application (`identity-access`): получение **Текущего пользователя** для
-  редактирования без сброса **Текущей сессии** при ошибке;
+  редактирования без изменения **Текущего пользователя** при ошибке;
   `CurrentSessionService.expireCurrentSession()`.
 - infrastructure: без изменений, endpoint `GET /auth/user` уже есть.
 - e2e: сценарии профиля, пароля и аватара переходят с модалок на страницу;

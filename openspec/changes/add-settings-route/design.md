@@ -8,8 +8,8 @@
   `ChangeAvatarService`; `ChangePasswordModalContent` - `ChangePasswordForm` и
   `ChangePasswordService`. На успехе модалка закрывается.
 - `UpdateProfileForm` берет исходные значения из
-  `UpdateProfileService.initialValues`, то есть из **Текущей сессии**, один раз
-  в конструкторе.
+  `UpdateProfileService.initialValues`, то есть из **Текущего пользователя**,
+  один раз в конструкторе.
 - Дерево маршрутов (`app.routes.ts`) уже вложенное и ленивое через
   `loadComponent`; стражи `authenticatedOnlyGuard` и `guestOnlyGuard` живут в
   `core/routing`. `provideRouter` подключен с `withComponentInputBinding()`.
@@ -313,7 +313,7 @@ ADR не пишем: перехватчик легко убрать - услов
 | `hasUnsavedChanges()` (метод) | `boolean` |
 
 Решает сам: выбор и проверка формата файла, превью, `Cancel`, отправка,
-сброс на успехе; текущий аватар и имя - из **Текущей сессии**.
+сброс на успехе; текущий аватар и имя - из **Текущего пользователя**.
 
 ### `CurrentUserAvatarMenu` (меняется)
 

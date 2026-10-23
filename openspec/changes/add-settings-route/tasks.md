@@ -10,14 +10,14 @@
 
 ## 1. Свежий профиль в application
 
-- [ ] 1.1 Написать падающие спеки `src/app/domains/identity-access/application/refresh-current-user/refresh-current-user.service.spec.ts`: ответ `Authenticated` обновляет **Текущую сессию** и отдает **Текущего пользователя**; ответ `Anonymous` завершает поток без значения и без **Уведомления**; ошибка шлюза показывает **Уведомление** об ошибке (текст из **Ошибки приложения**, при его отсутствии - generic) и завершает поток без значения; в обоих случаях **Текущая сессия** и **Статус сессии** не меняются
+- [ ] 1.1 Написать падающие спеки `src/app/domains/identity-access/application/refresh-current-user/refresh-current-user.service.spec.ts`: ответ `Authenticated` обновляет и отдает **Текущего пользователя**; ответ `Anonymous` завершает поток без значения и без **Уведомления**; ошибка шлюза показывает **Уведомление** об ошибке (текст из **Ошибки приложения**, при его отсутствии - generic) и завершает поток без значения; в обоих случаях **Текущий пользователь** и **Статус сессии** не меняются
 - [ ] 1.2 Реализовать `refresh-current-user.service.ts` (`providedIn: 'root'`, `AUTH_GATEWAY.currentSession()`, `CurrentSessionService.updateCurrentUser`, `NOTIFIER`) и экспортировать его из `src/app/domains/identity-access/index.ts`, проверив, что спеки 1.1 зеленые
 - [ ] 1.3 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 2. Формы для страницы
 
 - [ ] 2.1 Переписать падающие спеки `src/app/domains/identity-access/presentation/update-profile-form/update-profile-form.spec.ts`: форма заполняется из входа `profile`; после успешной отправки поля показывают сохраненные значения, Save недоступна; `hasUnsavedChanges()` ложно на открытии и после успеха, истинно после изменения поля; из спеков `src/app/domains/identity-access/application/update-profile/update-profile.service.spec.ts` уходят проверки `initialValues`
-- [ ] 2.2 Добавить в `update-profile-form.ts` вход `profile`, `hasUnsavedChanges()` и `reset(getRawValue())` на успехе; удалить `initialValues` из `update-profile.service.ts`; в `update-profile-modal-content` передать `profile` из **Текущей сессии**, чтобы модалка дожила до блока 4; проверить, что спеки 2.1 зеленые
+- [ ] 2.2 Добавить в `update-profile-form.ts` вход `profile`, `hasUnsavedChanges()` и `reset(getRawValue())` на успехе; удалить `initialValues` из `update-profile.service.ts`; в `update-profile-modal-content` передать `profile` из **Текущего пользователя**, чтобы модалка дожила до блока 4; проверить, что спеки 2.1 зеленые
 - [ ] 2.3 Дописать падающие спеки `change-password-form.spec.ts`: после успешной смены поля пустые и без сообщений об ошибках; `hasUnsavedChanges()` ложно на открытии и после успеха, истинно после ввода
 - [ ] 2.4 Добавить `hasUnsavedChanges()` и `reset()` на успехе в `change-password-form.ts`, проверив, что спеки 2.3 зеленые
 - [ ] 2.5 Переписать падающие спеки `change-avatar-form.spec.ts` по артборду `Main` канваса: без файла - текущий **Аватар**, имя и `Change avatar`, без `Upload` и `Cancel`; после выбора допустимого файла - превью, имя файла, `Upload` и `Cancel`; `Cancel` возвращает текущий **Аватар**; ошибка формата - сообщение в форме, `Upload` нет; во время отправки выбор, `Upload` и `Cancel` недоступны; `hasUnsavedChanges()` истинно только при выбранном файле
