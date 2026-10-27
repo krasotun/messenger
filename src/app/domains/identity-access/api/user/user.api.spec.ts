@@ -2,10 +2,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { CurrentUserDto } from '../user-dto.type';
+import { UserDto } from '../user-dto.type';
 
 import { ChangePasswordRequestDto } from './change-password-dto.type';
-import { UserDto } from './search-users-dto.type';
 import { UserApi } from './user.api';
 
 const changePasswordRequestMock: ChangePasswordRequestDto = {
@@ -13,7 +12,7 @@ const changePasswordRequestMock: ChangePasswordRequestDto = {
   newPassword: 'mockNewPassword',
 };
 
-const currentUserDtoMock: CurrentUserDto = {
+const currentUserDtoMock: UserDto = {
   id: 1,
   first_name: 'John',
   second_name: 'Doe',

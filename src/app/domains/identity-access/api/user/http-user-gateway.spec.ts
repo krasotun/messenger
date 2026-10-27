@@ -7,11 +7,10 @@ import { CurrentUser } from '../../current-session/current-user.type';
 import { UpdateProfileInput } from '../../update-profile/update-profile-input.type';
 import { User } from '../../user.type';
 import { USER_ERROR_MESSAGES } from '../error-messages.constants';
-import { CurrentUserDto } from '../user-dto.type';
+import { UserDto } from '../user-dto.type';
 
 import { ChangePasswordRequestDto } from './change-password-dto.type';
 import { HttpUserGateway } from './http-user-gateway';
-import { UserDto } from './search-users-dto.type';
 import { UpdateProfileRequestDto } from './update-profile-dto.type';
 import { UserApi } from './user.api';
 
@@ -53,7 +52,7 @@ const updateProfileRequestMock: UpdateProfileRequestDto = {
   phone: '+79990000000',
 };
 
-const currentUserDtoMock: CurrentUserDto = {
+const currentUserDtoMock: UserDto = {
   id: 1,
   first_name: 'John',
   second_name: 'Doe',

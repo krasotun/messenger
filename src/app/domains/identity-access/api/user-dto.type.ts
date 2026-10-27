@@ -1,6 +1,6 @@
 import { Nullable } from '@shared/types';
 
-export interface CurrentUserDto {
+export interface UserDto {
   id: number;
   first_name: string;
   second_name: string;

@@ -7,7 +7,7 @@ import { CurrentUser } from '../../current-session/current-user.type';
 import { SignInInput } from '../../sign-in/sign-in-input.type';
 import { SignUpInput } from '../../sign-up/sign-up-input.type';
 import { AUTH_ERROR_MESSAGES } from '../error-messages.constants';
-import { CurrentUserDto } from '../user-dto.type';
+import { UserDto } from '../user-dto.type';
 
 import { AuthApi } from './auth.api';
 import { HttpAuthGateway } from './http-auth-gateway';
@@ -52,7 +52,7 @@ const signInRequestMock: SignInRequestDto = {
   password: 'mockPassword',
 };
 
-const currentUserDtoMock: CurrentUserDto = {
+const currentUserDtoMock: UserDto = {
   id: 1,
   first_name: 'first',
   second_name: 'second',

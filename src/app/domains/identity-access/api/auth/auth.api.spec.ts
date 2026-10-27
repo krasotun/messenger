@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { CurrentUserDto } from '../user-dto.type';
+import { UserDto } from '../user-dto.type';
 
 import { AuthApi } from './auth.api';
 import { SignInRequestDto } from './sign-in-dto.type';
@@ -22,7 +22,7 @@ const signInRequestMock: SignInRequestDto = {
   password: 'mockPassword',
 };
 
-const currentSessionResponseMock: CurrentUserDto = {
+const currentSessionResponseMock: UserDto = {
   id: 1,
   first_name: 'firstName',
   second_name: 'secondName',

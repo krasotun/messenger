@@ -1,13 +1,13 @@
 import { CurrentUser } from '../current-session/current-user.type';
 
 import { currentUserMapper } from './current-user.mapper';
-import { CurrentUserDto } from './user-dto.type';
+import { UserDto } from './user-dto.type';
 
 const resourcesBaseUrlMock = 'https://mock.host/resources';
 
 describe('currentUserMapper', () => {
   it('should map currentUser DTO to current user', () => {
-    const mockCurrentUserDto: CurrentUserDto = {
+    const mockCurrentUserDto: UserDto = {
       id: 1,
       first_name: 'first',
       second_name: 'second',
@@ -32,7 +32,7 @@ describe('currentUserMapper', () => {
   });
 
   it('should resolve relative avatar path to absolute url', () => {
-    const mockCurrentUserDto: CurrentUserDto = {
+    const mockCurrentUserDto: UserDto = {
       id: 1,
       first_name: 'first',
       second_name: 'second',

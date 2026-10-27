@@ -1,11 +1,11 @@
 import { CurrentUser } from '../current-session/current-user.type';
 
-import { CurrentUserDto } from './user-dto.type';
+import { UserDto } from './user-dto.type';
 
 import { resolveAvatarUrl } from '@shared/resources';
 
 export const currentUserMapper = (
-  { id, first_name, second_name, display_name, avatar, email, login, phone }: CurrentUserDto,
+  { id, first_name, second_name, display_name, avatar, email, login, phone }: UserDto,
   resourcesBaseUrl: string,
 ): CurrentUser => {
   return {

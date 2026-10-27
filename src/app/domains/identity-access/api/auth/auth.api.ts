@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { CurrentUserDto } from '../user-dto.type';
+import { UserDto } from '../user-dto.type';
 
 import { SignInRequestDto } from './sign-in-dto.type';
 import { SignUpRequestDto, SignUpResponseDto } from './sign-up-dto.type';
@@ -23,8 +23,8 @@ export class AuthApi {
     });
   }
 
-  currentSession(): Observable<CurrentUserDto> {
-    return this._httpClient.get<CurrentUserDto>('/auth/user');
+  currentSession(): Observable<UserDto> {
+    return this._httpClient.get<UserDto>('/auth/user');
   }
 
   logout(): Observable<void> {
