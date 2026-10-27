@@ -9,8 +9,8 @@ import { SelectedChatHeader } from './selected-chat-header/selected-chat-header'
 import { ChatListService } from '@domains/chats/chat-list/chat-list.service';
 import { ChatUser } from '@domains/chats/chat-user.type';
 import { ChatUsersService } from '@domains/chats/chat-users/chat-users.service';
-import { RemoveChatUserService } from '@domains/chats/chat-users/remove-chat-user.service';
-import { DeleteChatService } from '@domains/chats/selected-chat/delete-chat.service';
+import { DeleteChatService } from '@domains/chats/delete-chat/delete-chat.service';
+import { RemoveChatUserService } from '@domains/chats/remove-chat-user/remove-chat-user.service';
 import { CurrentSessionService } from '@domains/identity-access';
 import { ConfirmationService } from '@shared/ui/confirmation';
 

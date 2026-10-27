@@ -7,9 +7,9 @@ import { ChatUser } from './chat-user.type';
 import { Chat } from './chat.type';
 import { CreateChatInput } from './create-chat/create-chat-input.type';
 import { CreateChatResult } from './create-chat/create-chat-result.type';
-import { DeleteChatInput } from './selected-chat/delete-chat-input.type';
+import { DeleteChatInput } from './delete-chat/delete-chat-input.type';
 
-import { RemoveChatUserInput } from '@domains/chats/chat-users/remove-chat-user-input.type';
+import { RemoveChatUserInput } from '@domains/chats/remove-chat-user/remove-chat-user-input.type';
 
 export interface ChatGateway {
   chats(): Observable<Chat[]>;

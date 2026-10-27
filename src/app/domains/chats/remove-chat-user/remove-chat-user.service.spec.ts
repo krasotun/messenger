@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
+import { ChatUsersService } from '../chat-users/chat-users.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
-import { ChatUsersService } from './chat-users.service';
 import { RemoveChatUserService } from './remove-chat-user.service';
 
 import { ChatMocks } from '@domains/chats/testing';

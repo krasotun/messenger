@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 
 import { ChatUsersService } from '@domains/chats/chat-users/chat-users.service';
-import { RemoveChatUserInput } from '@domains/chats/chat-users/remove-chat-user-input.type';
 import { CHAT_GATEWAY } from '@domains/chats/chat.gateway';
+import { RemoveChatUserInput } from '@domains/chats/remove-chat-user/remove-chat-user-input.type';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { createActionFlowState } from '@shared/submit-flow';

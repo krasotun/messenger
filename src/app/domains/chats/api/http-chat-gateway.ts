@@ -8,14 +8,14 @@ import { ChatGateway } from '../chat.gateway';
 import { Chat } from '../chat.type';
 import { CreateChatInput } from '../create-chat/create-chat-input.type';
 import { CreateChatResult } from '../create-chat/create-chat-result.type';
-import { DeleteChatInput } from '../selected-chat/delete-chat-input.type';
+import { DeleteChatInput } from '../delete-chat/delete-chat-input.type';
 
 import { ChatApi } from './chat.api';
 import { chatMapper, chatUserMapper } from './chat.mapper';
 import { CHAT_ERROR_MESSAGES } from './error-messages.constants';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
-import { RemoveChatUserInput } from '@domains/chats/chat-users/remove-chat-user-input.type';
+import { RemoveChatUserInput } from '@domains/chats/remove-chat-user/remove-chat-user-input.type';
 import { toApplicationError } from '@shared/errors';
 
 @Injectable()

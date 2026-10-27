@@ -7,11 +7,11 @@ import { of, throwError } from 'rxjs';
 
 import { ChatListService } from '../chat-list/chat-list.service';
 import { CHAT_GATEWAY } from '../chat.gateway';
+import { DeleteChatService } from '../delete-chat/delete-chat.service';
 
-import { DeleteChatService } from './delete-chat.service';
 import { SelectedChat } from './selected-chat';
 
-import { RemoveChatUserService } from '@domains/chats/chat-users/remove-chat-user.service';
+import { RemoveChatUserService } from '@domains/chats/remove-chat-user/remove-chat-user.service';
 import { ChatMocks } from '@domains/chats/testing';
 import { CurrentSessionService, CurrentUser } from '@domains/identity-access';
 import { IdentityMocks } from '@domains/identity-access/testing';
