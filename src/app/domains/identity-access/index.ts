@@ -1,12 +1,12 @@
 export { provideIdentityAccess } from './identity-access.providers';
 
-export { CurrentSessionService } from './application/current-session/current-session.service';
-export { CurrentSessionStatus } from './application/current-session/current-session-status.type';
-export type { CurrentUser } from './application/current-session/current-user.type';
-export { CurrentUserAvatarMenu } from './presentation/current-user-avatar-menu/current-user-avatar-menu';
+export { CurrentSessionService } from './current-session/current-session.service';
+export { CurrentSessionStatus } from './current-session/current-session-status.type';
+export type { CurrentUser } from './current-session/current-user.type';
+export { CurrentUserAvatarMenu } from './current-session/current-user-avatar-menu/current-user-avatar-menu';
 
-export { SearchUsersService } from './application/search-users/search-users.service';
-export type { SearchUsersInput } from './application/search-users/search-users-input.type';
-export type { SearchUsersResult } from './application/search-users/search-users-result.type';
-export type { User } from './application/user.type';
-export type { UserId } from './application/user-id.type';
+export { SearchUsersService } from './search-users/search-users.service';
+export type { SearchUsersInput } from './search-users/search-users-input.type';
+export type { SearchUsersResult } from './search-users/search-users-result.type';
+export type { User } from './user.type';
+export type { UserId } from './user-id.type';

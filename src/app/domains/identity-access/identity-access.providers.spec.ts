@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 
-import { AUTH_GATEWAY } from './application/auth.gateway';
-import { USER_GATEWAY } from './application/user.gateway';
+import { AuthApi } from './api/auth/auth.api';
+import { HttpAuthGateway } from './api/auth/http-auth-gateway';
+import { HttpUserGateway } from './api/user/http-user-gateway';
+import { UserApi } from './api/user/user.api';
+import { AUTH_GATEWAY } from './auth.gateway';
 import { provideIdentityAccess } from './identity-access.providers';
-import { AuthApi } from './infrastructure/auth.api';
-import { HttpAuthGateway } from './infrastructure/http-auth-gateway';
-import { HttpUserGateway } from './infrastructure/http-user-gateway';
-import { UserApi } from './infrastructure/user.api';
+import { USER_GATEWAY } from './user.gateway';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
 
