@@ -4,6 +4,7 @@ export { CurrentSessionService } from './application/current-session/current-ses
 export { CurrentSessionStatus } from './application/current-session/current-session-status.type';
 export type { CurrentUser } from './application/current-session/current-user.type';
 export { CurrentUserAvatarMenu } from './presentation/current-user-avatar-menu/current-user-avatar-menu';
+export { RefreshCurrentUserService } from './application/refresh-current-user/refresh-current-user.service';
 
 export { SearchUsersService } from './application/search-users/search-users.service';
 export type { SearchUsersInput } from './application/search-users/search-users-input.type';
