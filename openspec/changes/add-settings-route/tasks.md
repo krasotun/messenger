@@ -10,9 +10,9 @@
 
 ## 1. Свежий профиль в application
 
-- [ ] 1.1 Написать падающие спеки `src/app/domains/identity-access/application/refresh-current-user/refresh-current-user.service.spec.ts`: ответ `Authenticated` обновляет и отдает **Текущего пользователя**; ответ `Anonymous` завершает поток без значения и без **Уведомления**; ошибка шлюза показывает **Уведомление** об ошибке (текст из **Ошибки приложения**, при его отсутствии - generic) и завершает поток без значения; в обоих случаях **Текущий пользователь** и **Статус сессии** не меняются
-- [ ] 1.2 Реализовать `refresh-current-user.service.ts` (`providedIn: 'root'`, `AUTH_GATEWAY.currentSession()`, `CurrentSessionService.updateCurrentUser`, `NOTIFIER`) и экспортировать его из `src/app/domains/identity-access/index.ts`, проверив, что спеки 1.1 зеленые
-- [ ] 1.3 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 1.1 Написать падающие спеки `src/app/domains/identity-access/application/refresh-current-user/refresh-current-user.service.spec.ts`: ответ `Authenticated` обновляет и отдает **Текущего пользователя**; ответ `Anonymous` завершает поток без значения и без **Уведомления**; ошибка шлюза показывает **Уведомление** об ошибке (текст из **Ошибки приложения**; запасной текст кладет шлюз и проверяет его спек) и завершает поток без значения, а **Текущий пользователь** и **Статус сессии** при этом не меняются
+- [x] 1.2 Реализовать `refresh-current-user.service.ts` (`providedIn: 'root'`, `AUTH_GATEWAY.currentSession()`, `CurrentSessionService.updateCurrentUser`, `NOTIFIER`) и экспортировать его из `src/app/domains/identity-access/index.ts`, проверив, что спеки 1.1 зеленые
+- [x] 1.3 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 2. Формы для страницы
 
