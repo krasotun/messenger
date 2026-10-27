@@ -1,7 +1,7 @@
 import { Provider } from '@angular/core';
 
-import { CHAT_GATEWAY } from './application/chat.gateway';
-import { HttpChatGateway } from './infrastructure/http-chat-gateway';
+import { HttpChatGateway } from './api/http-chat-gateway';
+import { CHAT_GATEWAY } from './chat.gateway';
 
 export const provideChats = (): Provider[] => {
   const chatGatewayProvider = {

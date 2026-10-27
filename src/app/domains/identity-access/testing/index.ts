@@ -1,2 +1,2 @@
 export { IdentityMocks } from './identity-mocks';
-export { AUTH_GATEWAY } from '../application/auth.gateway';
+export { AUTH_GATEWAY } from '../auth.gateway';

@@ -32,24 +32,31 @@ context: |
   Тесты: Vitest (unit/component), Playwright (e2e, визуальные).
   Мок-бэкенд для локальной разработки и e2e: `mock-backend` на :3000.
 
-  Архитектура - Domain-first Angular + lightweight DDD boundaries:
+  Архитектура - Domain-first Angular, внутри домена раскладка по фичам
+  (`docs/adr/2026-10-27-domain-code-grouped-by-feature.md`):
 
   - `src/app/shared` - UI-примитивы и общие типы, без знания о доменах;
-  - `src/app/domains/<context>/application` - use cases, контракты, state, а
-    также модели предметной области, пока у них нет собственных правил;
-  - `src/app/domains/<context>/domain` - выделяется только когда появляются
-    правила и инварианты предметной области, не зависящие от use case и
-    транспорта; в `identity-access` такого слоя пока нет;
-  - `src/app/domains/<context>/infrastructure` - HTTP API, DTO, мапперы;
-  - `src/app/domains/<context>/presentation` - экраны и компоненты домена;
+  - `src/app/domains/<context>/` - корень домена: модели (`*.type.ts`),
+    порты шлюзов (`*.gateway.ts`), `<context>.providers.ts`, публичный API
+    `index.ts`;
+  - `src/app/domains/<context>/<feature>/` - фича: ее компоненты (каждый в
+    своей папке) и сервисы рядом с ними; папка называется по сервису, и у
+    сервиса без своих компонентов тоже есть папка (`delete-chat/`);
+  - `src/app/domains/<context>/api/` - HTTP API, DTO, мапперы, реализации
+    шлюзов (`Http*Gateway`); когда файлов становится много, делится на
+    подпапки по ресурсам контракта (`api/auth/`, `api/user/`);
   - `src/app/core` - routing, guards, layouts, tokens, app initializers;
   - `src/app/pages` - страницы-композиции.
 
+  Слои остаются ролями файлов, а не папками: application - `*.service.ts`,
+  `*.state.ts`, `*.gateway.ts`, `*.type.ts`; infrastructure - все в `api/`;
+  presentation - компоненты.
+
   Aliases: `@core/*`, `@domains/*`, `@shared/*`. Границы импортов закреплены в
-  ESLint через `no-restricted-imports`: `shared/ui` не импортирует домены, core
-  и pages; application не знает про DOM, Overlay, ModalRef и Angular-формы и не
-  зависит от infrastructure и presentation; infrastructure не импортируется из
-  presentation напрямую.
+  ESLint через `no-restricted-imports` по суффиксам файлов: `shared/ui` не
+  импортирует домены, core и pages; application не знает про DOM, Overlay,
+  ModalRef и Angular-формы, не импортирует `api/` и компоненты; компоненты не
+  импортируют `api/` напрямую.
 
   ## Глоссарий
 

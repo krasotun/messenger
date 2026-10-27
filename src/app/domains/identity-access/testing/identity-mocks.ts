@@ -2,17 +2,17 @@ import { signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { vi } from 'vitest';
 
-import { AuthGateway } from '../application/auth.gateway';
-import { ChangeAvatarService } from '../application/change-avatar/change-avatar.service';
-import { ChangePasswordService } from '../application/change-password/change-password.service';
-import { CurrentSessionResult } from '../application/current-session/current-session-result.type';
-import { CurrentSessionStatus } from '../application/current-session/current-session-status.type';
-import { CurrentUser } from '../application/current-session/current-user.type';
-import { SearchUsersService } from '../application/search-users/search-users.service';
-import { UpdateProfileInput } from '../application/update-profile/update-profile-input.type';
-import { UpdateProfileService } from '../application/update-profile/update-profile.service';
-import { UserGateway } from '../application/user.gateway';
-import { User } from '../application/user.type';
+import { AuthGateway } from '../auth.gateway';
+import { ChangeAvatarService } from '../change-avatar/change-avatar.service';
+import { ChangePasswordService } from '../change-password/change-password.service';
+import { CurrentSessionResult } from '../current-session/current-session-result.type';
+import { CurrentSessionStatus } from '../current-session/current-session-status.type';
+import { CurrentUser } from '../current-session/current-user.type';
+import { SearchUsersService } from '../search-users/search-users.service';
+import { UpdateProfileInput } from '../update-profile/update-profile-input.type';
+import { UpdateProfileService } from '../update-profile/update-profile.service';
+import { UserGateway } from '../user.gateway';
+import { User } from '../user.type';
 
 const currentUser = (overrides: Partial<CurrentUser> = {}): CurrentUser => ({
   id: 1,

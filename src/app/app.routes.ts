@@ -8,7 +8,7 @@ export const routes: Routes = [
     path: 'sign-in',
     canActivate: [guestOnlyGuard],
     loadComponent: () =>
-      import('@domains/identity-access/presentation/sign-in-page/sign-in-page').then(
+      import('@domains/identity-access/sign-in/sign-in-page/sign-in-page').then(
         (m) => m.SignInPage,
       ),
   },
@@ -16,7 +16,7 @@ export const routes: Routes = [
     path: 'sign-up',
     canActivate: [guestOnlyGuard],
     loadComponent: () =>
-      import('@domains/identity-access/presentation/sign-up-page/sign-up-page').then(
+      import('@domains/identity-access/sign-up/sign-up-page/sign-up-page').then(
         (m) => m.SignUpPage,
       ),
   },
@@ -35,9 +35,7 @@ export const routes: Routes = [
           {
             path: ':chatId',
             loadComponent: () =>
-              import('@domains/chats/presentation/selected-chat/selected-chat').then(
-                (m) => m.SelectedChat,
-              ),
+              import('@domains/chats/selected-chat/selected-chat').then((m) => m.SelectedChat),
           },
         ],
       },
