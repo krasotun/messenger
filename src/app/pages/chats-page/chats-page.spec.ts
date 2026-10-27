@@ -30,16 +30,12 @@ describe('chats routing', () => {
     // Роут-конфигурация чатов недоступна для статического импорта из
     // `src/app/pages` (граница ESLint), поэтому берется динамически, как это
     // уже делает production-код в `app.routes.ts`.
-    const { ChatListService } =
-      await import('@domains/chats/application/chat-list/chat-list.service');
-    const { ChatUsersService } =
-      await import('@domains/chats/application/chat-users/chat-users.service');
-    const { SelectedChat } =
-      await import('@domains/chats/presentation/selected-chat/selected-chat');
-    const { DeleteChatService } =
-      await import('@domains/chats/application/delete-chat/delete-chat.service');
+    const { ChatListService } = await import('@domains/chats/chat-list/chat-list.service');
+    const { ChatUsersService } = await import('@domains/chats/chat-users/chat-users.service');
+    const { SelectedChat } = await import('@domains/chats/selected-chat/selected-chat');
+    const { DeleteChatService } = await import('@domains/chats/selected-chat/delete-chat.service');
     const { RemoveChatUserService } =
-      await import('@domains/chats/application/remove-chat-user/remove-chat-user.service');
+      await import('@domains/chats/chat-users/remove-chat-user.service');
 
     routes = [
       {
