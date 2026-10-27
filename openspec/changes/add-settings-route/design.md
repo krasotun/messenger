@@ -91,7 +91,8 @@
 `SettingsPage` - композиция страницы (навигация разделов, возврат к **Чатам**,
 `<router-outlet>`) - живет в `src/app/pages/settings-page/` рядом со своим
 `settings.routes.ts`. Разделы `ProfileSettings` и `PasswordSettings` - в
-`identity-access/presentation`: им нужны сервисы домена в `providers`.
+`identity-access`, в папках своих сервисов (`update-profile/`,
+`change-password/`): им нужны сервисы домена в `providers`.
 `app.routes.ts` подключает группу через `loadChildren` внутри оболочки
 `AuthenticatedShell`, рядом с маршрутом **Чатов**:
 
@@ -110,7 +111,7 @@
 Отклонена: маршрут с `redirectTo` и стражами из `core` - композиция, как
 `ChatsPage`; домен отдает только разделы. `loadComponent` разделов идет
 динамическим импортом по пути внутри домена, как у `SelectedChat`
-(`app.routes.ts:37-40`): статический импорт `presentation/*` ESLint
+(`app.routes.ts:37-40`): статический глубокий импорт в домен ESLint
 запрещает, динамический - нет, и чанк остается ленивым.
 
 ### 2. Resolver отменяет навигацию, а не переадресует
@@ -269,7 +270,7 @@ ADR не пишем: перехватчик легко убрать - услов
 (`routerLinkActive`, `aria-current="page"`), ссылка `Back to chats` на `/`,
 `<router-outlet>`.
 
-### `ProfileSettings` (identity-access/presentation, новый)
+### `ProfileSettings` (identity-access/update-profile, новый)
 
 | Вход / выход                      | Тип           |
 | --------------------------------- | ------------- |
@@ -279,7 +280,7 @@ ADR не пишем: перехватчик легко убрать - услов
 в `UpdateProfileInput` для формы; `hasUnsavedChanges(): boolean` (любая из
 двух форм); `beforeunload`.
 
-### `PasswordSettings` (identity-access/presentation, новый)
+### `PasswordSettings` (identity-access/change-password, новый)
 
 | Вход / выход | Тип |
 | ------------ | --- |
