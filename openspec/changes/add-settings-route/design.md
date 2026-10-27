@@ -126,7 +126,8 @@
 `AUTH_GATEWAY.currentSession()`: `Authenticated` →
 `CurrentSessionService.updateCurrentUser(user)` и значение; `Anonymous` →
 пустое завершение без **Уведомления** (его уже показал перехватчик, решение 9);
-ошибка → `NOTIFIER.error(...)` и пустое завершение. Сессию сервис не меняет ни
+ошибка → `NOTIFIER.error('Failed to load profile', message)` (текст - из
+**Ошибки приложения**, запасной кладет шлюз) и пустое завершение. Сессию сервис не меняет ни
 в одной из веток.
 
 Альтернативы: `restoreCurrentSession()` - сбрасывает сессию на ошибке, против
