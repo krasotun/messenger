@@ -1,14 +1,14 @@
 import { signal } from '@angular/core';
 import { Subject } from 'rxjs';
 
-import { ChatListService } from '../application/chat-list/chat-list.service';
-import { ChatUser } from '../application/chat-user.type';
-import { ChatUsersService } from '../application/chat-users/chat-users.service';
-import { ChatGateway } from '../application/chat.gateway';
-import { Chat } from '../application/chat.type';
-import { CreateChatService } from '../application/create-chat/create-chat.service';
-import { DeleteChatService } from '../application/delete-chat/delete-chat.service';
-import { RemoveChatUserService } from '../application/remove-chat-user/remove-chat-user.service';
+import { ChatListService } from '../chat-list/chat-list.service';
+import { ChatUser } from '../chat-user.type';
+import { ChatUsersService } from '../chat-users/chat-users.service';
+import { ChatGateway } from '../chat.gateway';
+import { Chat } from '../chat.type';
+import { CreateChatService } from '../create-chat/create-chat.service';
+import { DeleteChatService } from '../delete-chat/delete-chat.service';
+import { RemoveChatUserService } from '../remove-chat-user/remove-chat-user.service';
 
 // Каждый вызов отдает новый двойник: сбрасывать его между тестами не нужно.
 export const ChatMocks = {
