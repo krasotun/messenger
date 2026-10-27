@@ -151,7 +151,6 @@ module.exports = defineConfig([
   },
   {
     // Слои - роли файлов, а не папки (docs/adr/2026-10-27-domain-code-grouped-by-feature.md).
-    // infrastructure/ остается в шаблонах, пока identity-access не переехал в api/.
     files: [
       'src/app/domains/**/*.service.ts',
       'src/app/domains/**/*.state.ts',
@@ -160,7 +159,7 @@ module.exports = defineConfig([
       'src/app/domains/**/*.service.spec.ts',
       'src/app/domains/**/*.state.spec.ts',
     ],
-    ignores: ['src/app/domains/*/api/**', 'src/app/domains/*/infrastructure/**'],
+    ignores: ['src/app/domains/*/api/**'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -189,7 +188,7 @@ module.exports = defineConfig([
               message: 'Application must not know about Angular forms.',
             },
             {
-              group: ['**/api/*', '**/infrastructure/*'],
+              group: ['**/api/*'],
               message: 'Application reaches the outside world through a gateway token only.',
             },
             {
@@ -212,7 +211,6 @@ module.exports = defineConfig([
       'src/app/domains/**/*.service.spec.ts',
       'src/app/domains/**/*.state.spec.ts',
       'src/app/domains/*/api/**',
-      'src/app/domains/*/infrastructure/**',
       'src/app/domains/*/testing/**',
       'src/app/domains/*/*.providers.ts',
       'src/app/domains/*/*.providers.spec.ts',
@@ -224,7 +222,7 @@ module.exports = defineConfig([
         {
           patterns: [
             {
-              group: ['**/api/*', '**/infrastructure/*'],
+              group: ['**/api/*'],
               message: 'Components reach the API through services only.',
             },
           ],
