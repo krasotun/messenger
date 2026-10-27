@@ -42,7 +42,8 @@ context: |
   - `src/app/domains/<context>/<feature>/` - фича: ее компоненты (каждый в
     своей папке) и сервисы рядом с ними;
   - `src/app/domains/<context>/api/` - HTTP API, DTO, мапперы, реализации
-    шлюзов (`Http*Gateway`);
+    шлюзов (`Http*Gateway`); когда файлов становится много, делится на
+    подпапки по ресурсам контракта (`api/auth/`, `api/user/`);
   - `src/app/core` - routing, guards, layouts, tokens, app initializers;
   - `src/app/pages` - страницы-композиции.
 
