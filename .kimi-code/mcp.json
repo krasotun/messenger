@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "angular": {
+      "command": "npx",
+      "args": ["ng", "mcp", "--read-only"]
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}
