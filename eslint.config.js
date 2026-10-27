@@ -125,11 +125,7 @@ module.exports = defineConfig([
         {
           patterns: [
             {
-              group: [
-                '@domains/*/application/*',
-                '@domains/*/infrastructure/*',
-                '@domains/*/presentation/*',
-              ],
+              group: ['@domains/*/*', '!@domains/*/testing'],
               message: 'Use the domain public API for static imports.',
             },
           ],
@@ -154,7 +150,17 @@ module.exports = defineConfig([
     },
   },
   {
-    files: ['src/app/domains/*/application/**/*.ts'],
+    // Слои - роли файлов, а не папки (docs/adr/2026-10-27-domain-code-grouped-by-feature.md).
+    // infrastructure/ остается в шаблонах, пока identity-access не переехал в api/.
+    files: [
+      'src/app/domains/**/*.service.ts',
+      'src/app/domains/**/*.state.ts',
+      'src/app/domains/**/*.gateway.ts',
+      'src/app/domains/**/*.type.ts',
+      'src/app/domains/**/*.service.spec.ts',
+      'src/app/domains/**/*.state.spec.ts',
+    ],
+    ignores: ['src/app/domains/*/api/**', 'src/app/domains/*/infrastructure/**'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -183,12 +189,13 @@ module.exports = defineConfig([
               message: 'Application must not know about Angular forms.',
             },
             {
-              group: ['**/infrastructure/*', '@domains/*/infrastructure/*'],
+              group: ['**/api/*', '**/infrastructure/*'],
               message: 'Application reaches the outside world through a gateway token only.',
             },
             {
-              group: ['**/presentation/*', '@domains/*/presentation/*'],
-              message: 'Application must not depend on presentation.',
+              // Компонент - единственный файл домена без суффикса: chat-list/chat-list.
+              regex: '^\\.{1,2}/(?:.*/)?(?!testing$)[^./]+$',
+              message: 'Application must not depend on components.',
             },
           ],
         },
@@ -196,15 +203,29 @@ module.exports = defineConfig([
     },
   },
   {
-    files: ['src/app/domains/*/presentation/**/*.ts'],
+    files: ['src/app/domains/**/*.ts'],
+    ignores: [
+      'src/app/domains/**/*.service.ts',
+      'src/app/domains/**/*.state.ts',
+      'src/app/domains/**/*.gateway.ts',
+      'src/app/domains/**/*.type.ts',
+      'src/app/domains/**/*.service.spec.ts',
+      'src/app/domains/**/*.state.spec.ts',
+      'src/app/domains/*/api/**',
+      'src/app/domains/*/infrastructure/**',
+      'src/app/domains/*/testing/**',
+      'src/app/domains/*/*.providers.ts',
+      'src/app/domains/*/*.providers.spec.ts',
+      'src/app/domains/*/index.ts',
+    ],
     rules: {
       'no-restricted-imports': [
         'error',
         {
           patterns: [
             {
-              group: ['**/infrastructure/*', '@domains/*/infrastructure/*'],
-              message: 'Presentation reaches infrastructure through application only.',
+              group: ['**/api/*', '**/infrastructure/*'],
+              message: 'Components reach the API through services only.',
             },
           ],
         },
