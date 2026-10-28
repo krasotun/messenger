@@ -174,8 +174,8 @@ _Avoid_: поиск по чатам, фильтр чатов, поиск кон�
 
 **Шлюз** (`gateway`):
 Контракт домена к внешнему API: что домен умеет спрашивать у мира. Объявляется
-в корне домена (`*.gateway.ts`), реализуется в `api/` (`Http*Gateway`),
-подключается через токен `<CONTEXT>_GATEWAY`.
+интерфейсом с токеном `<CONTEXT>_GATEWAY`, реализуется классом `Http*Gateway`.
+Где лежат их файлы - в `openspec/config.yaml`.
 _Avoid_: repository, api client, service, facade
 
 **Модель**:
