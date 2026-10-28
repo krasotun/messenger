@@ -5,10 +5,14 @@ import { catchError, EMPTY, Observable, Subject, switchMap, tap } from 'rxjs';
 import { ChatUser } from '../chat-user.type';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
-import { ChatUsersStatus } from './chat-users-status.type';
-
 import { ApplicationError } from '@shared/errors';
-import { Nullable } from '@shared/types';
+import { LoadStatus } from '@shared/types';
+
+type ChatUsersState =
+  | { status: LoadStatus.Idle }
+  | { status: LoadStatus.Loading }
+  | { status: LoadStatus.Loaded; chatUsers: ChatUser[] }
+  | { status: LoadStatus.Error; errorMessage: string };
 
 @Injectable({
   providedIn: 'root',
@@ -18,16 +22,21 @@ export class ChatUsersService {
 
   private readonly _requestedChatId$ = new Subject<number>();
 
-  private readonly _status = signal<ChatUsersStatus>(ChatUsersStatus.Idle);
-  readonly status = this._status.asReadonly();
+  private readonly _state = signal<ChatUsersState>({ status: LoadStatus.Idle });
 
-  private readonly _chatUsers = signal<ChatUser[]>([]);
-  readonly chatUsers = this._chatUsers.asReadonly();
+  readonly status = computed(() => this._state().status);
 
-  private readonly _errorMessage = signal<Nullable<string>>(null);
-  readonly errorMessage = this._errorMessage.asReadonly();
+  readonly chatUsers = computed(() => {
+    const state = this._state();
 
-  readonly isLoading = computed(() => this._status() === ChatUsersStatus.Loading);
+    return state.status === LoadStatus.Loaded ? state.chatUsers : [];
+  });
+
+  readonly errorMessage = computed(() => {
+    const state = this._state();
+
+    return state.status === LoadStatus.Error ? state.errorMessage : null;
+  });
 
   constructor() {
     this._requestedChatId$
@@ -39,8 +48,7 @@ export class ChatUsersService {
   }
 
   loadChatUsers(chatId: number): void {
-    this._status.set(ChatUsersStatus.Loading);
-    this._errorMessage.set(null);
+    this._state.set({ status: LoadStatus.Loading });
 
     this._requestedChatId$.next(chatId);
   }
@@ -49,12 +57,10 @@ export class ChatUsersService {
     return this._chatGateway.chatUsers(chatId).pipe(
       tap({
         next: (chatUsers) => {
-          this._chatUsers.set(chatUsers);
-          this._status.set(ChatUsersStatus.Loaded);
+          this._state.set({ status: LoadStatus.Loaded, chatUsers });
         },
         error: ({ message }: ApplicationError) => {
-          this._errorMessage.set(message);
-          this._status.set(ChatUsersStatus.Error);
+          this._state.set({ status: LoadStatus.Error, errorMessage: message });
         },
       }),
       catchError(() => EMPTY),
