@@ -4,11 +4,11 @@ import { of, Subject, throwError } from 'rxjs';
 import { ChatUser } from '../chat-user.type';
 import { CHAT_GATEWAY } from '../chat.gateway';
 
-import { ChatUsersStatus } from './chat-users-status.type';
 import { ChatUsersService } from './chat-users.service';
 
 import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
+import { LoadStatus } from '@shared/types';
 
 const chatUserMock = ChatMocks.chatUser({ id: 2, name: 'Johnny' });
 
@@ -37,7 +37,7 @@ describe('ChatUsersService', () => {
 
   describe('initial state', () => {
     it('should be idle with an empty list and no error', () => {
-      expect(service.status()).toBe(ChatUsersStatus.Idle);
+      expect(service.status()).toBe(LoadStatus.Idle);
       expect(service.chatUsers()).toEqual([]);
       expect(service.errorMessage()).toBeNull();
     });
@@ -57,8 +57,7 @@ describe('ChatUsersService', () => {
 
       service.loadChatUsers(1);
 
-      expect(service.status()).toBe(ChatUsersStatus.Loading);
-      expect(service.isLoading()).toBe(true);
+      expect(service.status()).toBe(LoadStatus.Loading);
     });
 
     describe('when the chat has members', () => {
@@ -67,7 +66,7 @@ describe('ChatUsersService', () => {
 
         service.loadChatUsers(1);
 
-        expect(service.status()).toBe(ChatUsersStatus.Loaded);
+        expect(service.status()).toBe(LoadStatus.Loaded);
         expect(service.chatUsers()).toEqual([chatUserMock]);
       });
     });
@@ -80,7 +79,7 @@ describe('ChatUsersService', () => {
 
         service.loadChatUsers(1);
 
-        expect(service.status()).toBe(ChatUsersStatus.Error);
+        expect(service.status()).toBe(LoadStatus.Error);
         expect(service.errorMessage()).toBe('mockReason');
       });
     });
@@ -93,15 +92,27 @@ describe('ChatUsersService', () => {
 
         service.loadChatUsers(1);
 
-        expect(service.status()).toBe(ChatUsersStatus.Error);
+        expect(service.status()).toBe(LoadStatus.Error);
 
         chatGatewayMock.chatUsers.mockReturnValueOnce(of([chatUserMock]));
 
         service.loadChatUsers(2);
 
-        expect(service.status()).toBe(ChatUsersStatus.Loaded);
+        expect(service.status()).toBe(LoadStatus.Loaded);
         expect(service.errorMessage()).toBeNull();
         expect(service.chatUsers()).toEqual([chatUserMock]);
+      });
+
+      it('should not keep the previous chat users while the next chat is loading', () => {
+        chatGatewayMock.chatUsers.mockReturnValueOnce(of([chatUserMock]));
+
+        service.loadChatUsers(1);
+
+        chatGatewayMock.chatUsers.mockReturnValueOnce(new Subject<ChatUser[]>());
+
+        service.loadChatUsers(2);
+
+        expect(service.chatUsers()).toEqual([]);
       });
     });
 
@@ -134,7 +145,7 @@ describe('ChatUsersService', () => {
 
         previousResponse.next([previousChatUserMock]);
 
-        expect(service.status()).toBe(ChatUsersStatus.Loading);
+        expect(service.status()).toBe(LoadStatus.Loading);
         expect(service.chatUsers()).toEqual([]);
       });
 
@@ -145,7 +156,7 @@ describe('ChatUsersService', () => {
         latestResponse.next([chatUserMock]);
         previousResponse.next([previousChatUserMock]);
 
-        expect(service.status()).toBe(ChatUsersStatus.Loaded);
+        expect(service.status()).toBe(LoadStatus.Loaded);
         expect(service.chatUsers()).toEqual([chatUserMock]);
       });
 
@@ -156,7 +167,7 @@ describe('ChatUsersService', () => {
         latestResponse.next([chatUserMock]);
         previousResponse.error(new ApplicationError('mockReason'));
 
-        expect(service.status()).toBe(ChatUsersStatus.Loaded);
+        expect(service.status()).toBe(LoadStatus.Loaded);
         expect(service.errorMessage()).toBeNull();
         expect(service.chatUsers()).toEqual([chatUserMock]);
       });
