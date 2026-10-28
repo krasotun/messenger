@@ -1,24 +1,30 @@
 import { outputBinding } from '@angular/core';
 import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
-
-import { CreateChatService } from '../../data/create-chat-service';
+import { of, Subject } from 'rxjs';
 
 import { CreateChatForm } from './create-chat-form';
 
+import { CHAT_GATEWAY } from '@domains/chats/data/chat-gateway';
+import { CreateChatResult } from '@domains/chats/data/create-chat-result';
 import { ChatMocks } from '@domains/chats/testing';
+import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 
 const requiredFieldError = 'This field is required';
 
 describe('CreateChatForm', () => {
-  let createChatServiceMock: ReturnType<typeof ChatMocks.createChatService>;
+  let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
 
   const renderForm = async () => {
     const chatCreated = vi.fn();
 
     const result = await render(CreateChatForm, {
       bindings: [outputBinding('chatCreated', chatCreated)],
-      providers: [{ provide: CreateChatService, useValue: createChatServiceMock }],
+      providers: [
+        { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
+        { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
+      ],
       waitForStableOnRender: true,
     });
 
@@ -30,7 +36,7 @@ describe('CreateChatForm', () => {
   const getSubmitButton = (): HTMLElement => screen.getByRole('button', { name: 'Create' });
 
   beforeEach(() => {
-    createChatServiceMock = ChatMocks.createChatService();
+    chatGatewayMock = ChatMocks.chatGateway();
   });
 
   it('should create', async () => {
@@ -54,7 +60,7 @@ describe('CreateChatForm', () => {
 
       fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
-      expect(createChatServiceMock.createChat).not.toHaveBeenCalled();
+      expect(chatGatewayMock.createChat).not.toHaveBeenCalled();
     });
   });
 
@@ -99,22 +105,25 @@ describe('CreateChatForm', () => {
   describe('valid submit', () => {
     it('should call createChat with the entered title', async () => {
       const user = userEvent.setup();
+      chatGatewayMock.createChat.mockReturnValue(new Subject<CreateChatResult>());
       await renderForm();
 
       await user.type(getTitleField(), 'Analytics Q3');
       await user.click(getSubmitButton());
 
-      expect(createChatServiceMock.createChat).toHaveBeenCalledOnce();
-      expect(createChatServiceMock.createChat).toHaveBeenCalledWith({ title: 'Analytics Q3' });
+      expect(chatGatewayMock.createChat).toHaveBeenCalledOnce();
+      expect(chatGatewayMock.createChat).toHaveBeenCalledWith({ title: 'Analytics Q3' });
     });
   });
 
   describe('submitting state', () => {
     it('should disable submit button and the title control', async () => {
-      const { fixture } = await renderForm();
+      const user = userEvent.setup();
+      chatGatewayMock.createChat.mockReturnValue(new Subject<CreateChatResult>());
+      await renderForm();
 
-      createChatServiceMock.isSubmitting.set(true);
-      await fixture.whenStable();
+      await user.type(getTitleField(), 'Analytics Q3');
+      await user.click(getSubmitButton());
 
       expect(getSubmitButton()).toBeDisabled();
       expect(getTitleField()).toBeDisabled();
@@ -130,10 +139,14 @@ describe('CreateChatForm', () => {
   });
 
   describe('success state', () => {
-    it('should emit chatCreated when the service reports success, without a manual application tick', async () => {
+    it('should emit chatCreated when the store reports success, without a manual application tick', async () => {
+      const user = userEvent.setup();
+      chatGatewayMock.chats.mockReturnValue(of([]));
+      chatGatewayMock.createChat.mockReturnValue(of({ id: 1 }));
       const { chatCreated } = await renderForm();
 
-      createChatServiceMock.succeeded$.next();
+      await user.type(getTitleField(), 'Analytics Q3');
+      await user.click(getSubmitButton());
 
       expect(chatCreated).toHaveBeenCalledOnce();
     });

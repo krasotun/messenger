@@ -1,8 +1,7 @@
 import { Component, inject, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { CreateChatService } from '../../data/create-chat-service';
-
+import { ChatListStore } from '@domains/chats/data/chat-list-store';
 import { connectSubmitFlow } from '@shared/forms';
 import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
@@ -24,21 +23,21 @@ export class CreateChatForm {
 
   readonly chatCreated = output<void>();
 
-  private readonly _createChatService = inject(CreateChatService);
+  private readonly _chatListStore = inject(ChatListStore);
 
-  protected readonly isSubmitting = this._createChatService.isSubmitting;
+  protected readonly isSubmitting = this._chatListStore.chatCreationFlow.isSubmitting;
 
   protected readonly fields = [
     { label: 'Title', type: 'text', control: this.createChatForm.controls.title },
   ];
 
   constructor() {
-    connectSubmitFlow(this.createChatForm, this._createChatService, this.chatCreated);
+    connectSubmitFlow(this.createChatForm, this._chatListStore.chatCreationFlow, this.chatCreated);
   }
 
   protected onSubmit(): void {
     const { title } = this.createChatForm.getRawValue();
 
-    this._createChatService.createChat({ title });
+    this._chatListStore.createChat({ title });
   }
 }

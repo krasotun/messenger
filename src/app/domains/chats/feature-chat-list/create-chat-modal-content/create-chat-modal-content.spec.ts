@@ -1,10 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { fireEvent, render, within } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { CHAT_GATEWAY } from '../../data/chat-gateway';
-import { CreateChatService } from '../../data/create-chat-service';
 
 import { CreateChatModalContent } from './create-chat-modal-content';
 
@@ -16,28 +15,24 @@ import { ModalRef } from '@shared/ui/modal/modal-ref';
 import { ModalMocks } from '@shared/ui/modal/testing';
 
 describe('CreateChatModalContent', () => {
-  let createChatServiceMock: ReturnType<typeof ChatMocks.createChatService>;
+  let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
   let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
 
   const sharedProviders = () => [
+    { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
     { provide: ModalRef, useValue: modalRefMock },
     { provide: NOTIFIER, useValue: notifierMock },
   ];
 
-  // CreateChatService живет в providers компонента модалки.
   const renderModal = () =>
     render(CreateChatModalContent, {
       providers: sharedProviders(),
-      configureTestBed: (testBed) =>
-        testBed.overrideComponent(CreateChatModalContent, {
-          set: { providers: [{ provide: CreateChatService, useValue: createChatServiceMock }] },
-        }),
       waitForStableOnRender: true,
     });
 
   beforeEach(() => {
-    createChatServiceMock = ChatMocks.createChatService();
+    chatGatewayMock = ChatMocks.chatGateway();
     modalRefMock = ModalMocks.modalRef();
     notifierMock = NotificationMocks.notifier();
   });
@@ -50,9 +45,14 @@ describe('CreateChatModalContent', () => {
 
   describe('successful creation', () => {
     it('should close the modal without a manual application tick', async () => {
-      await renderModal();
+      const user = userEvent.setup();
+      chatGatewayMock.chats.mockReturnValue(of([]));
+      chatGatewayMock.createChat.mockReturnValue(of({ id: 1 }));
+      const { container } = await renderModal();
+      const modal = within(container);
 
-      createChatServiceMock.succeeded$.next();
+      await user.type(modal.getByLabelText('Title'), 'typedTitle');
+      await user.click(modal.getByRole('button', { name: 'Create' }));
 
       expect(modalRefMock.close).toHaveBeenCalledOnce();
     });
@@ -62,7 +62,7 @@ describe('CreateChatModalContent', () => {
     it('should not call createChat', async () => {
       await renderModal();
 
-      expect(createChatServiceMock.createChat).not.toHaveBeenCalled();
+      expect(chatGatewayMock.createChat).not.toHaveBeenCalled();
     });
   });
 
@@ -73,16 +73,13 @@ describe('CreateChatModalContent', () => {
 
       fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
-      expect(createChatServiceMock.createChat).not.toHaveBeenCalled();
+      expect(chatGatewayMock.createChat).not.toHaveBeenCalled();
       expect(modalRefMock.close).not.toHaveBeenCalled();
     });
   });
 
   describe('flow lifetime', () => {
-    let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
-
     beforeEach(() => {
-      chatGatewayMock = ChatMocks.chatGateway();
       chatGatewayMock.createChat.mockImplementation(() =>
         throwError(() => new ApplicationError('Mock error')),
       );
@@ -93,7 +90,7 @@ describe('CreateChatModalContent', () => {
     it('should show an empty form without an error when reopened after a failed creation', async () => {
       const user = userEvent.setup();
       const { fixture: failedFixture, container } = await render(CreateChatModalContent, {
-        providers: [...sharedProviders(), { provide: CHAT_GATEWAY, useValue: chatGatewayMock }],
+        providers: sharedProviders(),
         waitForStableOnRender: true,
       });
       const failedModal = within(container);
