@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../auth.gateway';
@@ -7,7 +7,10 @@ import { CurrentSessionResult } from './current-session-result.type';
 import { CurrentSessionStatus } from './current-session-status.type';
 import { CurrentUser } from './current-user.type';
 
-import { Nullable } from '@shared/types';
+type CurrentSessionState =
+  | { status: CurrentSessionStatus.Unknown }
+  | { status: CurrentSessionStatus.Loading }
+  | CurrentSessionResult;
 
 @Injectable({
   providedIn: 'root',
@@ -15,25 +18,22 @@ import { Nullable } from '@shared/types';
 export class CurrentSessionService {
   private readonly _authGateway = inject(AUTH_GATEWAY);
 
-  private readonly _status = signal<CurrentSessionStatus>(CurrentSessionStatus.Unknown);
-  readonly status = this._status.asReadonly();
+  private readonly _state = signal<CurrentSessionState>({ status: CurrentSessionStatus.Unknown });
 
-  private readonly _currentUser = signal<Nullable<CurrentUser>>(null);
-  readonly currentUser = this._currentUser.asReadonly();
+  readonly status = computed(() => this._state().status);
+
+  readonly currentUser = computed(() => {
+    const state = this._state();
+
+    return state.status === CurrentSessionStatus.Authenticated ? state.user : null;
+  });
 
   restoreCurrentSession(): Observable<CurrentSessionResult> {
-    this._status.set(CurrentSessionStatus.Loading);
+    this._state.set({ status: CurrentSessionStatus.Loading });
 
     return this._authGateway.currentSession().pipe(
       tap((result) => {
-        if (result.status === CurrentSessionStatus.Authenticated) {
-          this._currentUser.set(result.user);
-          this._status.set(result.status);
-        }
-
-        if (result.status === CurrentSessionStatus.Anonymous) {
-          this._markAnonymous();
-        }
+        this._state.set(result);
       }),
       catchError((error) => {
         this._markAnonymous();
@@ -43,7 +43,13 @@ export class CurrentSessionService {
   }
 
   updateCurrentUser(currentUser: CurrentUser): void {
-    this._currentUser.set(currentUser);
+    const state = this._state();
+
+    if (state.status !== CurrentSessionStatus.Authenticated) {
+      throw new Error('Cannot update the current user without an authenticated session');
+    }
+
+    this._state.set({ ...state, user: currentUser });
   }
 
   logout(): Observable<void> {
@@ -60,7 +66,6 @@ export class CurrentSessionService {
   }
 
   private _markAnonymous(): void {
-    this._currentUser.set(null);
-    this._status.set(CurrentSessionStatus.Anonymous);
+    this._state.set({ status: CurrentSessionStatus.Anonymous });
   }
 }
