@@ -4,11 +4,11 @@ import { of, Subject, throwError } from 'rxjs';
 import { CHAT_GATEWAY } from '../chat.gateway';
 import { Chat } from '../chat.type';
 
-import { ChatListStatus } from './chat-list-status.type';
 import { ChatListService } from './chat-list.service';
 
 import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
+import { LoadStatus } from '@shared/types';
 
 const chatMock = ChatMocks.chat();
 
@@ -37,7 +37,7 @@ describe('ChatListService', () => {
 
   describe('initial state', () => {
     it('should be idle with an empty list and no error', () => {
-      expect(service.status()).toBe(ChatListStatus.Idle);
+      expect(service.status()).toBe(LoadStatus.Idle);
       expect(service.chats()).toEqual([]);
       expect(service.errorMessage()).toBeNull();
     });
@@ -49,8 +49,7 @@ describe('ChatListService', () => {
 
       service.loadChats();
 
-      expect(service.status()).toBe(ChatListStatus.Loading);
-      expect(service.isLoading()).toBe(true);
+      expect(service.status()).toBe(LoadStatus.Loading);
     });
 
     describe('when the current user has chats', () => {
@@ -61,7 +60,7 @@ describe('ChatListService', () => {
       it('should expose the loaded chats', () => {
         service.loadChats();
 
-        expect(service.status()).toBe(ChatListStatus.Loaded);
+        expect(service.status()).toBe(LoadStatus.Loaded);
         expect(service.chats()).toEqual([chatMock]);
       });
 
@@ -80,7 +79,7 @@ describe('ChatListService', () => {
       it('should report the loaded list as empty', () => {
         service.loadChats();
 
-        expect(service.status()).toBe(ChatListStatus.Loaded);
+        expect(service.status()).toBe(LoadStatus.Loaded);
         expect(service.isEmpty()).toBe(true);
         expect(service.errorMessage()).toBeNull();
       });
@@ -94,7 +93,7 @@ describe('ChatListService', () => {
       it('should expose the error message', () => {
         service.loadChats();
 
-        expect(service.status()).toBe(ChatListStatus.Error);
+        expect(service.status()).toBe(LoadStatus.Error);
         expect(service.errorMessage()).toBe('mockReason');
       });
 
@@ -113,13 +112,13 @@ describe('ChatListService', () => {
 
         service.loadChats();
 
-        expect(service.status()).toBe(ChatListStatus.Error);
+        expect(service.status()).toBe(LoadStatus.Error);
 
         chatGatewayMock.chats.mockReturnValueOnce(of([chatMock]));
 
         service.loadChats();
 
-        expect(service.status()).toBe(ChatListStatus.Loaded);
+        expect(service.status()).toBe(LoadStatus.Loaded);
         expect(service.errorMessage()).toBeNull();
         expect(service.chats()).toEqual([chatMock]);
       });
@@ -136,7 +135,7 @@ describe('ChatListService', () => {
         service.loadChats();
 
         expect(service.errorMessage()).toBeNull();
-        expect(service.status()).toBe(ChatListStatus.Loading);
+        expect(service.status()).toBe(LoadStatus.Loading);
       });
     });
   });

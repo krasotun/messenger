@@ -1,4 +1,4 @@
-export enum ChatListStatus {
+export enum LoadStatus {
   Idle = 'idle',
   Loading = 'loading',
   Loaded = 'loaded',
