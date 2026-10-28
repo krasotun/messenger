@@ -1,0 +1,43 @@
+import { Chat, ChatLastMessage } from '../chat';
+import { ChatUser } from '../chat-user';
+
+import { ChatDto, ChatLastMessageDto, ChatUserDto } from './chat-dto';
+
+import { resolveAvatarUrl } from '@shared/resources';
+import { Nullable } from '@shared/types';
+
+const lastMessageMapper = ({ user, content }: ChatLastMessageDto): ChatLastMessage => {
+  return {
+    authorName: (user.display_name || user.first_name || user.login).trim(),
+    content,
+  };
+};
+
+export const chatMapper = (
+  { id, title, avatar, unread_count, created_by, last_message }: ChatDto,
+  resourcesBaseUrl: string,
+): Chat => {
+  const lastMessage: Nullable<ChatLastMessage> = last_message
+    ? lastMessageMapper(last_message)
+    : null;
+
+  return {
+    id,
+    title,
+    avatar: resolveAvatarUrl(avatar, resourcesBaseUrl),
+    unreadCount: unread_count,
+    createdBy: created_by,
+    lastMessage,
+  };
+};
+
+export const chatUserMapper = (
+  { id, first_name, display_name, login, avatar }: ChatUserDto,
+  resourcesBaseUrl: string,
+): ChatUser => {
+  return {
+    id,
+    name: (display_name || first_name || login).trim(),
+    avatar: resolveAvatarUrl(avatar, resourcesBaseUrl),
+  };
+};

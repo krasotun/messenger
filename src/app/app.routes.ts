@@ -8,6 +8,9 @@ export const routes: Routes = [
     path: 'sign-in',
     canActivate: [guestOnlyGuard],
     loadComponent: () =>
+      // Ленивая загрузка идет мимо index.ts, иначе страница уедет в общий чанк.
+      // Исключение уйдет, когда identity-access переедет на feature-папки (#275).
+      // eslint-disable-next-line @softarc/sheriff/encapsulation
       import('@domains/identity-access/sign-in/sign-in-page/sign-in-page').then(
         (m) => m.SignInPage,
       ),
@@ -16,6 +19,9 @@ export const routes: Routes = [
     path: 'sign-up',
     canActivate: [guestOnlyGuard],
     loadComponent: () =>
+      // Ленивая загрузка идет мимо index.ts, иначе страница уедет в общий чанк.
+      // Исключение уйдет, когда identity-access переедет на feature-папки (#275).
+      // eslint-disable-next-line @softarc/sheriff/encapsulation
       import('@domains/identity-access/sign-up/sign-up-page/sign-up-page').then(
         (m) => m.SignUpPage,
       ),
@@ -35,7 +41,9 @@ export const routes: Routes = [
           {
             path: ':chatId',
             loadComponent: () =>
-              import('@domains/chats/selected-chat/selected-chat').then((m) => m.SelectedChat),
+              import('@domains/chats/feature-selected-chat/selected-chat/selected-chat').then(
+                (m) => m.SelectedChat,
+              ),
           },
         ],
       },

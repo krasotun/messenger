@@ -5,6 +5,33 @@ const tseslint = require('typescript-eslint');
 const angular = require('angular-eslint');
 const prettierPlugin = require('eslint-plugin-prettier');
 const importPlugin = require('eslint-plugin-import');
+const sheriff = require('@softarc/eslint-plugin-sheriff');
+
+const applicationRestrictedPaths = [
+  {
+    name: '@angular/forms',
+    message: 'Application must not know about Angular forms.',
+  },
+  {
+    name: '@angular/platform-browser',
+    message: 'Application must not know about the DOM.',
+  },
+];
+
+const applicationRestrictedPatterns = [
+  {
+    group: ['@angular/cdk', '@angular/cdk/*'],
+    message: 'Application must not know about Overlay and other CDK primitives.',
+  },
+  {
+    group: ['@shared/ui/*'],
+    message: 'Application must not know about UI primitives such as ModalRef.',
+  },
+  {
+    group: ['@shared/forms/*'],
+    message: 'Application must not know about Angular forms.',
+  },
+];
 
 module.exports = defineConfig([
   {
@@ -151,6 +178,7 @@ module.exports = defineConfig([
   },
   {
     // Слои - роли файлов, а не папки (docs/adr/2026-10-27-domain-code-grouped-by-feature.md).
+    // Держится, пока identity-access не переехал на папки, как chats (#275).
     files: [
       'src/app/domains/**/*.service.ts',
       'src/app/domains/**/*.state.ts',
@@ -164,29 +192,9 @@ module.exports = defineConfig([
       'no-restricted-imports': [
         'error',
         {
-          paths: [
-            {
-              name: '@angular/forms',
-              message: 'Application must not know about Angular forms.',
-            },
-            {
-              name: '@angular/platform-browser',
-              message: 'Application must not know about the DOM.',
-            },
-          ],
+          paths: applicationRestrictedPaths,
           patterns: [
-            {
-              group: ['@angular/cdk', '@angular/cdk/*'],
-              message: 'Application must not know about Overlay and other CDK primitives.',
-            },
-            {
-              group: ['@shared/ui/*'],
-              message: 'Application must not know about UI primitives such as ModalRef.',
-            },
-            {
-              group: ['@shared/forms/*'],
-              message: 'Application must not know about Angular forms.',
-            },
+            ...applicationRestrictedPatterns,
             {
               group: ['**/api/*'],
               message: 'Application reaches the outside world through a gateway token only.',
@@ -202,8 +210,28 @@ module.exports = defineConfig([
     },
   },
   {
+    // data - то же application, только границей служит папка, а не суффикс.
+    // Импорты между data, feature-* и ui проверяет Sheriff (sheriff.config.ts).
+    files: ['src/app/domains/chats/data/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: applicationRestrictedPaths,
+          patterns: applicationRestrictedPatterns,
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.ts'],
+    ignores: ['src/**/*.spec.ts', 'src/**/testing/**'],
+    extends: [sheriff.configs.all],
+  },
+  {
     files: ['src/app/domains/**/*.ts'],
     ignores: [
+      'src/app/domains/chats/**',
       'src/app/domains/**/*.service.ts',
       'src/app/domains/**/*.state.ts',
       'src/app/domains/**/*.gateway.ts',
