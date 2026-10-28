@@ -187,5 +187,9 @@ describe('CurrentSessionService', () => {
 
       expect(service.status()).toBe(CurrentSessionStatus.Authenticated);
     });
+
+    it('should throw when the session is not authenticated', () => {
+      expect(() => service.updateCurrentUser(currentUserMock)).toThrow();
+    });
   });
 });

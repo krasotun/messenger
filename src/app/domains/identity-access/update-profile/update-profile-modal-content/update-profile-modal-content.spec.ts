@@ -169,7 +169,7 @@ describe('UpdateProfileModalContent', () => {
           { provide: AUTH_GATEWAY, useValue: authGatewayMock },
         ],
         configureTestBed: (testBed) =>
-          testBed.inject(CurrentSessionService).updateCurrentUser(currentUserMock),
+          testBed.inject(CurrentSessionService).restoreCurrentSession().subscribe(),
         waitForStableOnRender: true,
       });
 
