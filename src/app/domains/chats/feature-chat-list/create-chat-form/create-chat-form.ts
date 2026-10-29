@@ -3,6 +3,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 
 import { ChatListStore } from '@domains/chats/data/chat-list-store';
 import { connectSubmitFlow } from '@shared/forms';
+import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
@@ -25,19 +26,21 @@ export class CreateChatForm {
 
   private readonly _chatListStore = inject(ChatListStore);
 
-  protected readonly isSubmitting = this._chatListStore.chatCreationFlow.isSubmitting;
+  private readonly _chatCreationFlow = createFormSubmitFlowState();
+
+  protected readonly isSubmitting = this._chatCreationFlow.isSubmitting;
 
   protected readonly fields = [
     { label: 'Title', type: 'text', control: this.createChatForm.controls.title },
   ];
 
   constructor() {
-    connectSubmitFlow(this.createChatForm, this._chatListStore.chatCreationFlow, this.chatCreated);
+    connectSubmitFlow(this.createChatForm, this._chatCreationFlow, this.chatCreated);
   }
 
   protected onSubmit(): void {
     const { title } = this.createChatForm.getRawValue();
 
-    this._chatListStore.createChat({ title });
+    this._chatListStore.createChat({ title }, this._chatCreationFlow);
   }
 }
