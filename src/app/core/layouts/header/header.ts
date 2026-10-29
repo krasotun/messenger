@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 
-import { CurrentUserAvatarMenu } from '@domains/identity-access';
+import { CurrentUserAvatarMenu } from '@domains/users';
 
 @Component({
   selector: 'app-header',

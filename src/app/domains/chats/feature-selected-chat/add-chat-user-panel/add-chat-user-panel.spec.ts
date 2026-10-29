@@ -10,17 +10,17 @@ import { AddChatUserPanel } from './add-chat-user-panel';
 import { CHAT_GATEWAY } from '@domains/chats/data/chat-gateway';
 import { ChatUsersStore } from '@domains/chats/data/chat-users-store';
 import { ChatMocks } from '@domains/chats/testing';
-import { SearchUsersResult, SearchUsersService } from '@domains/identity-access';
-import { IdentityMocks } from '@domains/identity-access/testing';
+import { SearchUsersResult, SearchUsersService } from '@domains/users';
+import { UserMocks } from '@domains/users/testing';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
 
-const userMock = IdentityMocks.user({ login: 'jane.roe', name: 'Janie' });
+const userMock = UserMocks.user({ login: 'jane.roe', name: 'Janie' });
 
 const debounceMs = 300;
 
 describe('AddChatUserPanel', () => {
-  let searchUsersServiceMock: ReturnType<typeof IdentityMocks.searchUsersService>;
+  let searchUsersServiceMock: ReturnType<typeof UserMocks.searchUsersService>;
   let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
   let fixture: ComponentFixture<AddChatUserPanel>;
   let userAdded: Mock<() => void>;
@@ -34,7 +34,7 @@ describe('AddChatUserPanel', () => {
   };
 
   beforeEach(async () => {
-    searchUsersServiceMock = IdentityMocks.searchUsersService();
+    searchUsersServiceMock = UserMocks.searchUsersService();
     vi.useFakeTimers();
     user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 

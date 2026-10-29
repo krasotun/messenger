@@ -4,7 +4,7 @@ import { catchError, debounceTime, map, Observable, of, switchMap } from 'rxjs';
 
 import { UserSearchStatus } from './user-search-status';
 
-import { SearchUsersService, User } from '@domains/identity-access';
+import { SearchUsersService, User } from '@domains/users';
 
 const searchDebounceMs = 300;
 

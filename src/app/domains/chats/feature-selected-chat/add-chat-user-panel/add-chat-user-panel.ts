@@ -6,7 +6,7 @@ import { createUserSearchState } from './user-search-state';
 import { UserSearchStatus } from './user-search-status';
 
 import { ChatUsersStore } from '@domains/chats/data/chat-users-store';
-import { SearchUsersService, User } from '@domains/identity-access';
+import { SearchUsersService, User } from '@domains/users';
 import { Nullable } from '@shared/types';
 import { Avatar } from '@shared/ui/avatar/avatar';
 import { Input } from '@shared/ui/input/input';

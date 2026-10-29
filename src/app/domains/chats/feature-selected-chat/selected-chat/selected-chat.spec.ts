@@ -11,8 +11,8 @@ import { ChatListStore } from '../../data/chat-list-store';
 import { SelectedChat } from './selected-chat';
 
 import { ChatMocks } from '@domains/chats/testing';
-import { CurrentSessionService, CurrentUser } from '@domains/identity-access';
-import { IdentityMocks } from '@domains/identity-access/testing';
+import { CurrentSessionService, CurrentUser } from '@domains/users';
+import { UserMocks } from '@domains/users/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
@@ -25,7 +25,7 @@ const secondChatMock = ChatMocks.chat({ id: 2, title: 'Analytics Q4' });
 const firstChatUserMock = ChatMocks.chatUser({ id: 2, name: 'Johnny' });
 const secondChatUserMock = ChatMocks.chatUser({ id: 3, name: 'Billie' });
 
-const chatCreatorMock = IdentityMocks.currentUser({ id: 1 });
+const chatCreatorMock = UserMocks.currentUser({ id: 1 });
 
 @Component({
   selector: 'app-chats-page',

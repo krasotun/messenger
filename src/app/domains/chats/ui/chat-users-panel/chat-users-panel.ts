@@ -3,7 +3,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { ChatUserRow } from '../chat-user-row/chat-user-row';
 
 import { ChatUser } from '@domains/chats/data/chat-user';
-import { UserId } from '@domains/identity-access';
+import { UserId } from '@domains/users';
 
 @Component({
   selector: 'app-chat-users-panel',

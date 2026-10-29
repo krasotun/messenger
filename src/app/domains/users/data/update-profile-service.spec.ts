@@ -1,0 +1,222 @@
+import { ApplicationRef } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
+import { of, Subject, throwError } from 'rxjs';
+
+import { AUTH_GATEWAY } from './auth-gateway';
+import { CurrentSessionService } from './current-session-service';
+import { CurrentSessionStatus } from './current-session-status';
+import { CurrentUser } from './current-user';
+import { UpdateProfileResult } from './update-profile-result';
+import { UpdateProfileService } from './update-profile-service';
+import { USER_GATEWAY } from './user-gateway';
+
+import { UserMocks } from '@domains/users/testing';
+import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
+
+const currentUserMock = UserMocks.currentUser({
+  firstName: 'firstName',
+  secondName: 'secondName',
+  displayName: 'displayName',
+  login: 'login',
+  email: 'email',
+  phone: 'phone',
+});
+
+const updatedUserMock: CurrentUser = {
+  ...currentUserMock,
+  firstName: 'updatedFirstName',
+  displayName: 'updatedDisplayName',
+  email: 'updated@email.email',
+};
+
+const updateProfileInputMock = UserMocks.updateProfileInput({
+  firstName: 'updatedFirstName',
+  secondName: 'secondName',
+  displayName: 'updatedDisplayName',
+  login: 'login',
+  email: 'updated@email.email',
+  phone: 'phone',
+});
+
+const authenticatedSessionMock = UserMocks.authenticatedSession(currentUserMock);
+
+describe('UpdateProfileService', () => {
+  let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
+  let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
+  let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
+  let service: UpdateProfileService;
+  let currentSessionService: CurrentSessionService;
+
+  beforeEach(() => {
+    authGatewayMock = UserMocks.authGateway();
+    userGatewayMock = UserMocks.userGateway();
+    notifierMock = NotificationMocks.notifier();
+
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: AUTH_GATEWAY,
+          useValue: authGatewayMock,
+        },
+        {
+          provide: USER_GATEWAY,
+          useValue: userGatewayMock,
+        },
+        provideRouter([]),
+        {
+          provide: NOTIFIER,
+          useValue: notifierMock,
+        },
+        UpdateProfileService,
+      ],
+    });
+
+    currentSessionService = TestBed.inject(CurrentSessionService);
+    service = TestBed.inject(UpdateProfileService);
+
+    authGatewayMock.currentSession.mockReturnValue(of(authenticatedSessionMock));
+    currentSessionService.restoreCurrentSession().subscribe();
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  describe('initial state', () => {
+    it('isSubmitting should be false', () => {
+      expect(service.isSubmitting()).toBe(false);
+    });
+  });
+
+  describe('initialValues', () => {
+    it('should expose editable fields of the current user', () => {
+      expect(service.initialValues()).toEqual({
+        firstName: 'firstName',
+        secondName: 'secondName',
+        displayName: 'displayName',
+        login: 'login',
+        email: 'email',
+        phone: 'phone',
+      });
+    });
+
+    it('should expose empty display name when the current user has none', () => {
+      authGatewayMock.currentSession.mockReturnValue(
+        of({
+          status: CurrentSessionStatus.Authenticated,
+          user: { ...currentUserMock, displayName: null },
+        }),
+      );
+      currentSessionService.restoreCurrentSession().subscribe();
+
+      expect(service.initialValues().displayName).toBe('');
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('should call user gateway with form values', () => {
+      userGatewayMock.updateProfile.mockReturnValue(of({ user: updatedUserMock }));
+
+      service.updateProfile(updateProfileInputMock);
+
+      expect(userGatewayMock.updateProfile).toHaveBeenCalledOnce();
+      expect(userGatewayMock.updateProfile).toHaveBeenCalledWith(updateProfileInputMock);
+    });
+
+    it('should set submitting state while request is pending', () => {
+      const updateProfileResult$ = new Subject<UpdateProfileResult>();
+      userGatewayMock.updateProfile.mockReturnValueOnce(updateProfileResult$);
+
+      service.updateProfile(updateProfileInputMock);
+
+      expect(service.isSubmitting()).toBe(true);
+    });
+
+    describe('on success', () => {
+      beforeEach(() => {
+        userGatewayMock.updateProfile.mockReturnValue(of({ user: updatedUserMock }));
+      });
+
+      it('should emit succeeded$ once', () => {
+        const succeededSpy = vi.fn();
+        service.succeeded$.subscribe(succeededSpy);
+
+        service.updateProfile(updateProfileInputMock);
+
+        expect(succeededSpy).toHaveBeenCalledOnce();
+        expect(service.isSubmitting()).toBe(false);
+      });
+
+      it('should notify about success', () => {
+        service.updateProfile(updateProfileInputMock);
+
+        expect(notifierMock.success).toHaveBeenCalledWith(
+          'Update profile',
+          'Profile updated successfully',
+        );
+      });
+
+      it('should update the current session from the backend response', () => {
+        service.updateProfile(updateProfileInputMock);
+
+        expect(currentSessionService.currentUser()).toEqual(updatedUserMock);
+      });
+
+      it('should keep the session authenticated', () => {
+        service.updateProfile(updateProfileInputMock);
+
+        expect(currentSessionService.status()).toBe(CurrentSessionStatus.Authenticated);
+      });
+
+      it('should refresh initial values from the updated current user', () => {
+        service.updateProfile(updateProfileInputMock);
+
+        expect(service.initialValues().firstName).toBe('updatedFirstName');
+      });
+
+      it('should not navigate', async () => {
+        service.updateProfile(updateProfileInputMock);
+
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
+      });
+    });
+
+    describe('on error', () => {
+      beforeEach(() => {
+        userGatewayMock.updateProfile.mockReturnValue(
+          throwError(() => new ApplicationError('mockReason')),
+        );
+      });
+
+      it('should notify with the reason and not emit succeeded$', () => {
+        const succeededSpy = vi.fn();
+        service.succeeded$.subscribe(succeededSpy);
+
+        service.updateProfile(updateProfileInputMock);
+
+        expect(succeededSpy).not.toHaveBeenCalled();
+        expect(service.isSubmitting()).toBe(false);
+        expect(notifierMock.error).toHaveBeenCalledWith('Failed to update profile', 'mockReason');
+      });
+
+      it('should keep the current session unchanged', () => {
+        service.updateProfile(updateProfileInputMock);
+
+        expect(currentSessionService.currentUser()).toEqual(currentUserMock);
+      });
+
+      it('should not navigate', async () => {
+        service.updateProfile(updateProfileInputMock);
+
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
+      });
+    });
+  });
+});

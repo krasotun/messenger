@@ -1,7 +1,7 @@
 import { inject, provideAppInitializer } from '@angular/core';
 import { catchError, EMPTY } from 'rxjs';
 
-import { CurrentSessionService } from '@domains/identity-access';
+import { CurrentSessionService } from '@domains/users';
 
 export const provideCurrentSessionRestore = () => {
   return provideAppInitializer(() => {

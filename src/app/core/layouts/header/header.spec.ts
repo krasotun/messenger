@@ -3,7 +3,7 @@ import { render } from '@testing-library/angular/zoneless';
 
 import { Header } from './header';
 
-import { CurrentUserAvatarMenu } from '@domains/identity-access';
+import { CurrentUserAvatarMenu } from '@domains/users';
 
 @Component({
   selector: 'app-current-user-avatar-menu',

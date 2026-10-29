@@ -177,42 +177,9 @@ module.exports = defineConfig([
     },
   },
   {
-    // Слои - роли файлов, а не папки (docs/adr/2026-10-27-domain-code-grouped-by-feature.md).
-    // Держится, пока identity-access не переехал на папки, как chats (#275).
-    files: [
-      'src/app/domains/**/*.service.ts',
-      'src/app/domains/**/*.state.ts',
-      'src/app/domains/**/*.gateway.ts',
-      'src/app/domains/**/*.type.ts',
-      'src/app/domains/**/*.service.spec.ts',
-      'src/app/domains/**/*.state.spec.ts',
-    ],
-    ignores: ['src/app/domains/*/api/**'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: applicationRestrictedPaths,
-          patterns: [
-            ...applicationRestrictedPatterns,
-            {
-              group: ['**/api/*'],
-              message: 'Application reaches the outside world through a gateway token only.',
-            },
-            {
-              // Компонент - единственный файл домена без суффикса: chat-list/chat-list.
-              regex: '^\\.{1,2}/(?:.*/)?(?!testing$)[^./]+$',
-              message: 'Application must not depend on components.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    // data - то же application, только границей служит папка, а не суффикс.
+    // data - слой application: не знает про DOM, Overlay, ModalRef и формы.
     // Импорты между data, feature-* и ui проверяет Sheriff (sheriff.config.ts).
-    files: ['src/app/domains/chats/data/**/*.ts'],
+    files: ['src/app/domains/*/data/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -227,36 +194,6 @@ module.exports = defineConfig([
     files: ['src/**/*.ts'],
     ignores: ['src/**/*.spec.ts', 'src/**/testing/**'],
     extends: [sheriff.configs.all],
-  },
-  {
-    files: ['src/app/domains/**/*.ts'],
-    ignores: [
-      'src/app/domains/chats/**',
-      'src/app/domains/**/*.service.ts',
-      'src/app/domains/**/*.state.ts',
-      'src/app/domains/**/*.gateway.ts',
-      'src/app/domains/**/*.type.ts',
-      'src/app/domains/**/*.service.spec.ts',
-      'src/app/domains/**/*.state.spec.ts',
-      'src/app/domains/*/api/**',
-      'src/app/domains/*/testing/**',
-      'src/app/domains/*/*.providers.ts',
-      'src/app/domains/*/*.providers.spec.ts',
-      'src/app/domains/*/index.ts',
-    ],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['**/api/*'],
-              message: 'Components reach the API through services only.',
-            },
-          ],
-        },
-      ],
-    },
   },
   {
     files: ['**/*.html'],

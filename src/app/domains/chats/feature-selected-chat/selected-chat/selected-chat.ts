@@ -8,7 +8,7 @@ import { SelectedChatHeader } from '../selected-chat-header/selected-chat-header
 import { ChatListStore } from '@domains/chats/data/chat-list-store';
 import { ChatUser } from '@domains/chats/data/chat-user';
 import { ChatUsersStore } from '@domains/chats/data/chat-users-store';
-import { CurrentSessionService } from '@domains/identity-access';
+import { CurrentSessionService } from '@domains/users';
 import { ConfirmationService } from '@shared/ui/confirmation';
 
 const DELETE_CHAT_MESSAGE =

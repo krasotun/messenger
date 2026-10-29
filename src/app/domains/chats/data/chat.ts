@@ -1,4 +1,4 @@
-import { UserId } from '@domains/identity-access';
+import { UserId } from '@domains/users';
 import { Nullable } from '@shared/types';
 
 export interface ChatLastMessage {
