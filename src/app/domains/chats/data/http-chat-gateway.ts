@@ -1,20 +1,22 @@
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-import { AddChatUserInput } from './add-chat-user-input';
-import { AddChatUserResult } from './add-chat-user-result';
 import { Chat } from './chat';
-import { ChatGateway } from './chat-gateway';
+import {
+  AddChatUserResult,
+  AddChatUserInput,
+  ChatGateway,
+  CreateChatInput,
+  CreateChatResult,
+  DeleteChatInput,
+  RemoveChatUserInput,
+} from './chat-gateway';
 import { ChatUser } from './chat-user';
-import { CreateChatInput } from './create-chat-input';
-import { CreateChatResult } from './create-chat-result';
-import { DeleteChatInput } from './delete-chat-input';
 import { ChatApi } from './internal/chat-api';
 import { chatMapper, chatUserMapper } from './internal/chat-mapper';
 import { CHAT_ERROR_MESSAGES } from './internal/error-messages';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
-import { RemoveChatUserInput } from '@domains/chats/data/remove-chat-user-input';
 import { toApplicationError } from '@shared/errors';
 
 @Injectable()

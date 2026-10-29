@@ -4,8 +4,7 @@ import { of, Subject, throwError } from 'rxjs';
 import { ChatListStore } from './chat-list-store';
 
 import { Chat } from '@domains/chats/data/chat';
-import { CHAT_GATEWAY } from '@domains/chats/data/chat-gateway';
-import { CreateChatResult } from '@domains/chats/data/create-chat-result';
+import { CHAT_GATEWAY, CreateChatResult } from '@domains/chats/data/chat-gateway';
 import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';

@@ -1,9 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 
 import { Chat } from '@domains/chats/data/chat';
-import { CHAT_GATEWAY } from '@domains/chats/data/chat-gateway';
-import { CreateChatInput } from '@domains/chats/data/create-chat-input';
-import { DeleteChatInput } from '@domains/chats/data/delete-chat-input';
+import { CHAT_GATEWAY, CreateChatInput, DeleteChatInput } from '@domains/chats/data/chat-gateway';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { createActionFlowState, createFormSubmitFlowState } from '@shared/submit-flow';

@@ -5,8 +5,7 @@ import { of, Subject } from 'rxjs';
 
 import { CreateChatForm } from './create-chat-form';
 
-import { CHAT_GATEWAY } from '@domains/chats/data/chat-gateway';
-import { CreateChatResult } from '@domains/chats/data/create-chat-result';
+import { CHAT_GATEWAY, CreateChatResult } from '@domains/chats/data/chat-gateway';
 import { ChatMocks } from '@domains/chats/testing';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';

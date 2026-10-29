@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 
-import { AddChatUserInput } from './add-chat-user-input';
-import { CHAT_GATEWAY } from './chat-gateway';
+import { AddChatUserInput, CHAT_GATEWAY } from './chat-gateway';
 import { ChatUsersService } from './chat-users-service';
 
 import { ApplicationError } from '@shared/errors';
