@@ -9,7 +9,7 @@ import {
 
 import { guestOnlyGuard } from './guest-only.guard';
 
-import { CurrentSessionService, CurrentSessionStatus } from '@domains/identity-access';
+import { CurrentSessionService, CurrentSessionStatus } from '@domains/users';
 
 const currentSessionServiceMock = {
   status: vi.fn(),

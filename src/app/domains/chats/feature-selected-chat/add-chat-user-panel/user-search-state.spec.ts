@@ -4,17 +4,17 @@ import { of, Subject } from 'rxjs';
 import { createUserSearchState, UserSearchState } from './user-search-state';
 import { UserSearchStatus } from './user-search-status';
 
-import { SearchUsersResult, SearchUsersService } from '@domains/identity-access';
-import { IdentityMocks } from '@domains/identity-access/testing';
+import { SearchUsersResult, SearchUsersService } from '@domains/users';
+import { UserMocks } from '@domains/users/testing';
 
-const userMock = IdentityMocks.user({ login: 'jane.roe', name: 'Janie' });
+const userMock = UserMocks.user({ login: 'jane.roe', name: 'Janie' });
 
 const debounceMs = 300;
 
 describe('createUserSearchState', () => {
   let login$: Subject<string>;
   let state: UserSearchState;
-  let searchUsersServiceMock: ReturnType<typeof IdentityMocks.searchUsersService>;
+  let searchUsersServiceMock: ReturnType<typeof UserMocks.searchUsersService>;
 
   const search = (login: string): void => {
     login$.next(login);
@@ -23,7 +23,7 @@ describe('createUserSearchState', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    searchUsersServiceMock = IdentityMocks.searchUsersService();
+    searchUsersServiceMock = UserMocks.searchUsersService();
 
     login$ = new Subject<string>();
 

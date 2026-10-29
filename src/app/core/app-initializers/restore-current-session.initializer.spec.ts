@@ -4,7 +4,7 @@ import { defer, of, throwError } from 'rxjs';
 
 import { provideCurrentSessionRestore } from './restore-current-session.initializer';
 
-import { CurrentSessionService, CurrentSessionStatus } from '@domains/identity-access';
+import { CurrentSessionService, CurrentSessionStatus } from '@domains/users';
 
 const statusMock = signal<CurrentSessionStatus>(CurrentSessionStatus.Unknown);
 

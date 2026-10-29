@@ -7,7 +7,7 @@ import { of, throwError } from 'rxjs';
 import { ChatsPage } from './chats-page';
 
 import { ChatMocks } from '@domains/chats/testing';
-import { CurrentSessionService } from '@domains/identity-access';
+import { CurrentSessionService } from '@domains/users';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';

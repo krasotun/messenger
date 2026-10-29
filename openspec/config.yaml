@@ -34,9 +34,8 @@ context: |
 
   Архитектура - Domain-first Angular, домен разложен на модули-папки
   `data/`, `feature-<x>/`, `ui/`
-  (`docs/adr/2026-10-28-page-part-stores-and-folder-boundaries.md`). Переезд
-  идет по шагам #275: `chats` уже в этой раскладке, `identity-access` - еще в
-  прежней (`docs/adr/2026-10-27-domain-code-grouped-by-feature.md`).
+  (`docs/adr/2026-10-28-page-part-stores-and-folder-boundaries.md`). Домены -
+  `chats` и `users`.
 
   - `src/app/shared` - UI-примитивы и общие типы, без знания о доменах;
   - `src/app/domains/<context>/` - корень домена: `<context>.providers.ts` и
@@ -52,14 +51,10 @@ context: |
   - `src/app/core` - routing, guards, layouts, tokens, app initializers;
   - `src/app/pages` - страницы-композиции.
 
-  Прежняя раскладка (`identity-access`): модели и порты в корне домена, фича -
-  папка с компонентами и сервисами, HTTP - в `api/`; слои - роли файлов по
-  суффиксам (`*.service.ts`, `*.state.ts`, `*.gateway.ts`, `*.type.ts`).
-
   Aliases: `@core/*`, `@domains/*`, `@shared/*`. Границы импортов: между
   модулями-папками - Sheriff (`sheriff.config.ts`, правило ESLint
   `@softarc/sheriff`); `shared` не импортирует домены, core и pages;
-  application (`data/`, а в прежней раскладке - файлы с суффиксами) не знает
+  application (`data/`) не знает
   про DOM, Overlay, ModalRef и Angular-формы - `no-restricted-imports` в
   `eslint.config.js`.
 
@@ -126,28 +121,26 @@ context: |
   - Прежде чем ввести конструкцию, которой в `src` еще нет, посмотри, как
     решена та же задача в соседнем коде. Отсутствие прецедента - сигнал, что
     конструкция проекту чужая, а не что ее просто забыли применить.
-  - Имя файла отвечает на «что внутри», и суффикс на файле ровно один: два
-    суффикса подряд (`sign-in.input.type.ts`) читаются хуже, чем одно составное
-    имя. Файл, где нет ничего кроме типов и интерфейсов, - `<имя>.type.ts`, и
-    роль в архитектуре уезжает в само имя: `sign-in-input.type.ts`, а не
-    `sign-in.input.ts`; `chat-dto.type.ts`, а не `chat.dto.ts`. Файл, где нет
+  - В доменах суффиксов нет: имя файла - это главный идентификатор в
+    kebab-case (`chat-list-store.ts` для `ChatListStore`, `chat.ts` для
+    `Chat`, `chat-gateway.ts` для `ChatGateway` и `CHAT_GATEWAY`); роль файла
+    задает папка. Токен живет рядом со своим интерфейсом в одном файле: разрыв
+    здесь ничего не проясняет, а импортов добавляет. Там же живет контракт
+    порта - типы входа и результата его методов (`CreateChatInput`,
+    `CreateChatResult` в `chat-gateway.ts`). Отдельный файл получает модель,
+    которую читает не только порт (`chat.ts`).
+  - В `shared` имя файла отвечает на «что внутри», и суффикс на файле ровно
+    один: два суффикса подряд (`notification-kind.enum.type.ts`) читаются хуже,
+    чем одно составное имя. Файл, где нет ничего кроме типов и интерфейсов, -
+    `<имя>.type.ts`, и роль уезжает в само имя: `confirmation-data.type.ts`, а
+    не `confirmation.data.ts`. Файл, где нет
     ничего кроме констант, - `<имя>.constants.ts`: экспортируемая константа не
     живет в файле типа, `DEFAULT_MODAL_SIZE` лежит в `modal-size.constants.ts`,
     а `ModalSize` - в `modal-size.type.ts`. Константа без `export`, нужная
-    только внутри файла, остается на месте. Токен живет рядом со своим
-    интерфейсом в одном файле (`auth.gateway.ts` держит и `AuthGateway`, и
-    `AUTH_GATEWAY`): разрыв здесь ничего не проясняет, а импортов добавляет.
-    Там же живет контракт порта - типы входа и результата его методов
-    (`CreateChatInput`, `CreateChatResult` в `chat-gateway.ts`). Отдельный
-    файл получает модель, которую читает не только порт (`chat.ts`).
-    Все остальное названо по главному идентификатору внутри, без суффикса
-    артефакта (`sign-in.service.ts`, `toast.ts`, `user.mapper.ts`) - это
-    конвенция Angular style guide 2025, и проект от нее не отступает.
-    В доменах, переехавших на `data/`, `feature-<x>/`, `ui/`, суффиксов нет
-    совсем: имя файла - это главный идентификатор в kebab-case
-    (`chat-list-store.ts` для `ChatListStore`, `chat.ts` для `Chat`,
-    `chat-gateway.ts` для `ChatGateway` и `CHAT_GATEWAY`); роль файла задает
-    папка.
+    только внутри файла, остается на месте. Все остальное названо по главному
+    идентификатору внутри, без суффикса артефакта (`confirmation.service.ts`,
+    `toast.ts`) - это конвенция Angular style guide 2025, и проект от нее не
+    отступает.
   - Flex-раскладка пишется миксинами `row` и `column` из `src/styles/_layout.scss`,
     а не `display: flex` руками: `@use 'layout'` в начале файла, дальше
     `@include layout.row(12px, $align: center)`. Промежуток, выравнивание и
