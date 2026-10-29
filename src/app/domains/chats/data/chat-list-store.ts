@@ -1,0 +1,93 @@
+import { computed, inject, Injectable, signal } from '@angular/core';
+
+import { Chat } from '@domains/chats/data/chat';
+import { CHAT_GATEWAY, CreateChatInput, DeleteChatInput } from '@domains/chats/data/chat-gateway';
+import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
+import { createActionFlowState, FormSubmitFlowState } from '@shared/submit-flow';
+import { LoadStatus } from '@shared/types';
+
+type ChatListState =
+  | { status: LoadStatus.Idle }
+  | { status: LoadStatus.Loading }
+  | { status: LoadStatus.Loaded; chats: Chat[] }
+  | { status: LoadStatus.Error; errorMessage: string };
+
+@Injectable()
+export class ChatListStore {
+  private readonly _chatGateway = inject(CHAT_GATEWAY);
+  private readonly _notifier = inject(NOTIFIER);
+
+  private readonly _chatDeletionFlow = createActionFlowState();
+
+  readonly chatDeletionFlow = {
+    succeeded$: this._chatDeletionFlow.succeeded$,
+  };
+
+  private readonly _state = signal<ChatListState>({ status: LoadStatus.Idle });
+
+  readonly status = computed(() => this._state().status);
+
+  readonly chats = computed(() => {
+    const state = this._state();
+
+    return state.status === LoadStatus.Loaded ? state.chats : [];
+  });
+
+  readonly errorMessage = computed(() => {
+    const state = this._state();
+
+    return state.status === LoadStatus.Error ? state.errorMessage : null;
+  });
+
+  // Пустота - это состояние загруженного списка, а не отсутствие данных:
+  // до ответа и после ошибки показывать «чатов еще нет» нельзя.
+  readonly isEmpty = computed(() => {
+    const state = this._state();
+
+    return state.status === LoadStatus.Loaded && state.chats.length === 0;
+  });
+
+  // Флоу приносит форма: он принадлежит одному ее открытию, а Стор живет со
+  // страницей и пережил бы закрытие модалки вместе с идущей отправкой.
+  createChat(createChatInput: CreateChatInput, chatCreationFlow: FormSubmitFlowState): void {
+    chatCreationFlow.startSubmitting();
+
+    this._chatGateway.createChat(createChatInput).subscribe({
+      next: () => {
+        this.loadChats();
+        chatCreationFlow.markSuccess();
+      },
+      error: ({ message }: ApplicationError) => {
+        chatCreationFlow.markError();
+        this._notifier.error('Failed to create chat', message);
+      },
+    });
+  }
+
+  deleteChat(deleteChatInput: DeleteChatInput): void {
+    this._chatGateway.deleteChat(deleteChatInput).subscribe({
+      next: () => {
+        this.loadChats();
+        this._chatDeletionFlow.markSuccess();
+        this._notifier.success('Delete chat', 'Chat deleted successfully');
+      },
+      error: ({ message }: ApplicationError) => {
+        this._notifier.error('Failed to delete chat', message);
+      },
+    });
+  }
+
+  loadChats(): void {
+    this._state.set({ status: LoadStatus.Loading });
+
+    this._chatGateway.chats().subscribe({
+      next: (chats) => {
+        this._state.set({ status: LoadStatus.Loaded, chats });
+      },
+      error: ({ message }: ApplicationError) => {
+        this._state.set({ status: LoadStatus.Error, errorMessage: message });
+      },
+    });
+  }
+}

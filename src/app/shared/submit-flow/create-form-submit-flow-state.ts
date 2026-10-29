@@ -28,3 +28,5 @@ export const createFormSubmitFlowState = () => {
     markError,
   };
 };
+
+export type FormSubmitFlowState = ReturnType<typeof createFormSubmitFlowState>;

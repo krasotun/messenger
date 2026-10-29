@@ -9,9 +9,9 @@ import {
 
 import { authenticatedOnlyGuard } from './authenticated-only.guard';
 
-import { CurrentSessionStatus, CurrentSessionService } from '@domains/identity-access';
+import { CurrentSessionStatus, CurrentSessionStore } from '@domains/users';
 
-const currentSessionServiceMock = {
+const currentSessionStoreMock = {
   status: vi.fn(),
 };
 
@@ -20,14 +20,14 @@ describe('authenticatedOnlyGuard', () => {
     TestBed.runInInjectionContext(() => authenticatedOnlyGuard(...guardParameters));
 
   beforeEach(() => {
-    currentSessionServiceMock.status.mockReset();
+    currentSessionStoreMock.status.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         {
-          provide: CurrentSessionService,
-          useValue: currentSessionServiceMock,
+          provide: CurrentSessionStore,
+          useValue: currentSessionStoreMock,
         },
       ],
     });
@@ -39,7 +39,7 @@ describe('authenticatedOnlyGuard', () => {
 
   describe('authenticated', () => {
     it('should allow authenticated users', () => {
-      currentSessionServiceMock.status.mockReturnValue(CurrentSessionStatus.Authenticated);
+      currentSessionStoreMock.status.mockReturnValue(CurrentSessionStatus.Authenticated);
 
       const result = executeGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot);
 
@@ -52,7 +52,7 @@ describe('authenticatedOnlyGuard', () => {
       const router = TestBed.inject(Router);
       const expectedRedirect = router.parseUrl('/sign-in');
 
-      currentSessionServiceMock.status.mockReturnValue(CurrentSessionStatus.Anonymous);
+      currentSessionStoreMock.status.mockReturnValue(CurrentSessionStatus.Anonymous);
 
       const result = executeGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot);
 
@@ -63,7 +63,7 @@ describe('authenticatedOnlyGuard', () => {
       const router = TestBed.inject(Router);
       const expectedRedirect = router.parseUrl('/sign-in');
 
-      currentSessionServiceMock.status.mockReturnValue(CurrentSessionStatus.Unknown);
+      currentSessionStoreMock.status.mockReturnValue(CurrentSessionStatus.Unknown);
 
       const result = executeGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot);
 

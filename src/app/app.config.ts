@@ -12,7 +12,7 @@ import { httpTimeoutInterceptor } from '@core/http/http-timeout.interceptor';
 import { sessionExpiryInterceptor } from '@core/http/session-expiry.interceptor';
 import { API_BASE_URL, RESOURCES_BASE_URL } from '@core/tokens';
 import { provideChats } from '@domains/chats';
-import { provideIdentityAccess } from '@domains/identity-access';
+import { provideUsers } from '@domains/users';
 import { NOTIFIER } from '@shared/notifications';
 import { ToastService } from '@shared/ui/toast/toast-service';
 
@@ -35,7 +35,7 @@ export const appConfig: ApplicationConfig = {
       provide: NOTIFIER,
       useExisting: ToastService,
     },
-    provideIdentityAccess(),
+    provideUsers(),
     provideChats(),
     provideCurrentSessionRestore(),
   ],

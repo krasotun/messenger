@@ -4,8 +4,8 @@ import { provideRouter, Router } from '@angular/router';
 
 import { SessionExpiryService } from './session-expiry.service';
 
-import { CurrentSessionService, CurrentSessionStatus } from '@domains/identity-access';
-import { AUTH_GATEWAY, IdentityMocks } from '@domains/identity-access/testing';
+import { CurrentSessionStore, CurrentSessionStatus } from '@domains/users';
+import { AUTH_GATEWAY, UserMocks } from '@domains/users/testing';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
 
@@ -18,14 +18,14 @@ class SignInPageStub {}
 describe('SessionExpiryService', () => {
   let service: SessionExpiryService;
 
-  let currentSessionService: CurrentSessionService;
+  let currentSessionStore: CurrentSessionStore;
 
-  let authGatewayMock: ReturnType<typeof IdentityMocks.authGateway>;
+  let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let router: Router;
 
   beforeEach(() => {
-    authGatewayMock = IdentityMocks.authGateway();
+    authGatewayMock = UserMocks.authGateway();
     notifierMock = NotificationMocks.notifier();
 
     TestBed.configureTestingModule({
@@ -43,7 +43,7 @@ describe('SessionExpiryService', () => {
     });
 
     service = TestBed.inject(SessionExpiryService);
-    currentSessionService = TestBed.inject(CurrentSessionService);
+    currentSessionStore = TestBed.inject(CurrentSessionStore);
 
     router = TestBed.inject(Router);
   });
@@ -52,7 +52,7 @@ describe('SessionExpiryService', () => {
     it('should expire current session', () => {
       service.handle();
 
-      expect(currentSessionService.status()).toBe(CurrentSessionStatus.Anonymous);
+      expect(currentSessionStore.status()).toBe(CurrentSessionStatus.Anonymous);
     });
 
     it('should show error notification', () => {

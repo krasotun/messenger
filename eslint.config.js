@@ -5,6 +5,33 @@ const tseslint = require('typescript-eslint');
 const angular = require('angular-eslint');
 const prettierPlugin = require('eslint-plugin-prettier');
 const importPlugin = require('eslint-plugin-import');
+const sheriff = require('@softarc/eslint-plugin-sheriff');
+
+const applicationRestrictedPaths = [
+  {
+    name: '@angular/forms',
+    message: 'Application must not know about Angular forms.',
+  },
+  {
+    name: '@angular/platform-browser',
+    message: 'Application must not know about the DOM.',
+  },
+];
+
+const applicationRestrictedPatterns = [
+  {
+    group: ['@angular/cdk', '@angular/cdk/*'],
+    message: 'Application must not know about Overlay and other CDK primitives.',
+  },
+  {
+    group: ['@shared/ui/*'],
+    message: 'Application must not know about UI primitives such as ModalRef.',
+  },
+  {
+    group: ['@shared/forms/*'],
+    message: 'Application must not know about Angular forms.',
+  },
+];
 
 module.exports = defineConfig([
   {
@@ -150,85 +177,23 @@ module.exports = defineConfig([
     },
   },
   {
-    // Слои - роли файлов, а не папки (docs/adr/2026-10-27-domain-code-grouped-by-feature.md).
-    files: [
-      'src/app/domains/**/*.service.ts',
-      'src/app/domains/**/*.state.ts',
-      'src/app/domains/**/*.gateway.ts',
-      'src/app/domains/**/*.type.ts',
-      'src/app/domains/**/*.service.spec.ts',
-      'src/app/domains/**/*.state.spec.ts',
-    ],
-    ignores: ['src/app/domains/*/api/**'],
+    // data - слой application: не знает про DOM, Overlay, ModalRef и формы.
+    // Импорты между data, feature-* и ui проверяет Sheriff (sheriff.config.ts).
+    files: ['src/app/domains/*/data/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          paths: [
-            {
-              name: '@angular/forms',
-              message: 'Application must not know about Angular forms.',
-            },
-            {
-              name: '@angular/platform-browser',
-              message: 'Application must not know about the DOM.',
-            },
-          ],
-          patterns: [
-            {
-              group: ['@angular/cdk', '@angular/cdk/*'],
-              message: 'Application must not know about Overlay and other CDK primitives.',
-            },
-            {
-              group: ['@shared/ui/*'],
-              message: 'Application must not know about UI primitives such as ModalRef.',
-            },
-            {
-              group: ['@shared/forms/*'],
-              message: 'Application must not know about Angular forms.',
-            },
-            {
-              group: ['**/api/*'],
-              message: 'Application reaches the outside world through a gateway token only.',
-            },
-            {
-              // Компонент - единственный файл домена без суффикса: chat-list/chat-list.
-              regex: '^\\.{1,2}/(?:.*/)?(?!testing$)[^./]+$',
-              message: 'Application must not depend on components.',
-            },
-          ],
+          paths: applicationRestrictedPaths,
+          patterns: applicationRestrictedPatterns,
         },
       ],
     },
   },
   {
-    files: ['src/app/domains/**/*.ts'],
-    ignores: [
-      'src/app/domains/**/*.service.ts',
-      'src/app/domains/**/*.state.ts',
-      'src/app/domains/**/*.gateway.ts',
-      'src/app/domains/**/*.type.ts',
-      'src/app/domains/**/*.service.spec.ts',
-      'src/app/domains/**/*.state.spec.ts',
-      'src/app/domains/*/api/**',
-      'src/app/domains/*/testing/**',
-      'src/app/domains/*/*.providers.ts',
-      'src/app/domains/*/*.providers.spec.ts',
-      'src/app/domains/*/index.ts',
-    ],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['**/api/*'],
-              message: 'Components reach the API through services only.',
-            },
-          ],
-        },
-      ],
-    },
+    files: ['src/**/*.ts'],
+    ignores: ['src/**/*.spec.ts', 'src/**/testing/**'],
+    extends: [sheriff.configs.all],
   },
   {
     files: ['**/*.html'],

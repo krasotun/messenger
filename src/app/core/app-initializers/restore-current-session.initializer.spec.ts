@@ -4,33 +4,33 @@ import { defer, of, throwError } from 'rxjs';
 
 import { provideCurrentSessionRestore } from './restore-current-session.initializer';
 
-import { CurrentSessionService, CurrentSessionStatus } from '@domains/identity-access';
+import { CurrentSessionStore, CurrentSessionStatus } from '@domains/users';
 
 const statusMock = signal<CurrentSessionStatus>(CurrentSessionStatus.Unknown);
 
-const currentSessionServiceMock = {
+const currentSessionStoreMock = {
   restoreCurrentSession: vi.fn(),
   status: statusMock,
 };
 
 describe('provideCurrentSessionRestore', () => {
   beforeEach(() => {
-    currentSessionServiceMock.restoreCurrentSession.mockReset();
+    currentSessionStoreMock.restoreCurrentSession.mockReset();
     statusMock.set(CurrentSessionStatus.Unknown);
 
     TestBed.configureTestingModule({
       providers: [
         provideCurrentSessionRestore(),
         {
-          provide: CurrentSessionService,
-          useValue: currentSessionServiceMock,
+          provide: CurrentSessionStore,
+          useValue: currentSessionStoreMock,
         },
       ],
     });
   });
 
   it('calls restoreCurrentSession during app initialization', async () => {
-    currentSessionServiceMock.restoreCurrentSession.mockReturnValue(
+    currentSessionStoreMock.restoreCurrentSession.mockReturnValue(
       of({ status: CurrentSessionStatus.Anonymous }),
     );
 
@@ -38,11 +38,11 @@ describe('provideCurrentSessionRestore', () => {
 
     await appInitStatus.donePromise;
 
-    expect(currentSessionServiceMock.restoreCurrentSession).toHaveBeenCalledTimes(1);
+    expect(currentSessionStoreMock.restoreCurrentSession).toHaveBeenCalledTimes(1);
   });
 
   it('finishes app initialization when restoring the session fails', async () => {
-    currentSessionServiceMock.restoreCurrentSession.mockReturnValue(
+    currentSessionStoreMock.restoreCurrentSession.mockReturnValue(
       throwError(() => new Error('backend is down')),
     );
 
@@ -51,8 +51,8 @@ describe('provideCurrentSessionRestore', () => {
     await expect(appInitStatus.donePromise).resolves.not.toThrow();
   });
 
-  it('keeps the status the session service has set when restoring fails', async () => {
-    currentSessionServiceMock.restoreCurrentSession.mockReturnValue(
+  it('keeps the status the session store has set when restoring fails', async () => {
+    currentSessionStoreMock.restoreCurrentSession.mockReturnValue(
       defer(() => {
         statusMock.set(CurrentSessionStatus.Anonymous);
 
@@ -64,6 +64,6 @@ describe('provideCurrentSessionRestore', () => {
 
     await appInitStatus.donePromise;
 
-    expect(currentSessionServiceMock.status()).toBe(CurrentSessionStatus.Anonymous);
+    expect(currentSessionStoreMock.status()).toBe(CurrentSessionStatus.Anonymous);
   });
 });

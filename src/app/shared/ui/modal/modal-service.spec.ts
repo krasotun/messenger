@@ -1,4 +1,4 @@
-import { ApplicationRef, Component, inject, input } from '@angular/core';
+import { ApplicationRef, Component, inject, InjectionToken, Injector, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { ModalRef } from './modal-ref';
@@ -26,6 +26,16 @@ class TestModalContentWithRef {
 })
 class TestModalContentWithInput {
   readonly label = input('');
+}
+
+const OPENER_VALUE = new InjectionToken<string>('OPENER_VALUE');
+
+@Component({
+  selector: 'app-test-modal-content-with-opener-value',
+  template: `<div data-testid="modal-opener-value">{{ openerValue }}</div>`,
+})
+class TestModalContentWithOpenerValue {
+  readonly openerValue = inject(OPENER_VALUE);
 }
 
 let capturedModalRef: ModalRef | null = null;
@@ -124,6 +134,22 @@ describe('ModalService', () => {
       const inputEl = overlayContainer?.querySelector('[data-testid="modal-input-value"]');
 
       expect(inputEl?.textContent?.trim()).toBe('Hello');
+    });
+
+    it('should let content inject what the opener provides when the opener passes its injector', () => {
+      const openerInjector = Injector.create({
+        providers: [{ provide: OPENER_VALUE, useValue: 'From opener' }],
+        parent: TestBed.inject(Injector),
+      });
+
+      service.open(TestModalContentWithOpenerValue, { injector: openerInjector });
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const overlayContainer = document.querySelector('.cdk-overlay-container');
+      const openerValueEl = overlayContainer?.querySelector('[data-testid="modal-opener-value"]');
+
+      expect(openerValueEl?.textContent?.trim()).toBe('From opener');
     });
 
     it('should pass title to modal shell', () => {

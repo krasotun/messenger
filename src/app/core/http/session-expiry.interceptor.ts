@@ -3,10 +3,10 @@ import { inject } from '@angular/core';
 import { tap } from 'rxjs';
 
 import { SessionExpiryService } from '@core/session/session-expiry.service';
-import { CurrentSessionService, CurrentSessionStatus } from '@domains/identity-access';
+import { CurrentSessionStore, CurrentSessionStatus } from '@domains/users';
 
 export const sessionExpiryInterceptor: HttpInterceptorFn = (req, next) => {
-  const currentSessionService = inject(CurrentSessionService);
+  const currentSessionStore = inject(CurrentSessionStore);
   const sessionExpiryService = inject(SessionExpiryService);
 
   return next(req).pipe(
@@ -15,7 +15,7 @@ export const sessionExpiryInterceptor: HttpInterceptorFn = (req, next) => {
         if (
           err instanceof HttpErrorResponse &&
           err.status === 401 &&
-          currentSessionService.status() === CurrentSessionStatus.Authenticated
+          currentSessionStore.status() === CurrentSessionStatus.Authenticated
         ) {
           sessionExpiryService.handle();
         }

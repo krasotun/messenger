@@ -161,7 +161,7 @@ Issue отвечает на «зачем и когда», change - на «что
   с именем его каталога в `src/app/domains/`. Новый скоуп заводится правкой
   `commitlint.config.js`, а не на лету.
 - Описание - на английском, в нижнем регистре, повелительным наклонением, без
-  точки в конце: `feat(identity-access): add password change`.
+  точки в конце: `feat(users): add password change`.
 - Ломающее изменение - `!` после скоупа и футер `BREAKING CHANGE: ...`.
 - Заголовок PR - тоже по Conventional Commits: репозиторий мержит squash с
   `COMMIT_OR_PR_TITLE`, и при нескольких коммитах в целевую ветку уходит именно

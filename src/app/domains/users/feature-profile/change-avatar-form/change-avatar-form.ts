@@ -1,0 +1,101 @@
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { ChangeAvatarService } from '../../data/change-avatar-service';
+import { CurrentSessionStore } from '../../data/current-session-store';
+
+import { Nullable } from '@shared/types';
+import { Avatar } from '@shared/ui/avatar/avatar';
+import { Button } from '@shared/ui/button/button';
+
+const acceptedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+const formatErrorMessage = 'Allowed formats: JPEG, JPG, PNG, GIF, WebP';
+const missingFileErrorMessage = 'Select a file';
+
+@Component({
+  selector: 'app-change-avatar-form',
+  imports: [Avatar, Button],
+  templateUrl: './change-avatar-form.html',
+  styleUrl: './change-avatar-form.scss',
+})
+export class ChangeAvatarForm {
+  readonly acceptedMimeTypes = acceptedMimeTypes.join(',');
+
+  private readonly _changeAvatarService = inject(ChangeAvatarService);
+  private readonly _currentSessionStore = inject(CurrentSessionStore);
+
+  private readonly _selectedFile = signal<Nullable<File>>(null);
+  private readonly _previewUrl = signal<Nullable<string>>(null);
+  private readonly _validationErrorMessage = signal<Nullable<string>>(null);
+
+  protected readonly isSubmitting = this._changeAvatarService.isSubmitting;
+
+  protected readonly canSubmit = computed<boolean>(() => this._selectedFile() !== null);
+
+  protected readonly previewUrl = this._previewUrl.asReadonly();
+
+  protected readonly selectedFileName = computed<string>(() => {
+    return this._selectedFile()?.name ?? 'No file selected';
+  });
+
+  protected readonly avatarUrl = computed<Nullable<string>>(() => {
+    return this._previewUrl() ?? this._currentSessionStore.currentUser()?.avatar ?? null;
+  });
+
+  protected readonly errorMessage = this._validationErrorMessage.asReadonly();
+
+  constructor() {
+    this._changeAvatarService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
+      this._selectFile(null);
+    });
+
+    inject(DestroyRef).onDestroy(() => {
+      this._revokePreviewUrl();
+    });
+  }
+
+  protected onFileSelected(event: Event): void {
+    const fileInput = event.target as HTMLInputElement;
+    const file = fileInput.files?.[0] ?? null;
+
+    if (file && !acceptedMimeTypes.includes(file.type)) {
+      this._selectFile(null);
+      this._validationErrorMessage.set(formatErrorMessage);
+
+      return;
+    }
+
+    this._selectFile(file);
+  }
+
+  protected onSubmit(event: Event): void {
+    event.preventDefault();
+
+    const file = this._selectedFile();
+
+    if (!file) {
+      this._validationErrorMessage.set(this._validationErrorMessage() ?? missingFileErrorMessage);
+
+      return;
+    }
+
+    this._changeAvatarService.changeAvatar({ file });
+  }
+
+  private _selectFile(file: Nullable<File>): void {
+    this._revokePreviewUrl();
+
+    this._selectedFile.set(file);
+    this._previewUrl.set(file ? URL.createObjectURL(file) : null);
+    this._validationErrorMessage.set(null);
+  }
+
+  private _revokePreviewUrl(): void {
+    const previewUrl = this._previewUrl();
+
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+  }
+}

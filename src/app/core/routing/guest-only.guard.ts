@@ -1,13 +1,13 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 
-import { CurrentSessionService, CurrentSessionStatus } from '@domains/identity-access';
+import { CurrentSessionStore, CurrentSessionStatus } from '@domains/users';
 
 export const guestOnlyGuard: CanActivateFn = () => {
-  const currentSessionService = inject(CurrentSessionService);
+  const currentSessionStore = inject(CurrentSessionStore);
   const router = inject(Router);
 
-  const status = currentSessionService.status();
+  const status = currentSessionStore.status();
 
   if (status === CurrentSessionStatus.Authenticated) {
     return router.parseUrl('/');

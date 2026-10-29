@@ -1,7 +1,7 @@
 # Код домена раскладывается по фичам, слои держатся суффиксами файлов
 
 - Дата: 2026-10-27
-- Статус: accepted
+- Статус: superseded by [2026-10-28-page-part-stores-and-folder-boundaries](./2026-10-28-page-part-stores-and-folder-boundaries.md)
 - Issue: #267
 
 ## Контекст
