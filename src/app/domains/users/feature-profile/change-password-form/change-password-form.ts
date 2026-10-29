@@ -9,9 +9,10 @@ import {
   Validators,
 } from '@angular/forms';
 
-import { ChangePasswordService } from '../../data/change-password-service';
+import { CurrentSessionStore } from '../../data/current-session-store';
 
 import { connectSubmitFlow } from '@shared/forms';
+import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
@@ -45,9 +46,11 @@ export class ChangePasswordForm {
 
   readonly passwordChanged = output<void>();
 
-  private readonly _changePasswordService = inject(ChangePasswordService);
+  private readonly _currentSessionStore = inject(CurrentSessionStore);
 
-  protected readonly isSubmitting = this._changePasswordService.isSubmitting;
+  private readonly _changePasswordFlow = createFormSubmitFlowState();
+
+  protected readonly isSubmitting = this._changePasswordFlow.isSubmitting;
 
   protected readonly fields = [
     {
@@ -63,7 +66,7 @@ export class ChangePasswordForm {
   ];
 
   constructor() {
-    connectSubmitFlow(this.changePasswordForm, this._changePasswordService, this.passwordChanged);
+    connectSubmitFlow(this.changePasswordForm, this._changePasswordFlow, this.passwordChanged);
 
     this.changePasswordForm.controls.newPassword.valueChanges
       .pipe(takeUntilDestroyed())
@@ -75,6 +78,9 @@ export class ChangePasswordForm {
   protected onSubmit(): void {
     const { oldPassword, newPassword } = this.changePasswordForm.getRawValue();
 
-    this._changePasswordService.changePassword({ oldPassword, newPassword });
+    this._currentSessionStore.changePassword(
+      { oldPassword, newPassword },
+      this._changePasswordFlow,
+    );
   }
 }

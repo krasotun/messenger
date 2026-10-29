@@ -12,7 +12,7 @@ import { NEVER, of } from 'rxjs';
 
 import { sessionExpiryInterceptor } from './session-expiry.interceptor';
 
-import { CurrentSessionStore, CurrentSessionStatus } from '@domains/users';
+import { CurrentSessionStore, CurrentSessionStatus, USER_GATEWAY } from '@domains/users';
 import { AUTH_GATEWAY, UserMocks } from '@domains/users/testing';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
@@ -42,6 +42,10 @@ describe('sessionExpiryInterceptor', () => {
         {
           provide: AUTH_GATEWAY,
           useValue: authGatewayMock,
+        },
+        {
+          provide: USER_GATEWAY,
+          useValue: UserMocks.userGateway(),
         },
         {
           provide: NOTIFIER,

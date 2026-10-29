@@ -4,7 +4,7 @@ import { provideRouter, Router } from '@angular/router';
 
 import { SessionExpiryService } from './session-expiry.service';
 
-import { CurrentSessionStore, CurrentSessionStatus } from '@domains/users';
+import { CurrentSessionStore, CurrentSessionStatus, USER_GATEWAY } from '@domains/users';
 import { AUTH_GATEWAY, UserMocks } from '@domains/users/testing';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
@@ -33,6 +33,10 @@ describe('SessionExpiryService', () => {
         {
           provide: AUTH_GATEWAY,
           useValue: authGatewayMock,
+        },
+        {
+          provide: USER_GATEWAY,
+          useValue: UserMocks.userGateway(),
         },
         {
           provide: NOTIFIER,
