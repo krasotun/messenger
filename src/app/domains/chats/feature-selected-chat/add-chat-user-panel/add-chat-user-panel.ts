@@ -2,11 +2,10 @@ import { Component, computed, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
-import { AddChatUserService } from '../../data/add-chat-user-service';
-
 import { createUserSearchState } from './user-search-state';
 import { UserSearchStatus } from './user-search-status';
 
+import { ChatUsersStore } from '@domains/chats/data/chat-users-store';
 import { SearchUsersService, User } from '@domains/identity-access';
 import { Nullable } from '@shared/types';
 import { Avatar } from '@shared/ui/avatar/avatar';
@@ -20,7 +19,6 @@ const nobodyFoundHint = 'No users found';
   imports: [Avatar, Input, ReactiveFormsModule],
   templateUrl: './add-chat-user-panel.html',
   styleUrl: './add-chat-user-panel.scss',
-  providers: [AddChatUserService],
 })
 export class AddChatUserPanel {
   readonly chatId = input.required<number>();
@@ -30,7 +28,7 @@ export class AddChatUserPanel {
   readonly loginControl = new FormControl('', { nonNullable: true });
 
   private readonly _searchUsersService = inject(SearchUsersService);
-  private readonly _addChatUserService = inject(AddChatUserService);
+  private readonly _chatUsersStore = inject(ChatUsersStore);
 
   private readonly _userSearchState = createUserSearchState(
     this._searchUsersService,
@@ -59,12 +57,14 @@ export class AddChatUserPanel {
   constructor() {
     // Успешное добавление закрывает всю панель, а не только очищает список:
     // добавленный участник виден в шапке, отдельного сообщения об успехе нет.
-    this._addChatUserService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
-      this.userAdded.emit();
-    });
+    this._chatUsersStore.chatUserAdditionFlow.succeeded$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.userAdded.emit();
+      });
   }
 
   protected addUser(user: User): void {
-    this._addChatUserService.addChatUser({ chatId: this.chatId(), userId: user.id });
+    this._chatUsersStore.addChatUser({ chatId: this.chatId(), userId: user.id });
   }
 }

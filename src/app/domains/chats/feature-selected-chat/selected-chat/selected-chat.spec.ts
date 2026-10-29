@@ -10,7 +10,6 @@ import { ChatListStore } from '../../data/chat-list-store';
 
 import { SelectedChat } from './selected-chat';
 
-import { RemoveChatUserService } from '@domains/chats/data/remove-chat-user-service';
 import { ChatMocks } from '@domains/chats/testing';
 import { CurrentSessionService, CurrentUser } from '@domains/identity-access';
 import { IdentityMocks } from '@domains/identity-access/testing';
@@ -50,11 +49,8 @@ describe('SelectedChat', () => {
   };
 
   let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
-  let removeChatUserServiceMock: ReturnType<typeof ChatMocks.removeChatUserService>;
 
-  // Сервис удаления участника живет в providers компонента и подменяется через
-  // overrideComponent; список чатов загружается до рендера, как это делает
-  // страница чатов.
+  // Список чатов загружается до рендера, как это делает страница чатов.
   const createComponent = async (
     initialChatId: string,
     options: { loadChats?: boolean } = {},
@@ -73,13 +69,7 @@ describe('SelectedChat', () => {
           { path: ':chatId', component: ChatsPageStub },
         ]),
       ],
-      configureTestBed: (testBed) => {
-        testBed.overrideComponent(SelectedChat, {
-          set: {
-            providers: [{ provide: RemoveChatUserService, useValue: removeChatUserServiceMock }],
-          },
-        });
-
+      configureTestBed: () => {
         if (options.loadChats ?? true) {
           TestBed.inject(ChatListStore).loadChats();
         }
@@ -133,13 +123,12 @@ describe('SelectedChat', () => {
     chatGatewayMock.chats.mockReturnValue(of([firstChatMock, secondChatMock]));
     chatGatewayMock.chatUsers.mockReturnValue(of([firstChatUserMock]));
     chatGatewayMock.deleteChat.mockReturnValue(of(undefined));
+    chatGatewayMock.removeChatUser.mockReturnValue(of(undefined));
 
     currentUser.set(chatCreatorMock);
 
     confirmationServiceMock.confirm.mockReset();
     confirmationServiceMock.confirm.mockReturnValue(of(false));
-
-    removeChatUserServiceMock = ChatMocks.removeChatUserService();
   });
 
   describe('loading the chat users', () => {
@@ -368,7 +357,7 @@ describe('SelectedChat', () => {
 
       await requestChatUserRemoval('Billie');
 
-      expect(removeChatUserServiceMock.removeChatUser).not.toHaveBeenCalled();
+      expect(chatGatewayMock.removeChatUser).not.toHaveBeenCalled();
     });
 
     it('keeps the members panel open when the confirmation is refused', async () => {
@@ -390,7 +379,7 @@ describe('SelectedChat', () => {
 
       await requestChatUserRemoval('Billie');
 
-      expect(removeChatUserServiceMock.removeChatUser).toHaveBeenCalledWith({
+      expect(chatGatewayMock.removeChatUser).toHaveBeenCalledWith({
         chatId: 1,
         userId: 3,
       });
@@ -404,10 +393,6 @@ describe('SelectedChat', () => {
       await openChatUsersPanel();
 
       await requestChatUserRemoval('Billie');
-
-      removeChatUserServiceMock.succeeded$.next();
-
-      await fixture.whenStable();
 
       expect(queryChatUsersPanel()).toBeInTheDocument();
     });

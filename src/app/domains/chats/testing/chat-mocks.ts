@@ -1,10 +1,6 @@
-import { Subject } from 'rxjs';
-
 import { Chat } from '../data/chat';
 import { ChatGateway } from '../data/chat-gateway';
 import { ChatUser } from '../data/chat-user';
-import { ChatUsersService } from '../data/chat-users-service';
-import { RemoveChatUserService } from '../data/remove-chat-user-service';
 
 // Каждый вызов отдает новый двойник: сбрасывать его между тестами не нужно.
 export const ChatMocks = {
@@ -32,15 +28,5 @@ export const ChatMocks = {
     chatUsers: vi.fn<ChatGateway['chatUsers']>(),
     addChatUser: vi.fn<ChatGateway['addChatUser']>(),
     removeChatUser: vi.fn<ChatGateway['removeChatUser']>(),
-  }),
-
-  // succeeded$ - Subject, чтобы тест сам сообщал об успехе через next().
-  removeChatUserService: () => ({
-    removeChatUser: vi.fn<RemoveChatUserService['removeChatUser']>(),
-    succeeded$: new Subject<void>(),
-  }),
-
-  chatUsersService: () => ({
-    loadChatUsers: vi.fn<ChatUsersService['loadChatUsers']>(),
   }),
 };
