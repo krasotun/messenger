@@ -1,12 +1,10 @@
-import { outputBinding, signal, WritableSignal } from '@angular/core';
+import { outputBinding } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { fireEvent, render, screen, within } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
-import { Subject } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 import { AUTH_GATEWAY, SignInInput } from '../../data/auth-gateway';
-import { CurrentSessionStore } from '../../data/current-session-store';
-import { SignInService } from '../../data/sign-in-service';
 
 import { SignInForm } from './sign-in-form';
 
@@ -17,26 +15,24 @@ import { NotificationMocks } from '@shared/notifications/testing';
 
 const requiredFieldError = 'This field is required';
 
-let signInServiceMock: {
-  isSubmitting: WritableSignal<boolean>;
-  succeeded$: Subject<void>;
-  signIn: ReturnType<typeof vi.fn>;
+const mockSignInValue: SignInInput = {
+  login: 'Mock',
+  password: 'secret',
 };
 
 describe('SignInForm', () => {
+  let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
 
-  // SignInService живет в providers компонента, поэтому подменяется через
-  // overrideComponent: у zoneless-render нет опции componentProviders.
   const renderForm = async () => {
     const signInSucceeded = vi.fn();
 
     const result = await render(SignInForm, {
       bindings: [outputBinding('signInSucceeded', signInSucceeded)],
-      configureTestBed: (testBed) =>
-        testBed.overrideComponent(SignInForm, {
-          set: { providers: [{ provide: SignInService, useValue: signInServiceMock }] },
-        }),
+      providers: [
+        { provide: AUTH_GATEWAY, useValue: authGatewayMock },
+        { provide: NOTIFIER, useValue: notifierMock },
+      ],
       waitForStableOnRender: true,
     });
 
@@ -45,13 +41,18 @@ describe('SignInForm', () => {
 
   const getSubmitButton = (): HTMLElement => screen.getByRole('button', { name: 'Log in' });
 
+  const fillAndSubmit = async (form: HTMLElement): Promise<void> => {
+    const user = userEvent.setup();
+    const formQueries = within(form);
+
+    await user.type(formQueries.getByLabelText('Login'), mockSignInValue.login);
+    await user.type(formQueries.getByLabelText('Password'), mockSignInValue.password);
+    await user.click(formQueries.getByRole('button', { name: 'Log in' }));
+  };
+
   beforeEach(() => {
+    authGatewayMock = UserMocks.authGateway();
     notifierMock = NotificationMocks.notifier();
-    signInServiceMock = {
-      isSubmitting: signal(false),
-      succeeded$: new Subject<void>(),
-      signIn: vi.fn(),
-    };
   });
 
   it('should create', async () => {
@@ -68,7 +69,7 @@ describe('SignInForm', () => {
 
       fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
-      expect(signInServiceMock.signIn).not.toHaveBeenCalled();
+      expect(authGatewayMock.signIn).not.toHaveBeenCalled();
     });
 
     it('should not render a submit error in the form', async () => {
@@ -116,38 +117,31 @@ describe('SignInForm', () => {
 
   describe('valid submit', () => {
     it('should call signIn with form value when submitted form is valid', async () => {
-      const user = userEvent.setup();
-      await renderForm();
+      authGatewayMock.signIn.mockReturnValue(new Subject());
+      const { container } = await renderForm();
 
-      const mockFormValue = {
-        login: 'Mock',
-        password: 'qfndjkjnk&(YY',
-      };
+      await fillAndSubmit(container);
 
-      await user.type(screen.getByLabelText('Login'), mockFormValue.login);
-      await user.type(screen.getByLabelText('Password'), mockFormValue.password);
-      await user.click(getSubmitButton());
-
-      expect(signInServiceMock.signIn).toHaveBeenCalledOnce();
-      expect(signInServiceMock.signIn).toHaveBeenCalledWith(mockFormValue);
+      expect(authGatewayMock.signIn).toHaveBeenCalledOnce();
+      expect(authGatewayMock.signIn).toHaveBeenCalledWith(mockSignInValue);
     });
   });
 
   describe('submitting state', () => {
     it('should disable submit button', async () => {
-      const { fixture } = await renderForm();
+      authGatewayMock.signIn.mockReturnValue(new Subject());
+      const { container } = await renderForm();
 
-      signInServiceMock.isSubmitting.set(true);
-      await fixture.whenStable();
+      await fillAndSubmit(container);
 
       expect(getSubmitButton()).toBeDisabled();
     });
 
     it('should disable all controls', async () => {
-      const { fixture } = await renderForm();
+      authGatewayMock.signIn.mockReturnValue(new Subject());
+      const { container } = await renderForm();
 
-      signInServiceMock.isSubmitting.set(true);
-      await fixture.whenStable();
+      await fillAndSubmit(container);
 
       expect(screen.getByLabelText('Login')).toBeDisabled();
       expect(screen.getByLabelText('Password')).toBeDisabled();
@@ -155,55 +149,24 @@ describe('SignInForm', () => {
   });
 
   describe('success state', () => {
-    it('should emit signInSucceeded when the service reports success, without a manual application tick', async () => {
-      const { signInSucceeded } = await renderForm();
+    it('should emit signInSucceeded when the store reports success, without a manual application tick', async () => {
+      authGatewayMock.signIn.mockReturnValue(of({ authenticated: true }));
+      authGatewayMock.currentSession.mockReturnValue(of(UserMocks.authenticatedSession()));
+      const { container, signInSucceeded } = await renderForm();
 
-      signInServiceMock.succeeded$.next();
+      await fillAndSubmit(container);
 
       expect(signInSucceeded).toHaveBeenCalledOnce();
     });
   });
 
   describe('flow lifetime', () => {
-    let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
-
-    let currentSessionStoreMock: {
-      restoreCurrentSession: ReturnType<typeof vi.fn>;
-    };
-
-    const mockSignInValue: SignInInput = {
-      login: 'Mock',
-      password: 'secret',
-    };
-
-    const providers = () => [
-      { provide: AUTH_GATEWAY, useValue: authGatewayMock },
-      { provide: CurrentSessionStore, useValue: currentSessionStoreMock },
-      { provide: NOTIFIER, useValue: notifierMock },
-    ];
-
-    const fillAndSubmit = async (form: HTMLElement): Promise<void> => {
-      const user = userEvent.setup();
-      const formQueries = within(form);
-
-      await user.type(formQueries.getByLabelText('Login'), mockSignInValue.login);
-      await user.type(formQueries.getByLabelText('Password'), mockSignInValue.password);
-      await user.click(formQueries.getByRole('button', { name: 'Log in' }));
-    };
-
-    beforeEach(() => {
-      authGatewayMock = UserMocks.authGateway();
-      currentSessionStoreMock = { restoreCurrentSession: vi.fn() };
-    });
-
     // render настраивает TestBed и второй раз в одном тесте не вызывается:
     // повторное открытие формы идет через TestBed.createComponent.
     it('should keep the reopened form usable while the previous submit has not answered yet', async () => {
       authGatewayMock.signIn.mockReturnValue(new Subject());
 
-      const { fixture: firstFixture, container } = await render(SignInForm, {
-        providers: providers(),
-      });
+      const { fixture: firstFixture, container } = await renderForm();
       await fillAndSubmit(container);
       await firstFixture.whenStable();
 
@@ -226,7 +189,7 @@ describe('SignInForm', () => {
       const signIn$ = new Subject<{ authenticated: true }>();
       authGatewayMock.signIn.mockReturnValue(signIn$);
 
-      const { fixture, container } = await render(SignInForm, { providers: providers() });
+      const { fixture, container } = await renderForm();
       await fillAndSubmit(container);
       await fixture.whenStable();
 
