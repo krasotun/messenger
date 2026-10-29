@@ -11,6 +11,9 @@ import { ModalSize } from './modal-size.type';
 const ESCAPE_KEY = 'Escape';
 
 export interface ModalOptions {
+  // Без него содержимое создается от корневого инжектора и не видит
+  // провайдеров страницы, которая открыла модалку.
+  injector?: Injector;
   inputs?: Record<string, unknown>;
   size?: ModalSize;
   title?: string;
@@ -66,7 +69,7 @@ export class ModalService {
   ): void {
     const shellInjector = Injector.create({
       providers: [{ provide: ModalRef, useValue: modalRef }],
-      parent: this._injector,
+      parent: options?.injector ?? this._injector,
     });
 
     const shellPortal = new ComponentPortal(ModalShell, null, shellInjector);
