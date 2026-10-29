@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY, SignInInput } from './auth-gateway';
-import { CurrentSessionService } from './current-session-service';
 import { CurrentSessionStatus } from './current-session-status';
+import { CurrentSessionStore } from './current-session-store';
 import { SignInService } from './sign-in-service';
 
 import { UserMocks } from '@domains/users/testing';
@@ -11,7 +11,7 @@ import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
 
-const currentSessionServiceMock = {
+const currentSessionStoreMock = {
   restoreCurrentSession: vi.fn(),
   logout: vi.fn(),
 };
@@ -34,8 +34,8 @@ describe('SignIn', () => {
     authGatewayMock = UserMocks.authGateway();
     notifierMock = NotificationMocks.notifier();
 
-    currentSessionServiceMock.restoreCurrentSession.mockReset();
-    currentSessionServiceMock.logout.mockReset();
+    currentSessionStoreMock.restoreCurrentSession.mockReset();
+    currentSessionStoreMock.logout.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -47,8 +47,8 @@ describe('SignIn', () => {
         },
 
         {
-          provide: CurrentSessionService,
-          useValue: currentSessionServiceMock,
+          provide: CurrentSessionStore,
+          useValue: currentSessionStoreMock,
         },
 
         {
@@ -92,7 +92,7 @@ describe('SignIn', () => {
     it('should emit succeeded$ once when request succeeds and current session is authenticated', () => {
       const signInResult$ = of({ authenticated: true });
       authGatewayMock.signIn.mockReturnValue(signInResult$);
-      currentSessionServiceMock.restoreCurrentSession.mockReturnValue(of(successResponseMock));
+      currentSessionStoreMock.restoreCurrentSession.mockReturnValue(of(successResponseMock));
       const succeededSpy = vi.fn();
       service.succeeded$.subscribe(succeededSpy);
 
@@ -105,7 +105,7 @@ describe('SignIn', () => {
 
     it('should not emit succeeded$ when request succeeds but current session is anonymous', () => {
       authGatewayMock.signIn.mockReturnValue(of({ authenticated: true }));
-      currentSessionServiceMock.restoreCurrentSession.mockReturnValue(
+      currentSessionStoreMock.restoreCurrentSession.mockReturnValue(
         of({
           status: CurrentSessionStatus.Anonymous,
         }),
@@ -125,7 +125,7 @@ describe('SignIn', () => {
 
     it('should notify when request succeeds but current session restore fails', () => {
       authGatewayMock.signIn.mockReturnValue(of({ authenticated: true }));
-      currentSessionServiceMock.restoreCurrentSession.mockReturnValue(
+      currentSessionStoreMock.restoreCurrentSession.mockReturnValue(
         throwError(() => new ApplicationError('mockError')),
       );
 
@@ -149,11 +149,11 @@ describe('SignIn', () => {
 
     it('should restore current session after successful sign in even without a succeeded$ subscriber', () => {
       authGatewayMock.signIn.mockReturnValue(of({ authenticated: true }));
-      currentSessionServiceMock.restoreCurrentSession.mockReturnValue(of(successResponseMock));
+      currentSessionStoreMock.restoreCurrentSession.mockReturnValue(of(successResponseMock));
 
       service.signIn(signInInputMock);
 
-      expect(currentSessionServiceMock.restoreCurrentSession).toHaveBeenCalledOnce();
+      expect(currentSessionStoreMock.restoreCurrentSession).toHaveBeenCalledOnce();
     });
   });
 });

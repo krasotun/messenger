@@ -13,7 +13,7 @@ type CurrentSessionState =
 @Injectable({
   providedIn: 'root',
 })
-export class CurrentSessionService {
+export class CurrentSessionStore {
   private readonly _authGateway = inject(AUTH_GATEWAY);
 
   private readonly _state = signal<CurrentSessionState>({ status: CurrentSessionStatus.Unknown });

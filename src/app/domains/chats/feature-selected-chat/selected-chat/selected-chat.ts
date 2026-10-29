@@ -8,7 +8,7 @@ import { SelectedChatHeader } from '../selected-chat-header/selected-chat-header
 import { ChatListStore } from '@domains/chats/data/chat-list-store';
 import { ChatUser } from '@domains/chats/data/chat-user';
 import { ChatUsersStore } from '@domains/chats/data/chat-users-store';
-import { CurrentSessionService } from '@domains/users';
+import { CurrentSessionStore } from '@domains/users';
 import { ConfirmationService } from '@shared/ui/confirmation';
 
 const DELETE_CHAT_MESSAGE =
@@ -28,13 +28,13 @@ export class SelectedChat {
 
   private readonly _chatUsersStore = inject(ChatUsersStore);
   private readonly _chatListStore = inject(ChatListStore);
-  private readonly _currentSessionService = inject(CurrentSessionService);
+  private readonly _currentSessionStore = inject(CurrentSessionStore);
   private readonly _confirmationService = inject(ConfirmationService);
   private readonly _router = inject(Router);
 
   readonly membersOpen = signal(false);
 
-  readonly currentUser = this._currentSessionService.currentUser;
+  readonly currentUser = this._currentSessionStore.currentUser;
 
   readonly chat = computed(() => {
     const chatId = this.chatId();
@@ -44,7 +44,7 @@ export class SelectedChat {
 
   readonly isChatCreator = computed(() => {
     const chat = this.chat();
-    const currentUser = this._currentSessionService.currentUser();
+    const currentUser = this._currentSessionStore.currentUser();
 
     return !!chat && !!currentUser && chat.createdBy === currentUser.id;
   });

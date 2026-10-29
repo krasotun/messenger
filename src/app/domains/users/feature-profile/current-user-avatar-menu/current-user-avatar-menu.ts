@@ -1,7 +1,7 @@
 import { Component, computed, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { CurrentSessionService } from '../../data/current-session-service';
+import { CurrentSessionStore } from '../../data/current-session-store';
 import { CurrentUser } from '../../data/current-user';
 import { ChangePasswordModalContent } from '../change-password-modal-content/change-password-modal-content';
 import { UpdateProfileModalContent } from '../update-profile-modal-content/update-profile-modal-content';
@@ -24,14 +24,14 @@ interface CurrentUserAvatarView {
   styleUrl: './current-user-avatar-menu.scss',
 })
 export class CurrentUserAvatarMenu {
-  private readonly _currentSessionService = inject(CurrentSessionService);
+  private readonly _currentSessionStore = inject(CurrentSessionStore);
   private readonly _router = inject(Router);
   private readonly _modalService = inject(ModalService);
 
   private readonly _popover = viewChild(Popover);
 
   readonly currentUserAvatarView = computed<Nullable<CurrentUserAvatarView>>(() => {
-    const currentUser = this._currentSessionService.currentUser();
+    const currentUser = this._currentSessionStore.currentUser();
 
     return currentUser ? this._toAvatarView(currentUser) : null;
   });
@@ -49,7 +49,7 @@ export class CurrentUserAvatarMenu {
   }
 
   protected logout(): void {
-    this._currentSessionService.logout().subscribe({
+    this._currentSessionStore.logout().subscribe({
       next: () => {
         this._router.navigateByUrl('/sign-in');
       },

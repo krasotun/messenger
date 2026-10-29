@@ -5,8 +5,8 @@ import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from './auth-gateway';
 import { ChangeAvatarService } from './change-avatar-service';
-import { CurrentSessionService } from './current-session-service';
 import { CurrentSessionStatus } from './current-session-status';
+import { CurrentSessionStore } from './current-session-store';
 import { CurrentUser } from './current-user';
 import { ChangeAvatarResult, ChangeAvatarInput, USER_GATEWAY } from './user-gateway';
 
@@ -33,7 +33,7 @@ describe('ChangeAvatarService', () => {
   let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let service: ChangeAvatarService;
-  let currentSessionService: CurrentSessionService;
+  let currentSessionStore: CurrentSessionStore;
 
   beforeEach(() => {
     authGatewayMock = UserMocks.authGateway();
@@ -59,11 +59,11 @@ describe('ChangeAvatarService', () => {
       ],
     });
 
-    currentSessionService = TestBed.inject(CurrentSessionService);
+    currentSessionStore = TestBed.inject(CurrentSessionStore);
     service = TestBed.inject(ChangeAvatarService);
 
     authGatewayMock.currentSession.mockReturnValue(of(authenticatedSessionMock));
-    currentSessionService.restoreCurrentSession().subscribe();
+    currentSessionStore.restoreCurrentSession().subscribe();
   });
 
   it('should be created', () => {
@@ -122,13 +122,13 @@ describe('ChangeAvatarService', () => {
       it('should update the current session from the backend response', () => {
         service.changeAvatar(changeAvatarInputMock);
 
-        expect(currentSessionService.currentUser()).toEqual(updatedUserMock);
+        expect(currentSessionStore.currentUser()).toEqual(updatedUserMock);
       });
 
       it('should keep the session authenticated', () => {
         service.changeAvatar(changeAvatarInputMock);
 
-        expect(currentSessionService.status()).toBe(CurrentSessionStatus.Authenticated);
+        expect(currentSessionStore.status()).toBe(CurrentSessionStatus.Authenticated);
       });
 
       it('should not navigate', async () => {
@@ -161,7 +161,7 @@ describe('ChangeAvatarService', () => {
       it('should keep the current session unchanged', () => {
         service.changeAvatar(changeAvatarInputMock);
 
-        expect(currentSessionService.currentUser()).toEqual(currentUserMock);
+        expect(currentSessionStore.currentUser()).toEqual(currentUserMock);
       });
 
       it('should not navigate', async () => {

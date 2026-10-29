@@ -6,7 +6,6 @@ import { ChangeAvatarService } from '../data/change-avatar-service';
 import { ChangePasswordService } from '../data/change-password-service';
 import { CurrentSessionStatus } from '../data/current-session-status';
 import { CurrentUser } from '../data/current-user';
-import { SearchUsersService } from '../data/search-users-service';
 import { UpdateProfileService } from '../data/update-profile-service';
 import { User } from '../data/user';
 import { UpdateProfileInput, UserGateway } from '../data/user-gateway';
@@ -66,10 +65,6 @@ export const UserMocks = {
     changePassword: vi.fn<UserGateway['changePassword']>(),
     changeAvatar: vi.fn<UserGateway['changeAvatar']>(),
     searchUsers: vi.fn<UserGateway['searchUsers']>(),
-  }),
-
-  searchUsersService: () => ({
-    searchUsers: vi.fn<SearchUsersService['searchUsers']>(),
   }),
 
   changeAvatarService: () => ({

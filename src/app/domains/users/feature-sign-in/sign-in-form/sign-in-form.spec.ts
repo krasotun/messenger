@@ -5,7 +5,7 @@ import { userEvent } from '@testing-library/user-event';
 import { Subject } from 'rxjs';
 
 import { AUTH_GATEWAY, SignInInput } from '../../data/auth-gateway';
-import { CurrentSessionService } from '../../data/current-session-service';
+import { CurrentSessionStore } from '../../data/current-session-store';
 import { SignInService } from '../../data/sign-in-service';
 
 import { SignInForm } from './sign-in-form';
@@ -167,7 +167,7 @@ describe('SignInForm', () => {
   describe('flow lifetime', () => {
     let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
 
-    let currentSessionServiceMock: {
+    let currentSessionStoreMock: {
       restoreCurrentSession: ReturnType<typeof vi.fn>;
     };
 
@@ -178,7 +178,7 @@ describe('SignInForm', () => {
 
     const providers = () => [
       { provide: AUTH_GATEWAY, useValue: authGatewayMock },
-      { provide: CurrentSessionService, useValue: currentSessionServiceMock },
+      { provide: CurrentSessionStore, useValue: currentSessionStoreMock },
       { provide: NOTIFIER, useValue: notifierMock },
     ];
 
@@ -193,7 +193,7 @@ describe('SignInForm', () => {
 
     beforeEach(() => {
       authGatewayMock = UserMocks.authGateway();
-      currentSessionServiceMock = { restoreCurrentSession: vi.fn() };
+      currentSessionStoreMock = { restoreCurrentSession: vi.fn() };
     });
 
     // render настраивает TestBed и второй раз в одном тесте не вызывается:

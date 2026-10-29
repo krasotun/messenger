@@ -10,7 +10,7 @@ import { AddChatUserPanel } from './add-chat-user-panel';
 import { CHAT_GATEWAY } from '@domains/chats/data/chat-gateway';
 import { ChatUsersStore } from '@domains/chats/data/chat-users-store';
 import { ChatMocks } from '@domains/chats/testing';
-import { SearchUsersResult, SearchUsersService } from '@domains/users';
+import { SearchUsersResult, USER_GATEWAY } from '@domains/users';
 import { UserMocks } from '@domains/users/testing';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
@@ -20,7 +20,7 @@ const userMock = UserMocks.user({ login: 'jane.roe', name: 'Janie' });
 const debounceMs = 300;
 
 describe('AddChatUserPanel', () => {
-  let searchUsersServiceMock: ReturnType<typeof UserMocks.searchUsersService>;
+  let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
   let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
   let fixture: ComponentFixture<AddChatUserPanel>;
   let userAdded: Mock<() => void>;
@@ -34,7 +34,7 @@ describe('AddChatUserPanel', () => {
   };
 
   beforeEach(async () => {
-    searchUsersServiceMock = UserMocks.searchUsersService();
+    userGatewayMock = UserMocks.userGateway();
     vi.useFakeTimers();
     user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 
@@ -46,7 +46,7 @@ describe('AddChatUserPanel', () => {
     ({ fixture } = await render(AddChatUserPanel, {
       bindings: [inputBinding('chatId', () => 1), outputBinding('userAdded', userAdded)],
       providers: [
-        { provide: SearchUsersService, useValue: searchUsersServiceMock },
+        { provide: USER_GATEWAY, useValue: userGatewayMock },
         ChatUsersStore,
         { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
         { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
@@ -70,13 +70,13 @@ describe('AddChatUserPanel', () => {
 
   describe('request in flight', () => {
     it('should keep the previous results visible while the new request is pending', async () => {
-      searchUsersServiceMock.searchUsers.mockReturnValueOnce(of({ users: [userMock] }));
+      userGatewayMock.searchUsers.mockReturnValueOnce(of({ users: [userMock] }));
 
       await search('ja');
 
       expect(screen.getByText('Janie')).toBeInTheDocument();
 
-      searchUsersServiceMock.searchUsers.mockReturnValueOnce(new Subject<SearchUsersResult>());
+      userGatewayMock.searchUsers.mockReturnValueOnce(new Subject<SearchUsersResult>());
 
       await search('ne');
 
@@ -87,7 +87,7 @@ describe('AddChatUserPanel', () => {
 
   describe('found', () => {
     it('should show the found users', async () => {
-      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
+      userGatewayMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       await search('jane');
 
@@ -95,7 +95,7 @@ describe('AddChatUserPanel', () => {
     });
 
     it('should add the clicked user to the given chat', async () => {
-      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
+      userGatewayMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       await search('jane');
       await user.click(screen.getByRole('button', { name: /Janie/ }));
@@ -106,7 +106,7 @@ describe('AddChatUserPanel', () => {
 
   describe('empty response', () => {
     it('should show that nobody was found, distinct from the not-started hint', async () => {
-      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [] }));
+      userGatewayMock.searchUsers.mockReturnValue(of({ users: [] }));
 
       await search('nobody');
 
@@ -117,7 +117,7 @@ describe('AddChatUserPanel', () => {
 
   describe('400 on add', () => {
     it('should not render a submit error and keep the panel open', async () => {
-      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
+      userGatewayMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       await search('jane');
 
@@ -128,7 +128,7 @@ describe('AddChatUserPanel', () => {
 
   describe('successful add', () => {
     it('should emit userAdded when the user is added, without a manual application tick', async () => {
-      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
+      userGatewayMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       await search('jane');
       await user.click(screen.getByRole('button', { name: /Janie/ }));

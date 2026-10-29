@@ -4,8 +4,8 @@ import { provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from './auth-gateway';
-import { CurrentSessionService } from './current-session-service';
 import { CurrentSessionStatus } from './current-session-status';
+import { CurrentSessionStore } from './current-session-store';
 import { CurrentUser } from './current-user';
 import { UpdateProfileService } from './update-profile-service';
 import { UpdateProfileResult, USER_GATEWAY } from './user-gateway';
@@ -47,7 +47,7 @@ describe('UpdateProfileService', () => {
   let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let service: UpdateProfileService;
-  let currentSessionService: CurrentSessionService;
+  let currentSessionStore: CurrentSessionStore;
 
   beforeEach(() => {
     authGatewayMock = UserMocks.authGateway();
@@ -73,11 +73,11 @@ describe('UpdateProfileService', () => {
       ],
     });
 
-    currentSessionService = TestBed.inject(CurrentSessionService);
+    currentSessionStore = TestBed.inject(CurrentSessionStore);
     service = TestBed.inject(UpdateProfileService);
 
     authGatewayMock.currentSession.mockReturnValue(of(authenticatedSessionMock));
-    currentSessionService.restoreCurrentSession().subscribe();
+    currentSessionStore.restoreCurrentSession().subscribe();
   });
 
   it('should be created', () => {
@@ -109,7 +109,7 @@ describe('UpdateProfileService', () => {
           user: { ...currentUserMock, displayName: null },
         }),
       );
-      currentSessionService.restoreCurrentSession().subscribe();
+      currentSessionStore.restoreCurrentSession().subscribe();
 
       expect(service.initialValues().displayName).toBe('');
     });
@@ -161,13 +161,13 @@ describe('UpdateProfileService', () => {
       it('should update the current session from the backend response', () => {
         service.updateProfile(updateProfileInputMock);
 
-        expect(currentSessionService.currentUser()).toEqual(updatedUserMock);
+        expect(currentSessionStore.currentUser()).toEqual(updatedUserMock);
       });
 
       it('should keep the session authenticated', () => {
         service.updateProfile(updateProfileInputMock);
 
-        expect(currentSessionService.status()).toBe(CurrentSessionStatus.Authenticated);
+        expect(currentSessionStore.status()).toBe(CurrentSessionStatus.Authenticated);
       });
 
       it('should refresh initial values from the updated current user', () => {
@@ -206,7 +206,7 @@ describe('UpdateProfileService', () => {
       it('should keep the current session unchanged', () => {
         service.updateProfile(updateProfileInputMock);
 
-        expect(currentSessionService.currentUser()).toEqual(currentUserMock);
+        expect(currentSessionStore.currentUser()).toEqual(currentUserMock);
       });
 
       it('should not navigate', async () => {

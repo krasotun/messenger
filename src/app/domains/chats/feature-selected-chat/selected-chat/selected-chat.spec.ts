@@ -11,7 +11,7 @@ import { ChatListStore } from '../../data/chat-list-store';
 import { SelectedChat } from './selected-chat';
 
 import { ChatMocks } from '@domains/chats/testing';
-import { CurrentSessionService, CurrentUser } from '@domains/users';
+import { CurrentSessionStore, CurrentUser } from '@domains/users';
 import { UserMocks } from '@domains/users/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
@@ -40,7 +40,7 @@ describe('SelectedChat', () => {
 
   const currentUser = signal<Nullable<CurrentUser>>(chatCreatorMock);
 
-  const currentSessionServiceMock = {
+  const currentSessionStoreMock = {
     currentUser: currentUser.asReadonly(),
   };
 
@@ -63,7 +63,7 @@ describe('SelectedChat', () => {
         ChatListStore,
         { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
         { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
-        { provide: CurrentSessionService, useValue: currentSessionServiceMock },
+        { provide: CurrentSessionStore, useValue: currentSessionStoreMock },
         { provide: ConfirmationService, useValue: confirmationServiceMock },
         provideRouter([
           { path: '', component: ChatsPageStub },

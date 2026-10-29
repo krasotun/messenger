@@ -5,7 +5,7 @@ import { render, screen } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
 import { of, throwError } from 'rxjs';
 
-import { CurrentSessionService } from '../../data/current-session-service';
+import { CurrentSessionStore } from '../../data/current-session-store';
 import { CurrentUser } from '../../data/current-user';
 import { ChangePasswordModalContent } from '../change-password-modal-content/change-password-modal-content';
 import { UpdateProfileModalContent } from '../update-profile-modal-content/update-profile-modal-content';
@@ -36,7 +36,7 @@ describe('CurrentUserAvatarMenu', () => {
 
   const currentUser = signal<Nullable<CurrentUser>>(currentUserMock);
 
-  const currentSessionServiceMock = {
+  const currentSessionStoreMock = {
     currentUser: currentUser.asReadonly(),
     logout: vi.fn(() => of(void 0)),
   };
@@ -52,13 +52,13 @@ describe('CurrentUserAvatarMenu', () => {
   beforeEach(async () => {
     user = userEvent.setup();
     currentUser.set(currentUserMock);
-    currentSessionServiceMock.logout.mockReset();
-    currentSessionServiceMock.logout.mockReturnValue(of(void 0));
+    currentSessionStoreMock.logout.mockReset();
+    currentSessionStoreMock.logout.mockReturnValue(of(void 0));
     modalServiceMock = ModalMocks.modalService();
 
     ({ fixture } = await render(CurrentUserAvatarMenu, {
       providers: [
-        { provide: CurrentSessionService, useValue: currentSessionServiceMock },
+        { provide: CurrentSessionStore, useValue: currentSessionStoreMock },
         provideRouter([{ path: 'sign-in', component: SignInPageStub }]),
         { provide: ModalService, useValue: modalServiceMock },
       ],
@@ -92,10 +92,10 @@ describe('CurrentUserAvatarMenu', () => {
     expect(screen.getByRole('img', { name: avatarLabel })).toHaveTextContent('D');
   });
 
-  it('calls logout through CurrentSessionService when Logout is clicked', async () => {
+  it('calls logout through CurrentSessionStore when Logout is clicked', async () => {
     await clickMenuAction('Logout');
 
-    expect(currentSessionServiceMock.logout).toHaveBeenCalledOnce();
+    expect(currentSessionStoreMock.logout).toHaveBeenCalledOnce();
   });
 
   it('navigates to sign in after successful logout', async () => {
@@ -133,7 +133,7 @@ describe('CurrentUserAvatarMenu', () => {
   });
 
   it('navigates to sign in after logout error', async () => {
-    currentSessionServiceMock.logout.mockReturnValue(throwError(() => 'mockError'));
+    currentSessionStoreMock.logout.mockReturnValue(throwError(() => 'mockError'));
 
     await clickMenuAction('Logout');
 

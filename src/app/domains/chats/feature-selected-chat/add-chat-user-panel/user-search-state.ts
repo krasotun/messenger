@@ -4,7 +4,7 @@ import { catchError, debounceTime, map, Observable, of, switchMap } from 'rxjs';
 
 import { UserSearchStatus } from './user-search-status';
 
-import { SearchUsersService, User } from '@domains/users';
+import { User, UserGateway } from '@domains/users';
 
 const searchDebounceMs = 300;
 
@@ -24,7 +24,7 @@ const toResult = (users: User[]): UserSearchResult =>
   users.length === 0 ? nobodyFound : { status: UserSearchStatus.Found, users };
 
 export const createUserSearchState = (
-  searchUsersService: SearchUsersService,
+  userGateway: UserGateway,
   login$: Observable<string>,
 ): UserSearchState => {
   const result = signal<UserSearchResult>(notStarted);
@@ -37,7 +37,7 @@ export const createUserSearchState = (
           return of(notStarted);
         }
 
-        return searchUsersService.searchUsers({ login }).pipe(
+        return userGateway.searchUsers({ login }).pipe(
           map(({ users }) => toResult(users)),
           // Отказ поиска здесь не показывается отдельно: chats-спека не
           // описывает такое состояние панели, поэтому он схлопывается в
