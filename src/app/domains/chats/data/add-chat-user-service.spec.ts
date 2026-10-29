@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
-import { AddChatUserResult } from './add-chat-user-result';
 import { AddChatUserService } from './add-chat-user-service';
-import { CHAT_GATEWAY } from './chat-gateway';
+import { AddChatUserResult, CHAT_GATEWAY } from './chat-gateway';
 import { ChatUsersService } from './chat-users-service';
 
 import { ChatMocks } from '@domains/chats/testing';

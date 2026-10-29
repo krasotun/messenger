@@ -8,7 +8,6 @@ import { SelectedChatHeader } from '../selected-chat-header/selected-chat-header
 import { ChatListStore } from '@domains/chats/data/chat-list-store';
 import { ChatUser } from '@domains/chats/data/chat-user';
 import { ChatUsersService } from '@domains/chats/data/chat-users-service';
-import { DeleteChatService } from '@domains/chats/data/delete-chat-service';
 import { RemoveChatUserService } from '@domains/chats/data/remove-chat-user-service';
 import { CurrentSessionService } from '@domains/identity-access';
 import { ConfirmationService } from '@shared/ui/confirmation';
@@ -21,7 +20,7 @@ const DELETE_CHAT_MESSAGE =
   imports: [SelectedChatHeader, ChatUsersPanel],
   templateUrl: './selected-chat.html',
   styleUrl: './selected-chat.scss',
-  providers: [DeleteChatService, RemoveChatUserService],
+  providers: [RemoveChatUserService],
 })
 export class SelectedChat {
   readonly chatId = input.required({
@@ -32,7 +31,6 @@ export class SelectedChat {
   private readonly _chatListStore = inject(ChatListStore);
   private readonly _currentSessionService = inject(CurrentSessionService);
   private readonly _confirmationService = inject(ConfirmationService);
-  private readonly _deleteChatService = inject(DeleteChatService);
   private readonly _removeChatUserService = inject(RemoveChatUserService);
   private readonly _router = inject(Router);
 
@@ -61,7 +59,7 @@ export class SelectedChat {
       this._chatUsersService.loadChatUsers(this.chatId());
     });
 
-    this._deleteChatService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
+    this._chatListStore.chatDeletionFlow.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
       this._router.navigateByUrl('/');
     });
   }
@@ -91,7 +89,7 @@ export class SelectedChat {
       })
       .subscribe((confirmed) => {
         if (confirmed) {
-          this._deleteChatService.deleteChat({ chatId: chat.id });
+          this._chatListStore.deleteChat({ chatId: chat.id });
         }
       });
   }

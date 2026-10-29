@@ -4,7 +4,6 @@ import { Chat } from '../data/chat';
 import { ChatGateway } from '../data/chat-gateway';
 import { ChatUser } from '../data/chat-user';
 import { ChatUsersService } from '../data/chat-users-service';
-import { DeleteChatService } from '../data/delete-chat-service';
 import { RemoveChatUserService } from '../data/remove-chat-user-service';
 
 // Каждый вызов отдает новый двойник: сбрасывать его между тестами не нужно.
@@ -36,11 +35,6 @@ export const ChatMocks = {
   }),
 
   // succeeded$ - Subject, чтобы тест сам сообщал об успехе через next().
-  deleteChatService: () => ({
-    deleteChat: vi.fn<DeleteChatService['deleteChat']>(),
-    succeeded$: new Subject<void>(),
-  }),
-
   removeChatUserService: () => ({
     removeChatUser: vi.fn<RemoveChatUserService['removeChatUser']>(),
     succeeded$: new Subject<void>(),

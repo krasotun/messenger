@@ -137,12 +137,15 @@ context: |
     только внутри файла, остается на месте. Токен живет рядом со своим
     интерфейсом в одном файле (`auth.gateway.ts` держит и `AuthGateway`, и
     `AUTH_GATEWAY`): разрыв здесь ничего не проясняет, а импортов добавляет.
+    Там же живет контракт порта - типы входа и результата его методов
+    (`CreateChatInput`, `CreateChatResult` в `chat-gateway.ts`). Отдельный
+    файл получает модель, которую читает не только порт (`chat.ts`).
     Все остальное названо по главному идентификатору внутри, без суффикса
     артефакта (`sign-in.service.ts`, `toast.ts`, `user.mapper.ts`) - это
     конвенция Angular style guide 2025, и проект от нее не отступает.
     В доменах, переехавших на `data/`, `feature-<x>/`, `ui/`, суффиксов нет
     совсем: имя файла - это главный идентификатор в kebab-case
-    (`chat-list-service.ts` для `ChatListService`, `chat.ts` для `Chat`,
+    (`chat-list-store.ts` для `ChatListStore`, `chat.ts` для `Chat`,
     `chat-gateway.ts` для `ChatGateway` и `CHAT_GATEWAY`); роль файла задает
     папка.
   - Flex-раскладка пишется миксинами `row` и `column` из `src/styles/_layout.scss`,
@@ -179,8 +182,8 @@ context: |
   - Модели и двойники, которые повторяются хотя бы в двух спеках, берутся из
     хранилищ `<Домен>Mocks` в `testing/` домена или примитива (`ChatMocks`,
     `IdentityMocks`, `NotificationMocks`, `ModalMocks`). Каждый вызов отдает
-    новый двойник, методы типизированы по сервису
-    (`vi.fn<DeleteChatService['deleteChat']>()`), модель - значения по
+    новый двойник, методы типизированы по порту
+    (`vi.fn<ChatGateway['deleteChat']>()`), модель - значения по
     умолчанию плюс переопределения тех полей, которые спек читает. Одноразовые
     двойники и литералы в спеках маппинга остаются в спеке. Импорт `testing/` из прод-кода запрещен ESLint.
   - `data-testid` в прод-разметку не добавляем: он попадает в сборку и дает
@@ -201,7 +204,7 @@ context: |
     Angular: «Do not mock Angular Router»): `provideRouter` с заглушкой-страницей
     на нужном пути, проверка - `TestBed.inject(Router).url`, как в
     `sign-in-page.spec.ts`. Наш код, работающий в памяти, остается настоящим
-    на любом слое: спек компонента получает настоящий `DeleteChatService`, и
+    на любом слое: спек компонента получает настоящий `ChatListStore`, и
     тот ходит в двойник `CHAT_GATEWAY`; спек `HttpAuthGateway` работает с
     настоящими `AuthApi` и мапперами, а HTTP под ними подменяет
     `HttpTestingController`. Исход проверяется по состоянию и возвращенному

@@ -1,15 +1,34 @@
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AddChatUserInput } from './add-chat-user-input';
-import { AddChatUserResult } from './add-chat-user-result';
 import { Chat } from './chat';
 import { ChatUser } from './chat-user';
-import { CreateChatInput } from './create-chat-input';
-import { CreateChatResult } from './create-chat-result';
-import { DeleteChatInput } from './delete-chat-input';
 
-import { RemoveChatUserInput } from '@domains/chats/data/remove-chat-user-input';
+export interface CreateChatInput {
+  title: string;
+}
+
+export interface CreateChatResult {
+  id: number;
+}
+
+export interface DeleteChatInput {
+  chatId: number;
+}
+
+export interface AddChatUserInput {
+  chatId: number;
+  userId: number;
+}
+
+export interface AddChatUserResult {
+  userAdded: boolean;
+}
+
+export interface RemoveChatUserInput {
+  chatId: number;
+  userId: number;
+}
 
 export interface ChatGateway {
   chats(): Observable<Chat[]>;
