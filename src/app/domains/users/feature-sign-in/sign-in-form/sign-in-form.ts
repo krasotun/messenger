@@ -1,9 +1,10 @@
 import { Component, inject, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { SignInService } from '../../data/sign-in-service';
+import { CurrentSessionStore } from '../../data/current-session-store';
 
 import { connectSubmitFlow } from '@shared/forms';
+import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
@@ -17,7 +18,6 @@ interface SignInFormModel {
   selector: 'app-sign-in-form',
   imports: [Input, FormField, Form, ReactiveFormsModule],
   templateUrl: './sign-in-form.html',
-  providers: [SignInService],
 })
 export class SignInForm {
   readonly signInForm = new FormGroup<SignInFormModel>({
@@ -27,9 +27,11 @@ export class SignInForm {
 
   readonly signInSucceeded = output<void>();
 
-  private readonly _signInService = inject(SignInService);
+  private readonly _currentSessionStore = inject(CurrentSessionStore);
 
-  protected readonly isSubmitting = this._signInService.isSubmitting;
+  private readonly _signInFlow = createFormSubmitFlowState();
+
+  protected readonly isSubmitting = this._signInFlow.isSubmitting;
 
   protected readonly fields = [
     { label: 'Login', type: 'text', control: this.signInForm.controls.login },
@@ -37,11 +39,11 @@ export class SignInForm {
   ];
 
   constructor() {
-    connectSubmitFlow(this.signInForm, this._signInService, this.signInSucceeded);
+    connectSubmitFlow(this.signInForm, this._signInFlow, this.signInSucceeded);
   }
 
   protected onSubmit(): void {
     const signInFormValue = this.signInForm.getRawValue();
-    this._signInService.signIn(signInFormValue);
+    this._currentSessionStore.signIn(signInFormValue, this._signInFlow);
   }
 }

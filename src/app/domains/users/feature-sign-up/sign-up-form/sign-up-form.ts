@@ -1,9 +1,10 @@
 import { Component, inject, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { SignUpService } from '@domains/users/data/sign-up-service';
+import { CurrentSessionStore } from '@domains/users/data/current-session-store';
 import { emailPattern, phonePattern } from '@domains/users/data/user-field-patterns';
 import { connectSubmitFlow } from '@shared/forms';
+import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
@@ -21,7 +22,6 @@ interface SignUpFormModel {
   selector: 'app-sign-up-form',
   imports: [Input, FormField, Form, ReactiveFormsModule],
   templateUrl: './sign-up-form.html',
-  providers: [SignUpService],
 })
 export class SignUpForm {
   readonly signUpForm = new FormGroup<SignUpFormModel>({
@@ -46,9 +46,11 @@ export class SignUpForm {
 
   readonly signUpSucceeded = output<void>();
 
-  private readonly _signUpService = inject(SignUpService);
+  private readonly _currentSessionStore = inject(CurrentSessionStore);
 
-  protected readonly isSubmitting = this._signUpService.isSubmitting;
+  private readonly _signUpFlow = createFormSubmitFlowState();
+
+  protected readonly isSubmitting = this._signUpFlow.isSubmitting;
 
   protected readonly fields = [
     { label: 'First name', type: 'text', control: this.signUpForm.controls.firstName },
@@ -60,11 +62,11 @@ export class SignUpForm {
   ];
 
   constructor() {
-    connectSubmitFlow(this.signUpForm, this._signUpService, this.signUpSucceeded);
+    connectSubmitFlow(this.signUpForm, this._signUpFlow, this.signUpSucceeded);
   }
 
   protected onSubmit(): void {
     const signUpFormValue = this.signUpForm.getRawValue();
-    this._signUpService.signUp(signUpFormValue);
+    this._currentSessionStore.signUp(signUpFormValue, this._signUpFlow);
   }
 }
