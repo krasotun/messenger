@@ -1,6 +1,10 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+  TestRequest,
+} from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
 
 import { ChangePasswordInput } from './change-password-input';
 import { CurrentUser } from './current-user';
@@ -8,20 +12,12 @@ import { HttpUserGateway } from './http-user-gateway';
 import { ChangePasswordRequestDto } from './internal/change-password-dto';
 import { USER_ERROR_MESSAGES } from './internal/error-messages';
 import { UpdateProfileRequestDto } from './internal/update-profile-dto';
-import { UserApi } from './internal/user-api';
 import { UserDto } from './internal/user-dto';
 import { UpdateProfileInput } from './update-profile-input';
 import { User } from './user';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
 import { ApplicationError } from '@shared/errors';
-
-const userApiMock = {
-  updateProfile: vi.fn(),
-  changePassword: vi.fn(),
-  changeAvatar: vi.fn(),
-  searchUsers: vi.fn(),
-};
 
 const changePasswordInputMock: ChangePasswordInput = {
   oldPassword: 'mockOldPassword',
@@ -95,29 +91,39 @@ const resourcesBaseUrlMock = 'https://mock.host/resources';
 
 const fileMock = new File(['mockContent'], 'avatar.png', { type: 'image/png' });
 
+// Ответ с причиной - как отказ бэкенда; без причины - как сбой сервера,
+// для которого Шлюз подставляет свой текст.
+const flushRejection = (request: TestRequest): void => {
+  request.flush({ reason: 'mockReason' }, { status: 400, statusText: 'Bad Request' });
+};
+
+const flushServerFailure = (request: TestRequest): void => {
+  request.flush('Internal Server Error', { status: 500, statusText: 'Internal Server Error' });
+};
+
 describe('HttpUserGateway', () => {
   let service: HttpUserGateway;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
-    userApiMock.updateProfile.mockReset();
-    userApiMock.changePassword.mockReset();
-    userApiMock.changeAvatar.mockReset();
-    userApiMock.searchUsers.mockReset();
-
     TestBed.configureTestingModule({
       providers: [
         HttpUserGateway,
-        {
-          provide: UserApi,
-          useValue: userApiMock,
-        },
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: RESOURCES_BASE_URL,
           useValue: resourcesBaseUrlMock,
         },
       ],
     });
+
     service = TestBed.inject(HttpUserGateway);
+    httpTestingController = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should be created', () => {
@@ -125,41 +131,41 @@ describe('HttpUserGateway', () => {
   });
 
   describe('updateProfile', () => {
-    it('should call api with mapped snake_case request', () => {
-      userApiMock.updateProfile.mockReturnValue(of(currentUserDtoMock));
+    const updateProfile = (): { results: unknown[]; errors: ApplicationError[] } => {
+      const results: unknown[] = [];
+      const errors: ApplicationError[] = [];
 
-      service.updateProfile(updateProfileInputMock).subscribe();
+      service.updateProfile(updateProfileInputMock).subscribe({
+        next: (result) => results.push(result),
+        error: (applicationError: ApplicationError) => errors.push(applicationError),
+      });
 
-      expect(userApiMock.updateProfile).toHaveBeenCalledOnce();
-      expect(userApiMock.updateProfile).toHaveBeenCalledWith(updateProfileRequestMock);
+      return { results, errors };
+    };
+
+    it('should send PUT request with mapped snake_case body', () => {
+      updateProfile();
+
+      const request = httpTestingController.expectOne('/user/profile');
+
+      expect(request.request.method).toBe('PUT');
+      expect(request.request.body).toEqual(updateProfileRequestMock);
+
+      request.flush(currentUserDtoMock);
     });
 
     it('should map successful response to current user', () => {
-      userApiMock.updateProfile.mockReturnValue(of(currentUserDtoMock));
+      const { results } = updateProfile();
 
-      const results: unknown[] = [];
-
-      service.updateProfile(updateProfileInputMock).subscribe((response) => {
-        results.push(response);
-      });
+      httpTestingController.expectOne('/user/profile').flush(currentUserDtoMock);
 
       expect(results).toEqual([{ user: currentUserMock }]);
     });
 
     it('should map error to ApplicationError with reason from response body', () => {
-      const error = new HttpErrorResponse({
-        error: { reason: 'mockReason' },
-      });
+      const { errors } = updateProfile();
 
-      userApiMock.updateProfile.mockReturnValue(throwError(() => error));
-
-      const errors: ApplicationError[] = [];
-
-      service.updateProfile(updateProfileInputMock).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushRejection(httpTestingController.expectOne('/user/profile'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
@@ -167,44 +173,57 @@ describe('HttpUserGateway', () => {
     });
 
     it('should map generic error to ApplicationError with fallback message', () => {
-      userApiMock.updateProfile.mockReturnValue(throwError(() => 'mockError'));
+      const { errors } = updateProfile();
 
-      const errors: ApplicationError[] = [];
-
-      service.updateProfile(updateProfileInputMock).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushServerFailure(httpTestingController.expectOne('/user/profile'));
 
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toBeInstanceOf(ApplicationError);
       expect(errors[0].message).toBe(USER_ERROR_MESSAGES.updateProfile);
     });
   });
+
   describe('changeAvatar', () => {
-    it('should call api with form data holding the selected file', () => {
-      userApiMock.changeAvatar.mockReturnValue(of(currentUserDtoMock));
+    const changeAvatar = (): { results: unknown[]; errors: ApplicationError[] } => {
+      const results: unknown[] = [];
+      const errors: ApplicationError[] = [];
 
-      service.changeAvatar({ file: fileMock }).subscribe();
+      service.changeAvatar({ file: fileMock }).subscribe({
+        next: (result) => results.push(result),
+        error: (applicationError: ApplicationError) => errors.push(applicationError),
+      });
 
-      expect(userApiMock.changeAvatar).toHaveBeenCalledOnce();
+      return { results, errors };
+    };
 
-      const [formData] = userApiMock.changeAvatar.mock.calls[0] as [FormData];
+    it('should send PUT request with form data holding the selected file', () => {
+      changeAvatar();
 
+      const request = httpTestingController.expectOne('/user/profile/avatar');
+      const formData = request.request.body as FormData;
+
+      expect(request.request.method).toBe('PUT');
       expect(formData.getAll('avatar')).toEqual([fileMock]);
+      expect(request.request.headers.has('Content-Type')).toBe(false);
+
+      request.flush(currentUserDtoMock);
+    });
+
+    it('should give the upload a longer timeout', () => {
+      changeAvatar();
+
+      const request = httpTestingController.expectOne('/user/profile/avatar');
+
+      expect(request.request.timeout).toBe(60_000);
+
+      request.flush(currentUserDtoMock);
     });
 
     it('should map successful response to current user with resolved avatar url', () => {
-      userApiMock.changeAvatar.mockReturnValue(
-        of({ ...currentUserDtoMock, avatar: '/path/to/avatar.png' }),
-      );
+      const { results } = changeAvatar();
 
-      const results: unknown[] = [];
-
-      service.changeAvatar({ file: fileMock }).subscribe((response) => {
-        results.push(response);
-      });
+      httpTestingController
+        .expectOne('/user/profile/avatar')
+        .flush({ ...currentUserDtoMock, avatar: '/path/to/avatar.png' });
 
       expect(results).toEqual([
         {
@@ -217,19 +236,9 @@ describe('HttpUserGateway', () => {
     });
 
     it('should map error to ApplicationError with reason from response body', () => {
-      const error = new HttpErrorResponse({
-        error: { reason: 'mockReason' },
-      });
+      const { errors } = changeAvatar();
 
-      userApiMock.changeAvatar.mockReturnValue(throwError(() => error));
-
-      const errors: ApplicationError[] = [];
-
-      service.changeAvatar({ file: fileMock }).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushRejection(httpTestingController.expectOne('/user/profile/avatar'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
@@ -237,58 +246,53 @@ describe('HttpUserGateway', () => {
     });
 
     it('should map generic error to ApplicationError with fallback message', () => {
-      userApiMock.changeAvatar.mockReturnValue(throwError(() => 'mockError'));
+      const { errors } = changeAvatar();
 
-      const errors: ApplicationError[] = [];
-
-      service.changeAvatar({ file: fileMock }).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushServerFailure(httpTestingController.expectOne('/user/profile/avatar'));
 
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toBeInstanceOf(ApplicationError);
       expect(errors[0].message).toBe(USER_ERROR_MESSAGES.changeAvatar);
     });
   });
 
   describe('changePassword', () => {
-    it('should call api with mapped camelCase request', () => {
-      userApiMock.changePassword.mockReturnValue(of('OK'));
+    const changePassword = (): { results: unknown[]; errors: ApplicationError[] } => {
+      const results: unknown[] = [];
+      const errors: ApplicationError[] = [];
 
-      service.changePassword(changePasswordInputMock).subscribe();
+      service.changePassword(changePasswordInputMock).subscribe({
+        next: (result) => results.push(result),
+        error: (applicationError: ApplicationError) => errors.push(applicationError),
+      });
 
-      expect(userApiMock.changePassword).toHaveBeenCalledOnce();
-      expect(userApiMock.changePassword).toHaveBeenCalledWith(changePasswordRequestMock);
+      return { results, errors };
+    };
+
+    it('should send PUT request with camelCase body and read response as text', () => {
+      changePassword();
+
+      const request = httpTestingController.expectOne('/user/password');
+
+      expect(request.request.method).toBe('PUT');
+      expect(request.request.body).toEqual(changePasswordRequestMock);
+      expect(request.request.responseType).toBe('text');
+      expect(request.request.timeout).toBeUndefined();
+
+      request.flush('OK');
     });
 
     it('should map successful response to password changed result', () => {
-      userApiMock.changePassword.mockReturnValue(of('OK'));
+      const { results } = changePassword();
 
-      const results: unknown[] = [];
-
-      service.changePassword(changePasswordInputMock).subscribe((response) => {
-        results.push(response);
-      });
+      httpTestingController.expectOne('/user/password').flush('OK');
 
       expect(results).toEqual([{ passwordChanged: true }]);
     });
 
     it('should map error to ApplicationError with reason from response body', () => {
-      const error = new HttpErrorResponse({
-        error: { reason: 'mockReason' },
-      });
+      const { errors } = changePassword();
 
-      userApiMock.changePassword.mockReturnValue(throwError(() => error));
-
-      const errors: ApplicationError[] = [];
-
-      service.changePassword(changePasswordInputMock).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushRejection(httpTestingController.expectOne('/user/password'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
@@ -296,83 +300,70 @@ describe('HttpUserGateway', () => {
     });
 
     it('should map generic error to ApplicationError with fallback message', () => {
-      userApiMock.changePassword.mockReturnValue(throwError(() => 'mockError'));
+      const { errors } = changePassword();
 
-      const errors: ApplicationError[] = [];
-
-      service.changePassword(changePasswordInputMock).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushServerFailure(httpTestingController.expectOne('/user/password'));
 
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toBeInstanceOf(ApplicationError);
       expect(errors[0].message).toBe(USER_ERROR_MESSAGES.changePassword);
     });
   });
+
   describe('searchUsers', () => {
-    it('should call api with the login to search by', () => {
-      userApiMock.searchUsers.mockReturnValue(of([userDtoMock]));
+    const searchUsers = (): { results: unknown[]; errors: ApplicationError[] } => {
+      const results: unknown[] = [];
+      const errors: ApplicationError[] = [];
 
-      service.searchUsers({ login: 'jane' }).subscribe();
+      service.searchUsers({ login: 'jane' }).subscribe({
+        next: (result) => results.push(result),
+        error: (applicationError: ApplicationError) => errors.push(applicationError),
+      });
 
-      expect(userApiMock.searchUsers).toHaveBeenCalledOnce();
-      expect(userApiMock.searchUsers).toHaveBeenCalledWith({ login: 'jane' });
+      return { results, errors };
+    };
+
+    it('should send POST request with the login to search by', () => {
+      searchUsers();
+
+      const request = httpTestingController.expectOne('/user/search');
+
+      expect(request.request.method).toBe('POST');
+      expect(request.request.body).toEqual({ login: 'jane' });
+      expect(request.request.timeout).toBeUndefined();
+
+      request.flush([userDtoMock]);
     });
 
     it('should map found users with resolved avatar url', () => {
-      userApiMock.searchUsers.mockReturnValue(of([userDtoMock]));
+      const { results } = searchUsers();
 
-      const results: unknown[] = [];
-
-      service.searchUsers({ login: 'jane' }).subscribe((response) => {
-        results.push(response);
-      });
+      httpTestingController.expectOne('/user/search').flush([userDtoMock]);
 
       expect(results).toEqual([{ users: [userMock] }]);
     });
 
     it('should fall back to first name when display name is missing', () => {
-      userApiMock.searchUsers.mockReturnValue(
-        of([{ ...userDtoMock, display_name: null, avatar: null }]),
-      );
+      const { results } = searchUsers();
 
-      const results: unknown[] = [];
-
-      service.searchUsers({ login: 'jane' }).subscribe((response) => {
-        results.push(response);
-      });
+      httpTestingController
+        .expectOne('/user/search')
+        .flush([{ ...userDtoMock, display_name: null, avatar: null }]);
 
       expect(results).toEqual([{ users: [{ ...userMock, name: 'Jane', avatar: null }] }]);
     });
 
     it('should map an empty response to an empty result', () => {
-      userApiMock.searchUsers.mockReturnValue(of([]));
+      const { results } = searchUsers();
 
-      const results: unknown[] = [];
-
-      service.searchUsers({ login: 'jane' }).subscribe((response) => {
-        results.push(response);
-      });
+      httpTestingController.expectOne('/user/search').flush([]);
 
       expect(results).toEqual([{ users: [] }]);
     });
 
     it('should map error to ApplicationError with reason from response body', () => {
-      const error = new HttpErrorResponse({
-        error: { reason: 'mockReason' },
-      });
+      const { errors } = searchUsers();
 
-      userApiMock.searchUsers.mockReturnValue(throwError(() => error));
-
-      const errors: ApplicationError[] = [];
-
-      service.searchUsers({ login: 'jane' }).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushRejection(httpTestingController.expectOne('/user/search'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
@@ -380,18 +371,11 @@ describe('HttpUserGateway', () => {
     });
 
     it('should map generic error to ApplicationError with fallback message', () => {
-      userApiMock.searchUsers.mockReturnValue(throwError(() => 'mockError'));
+      const { errors } = searchUsers();
 
-      const errors: ApplicationError[] = [];
-
-      service.searchUsers({ login: 'jane' }).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushServerFailure(httpTestingController.expectOne('/user/search'));
 
       expect(errors).toHaveLength(1);
-      expect(errors[0]).toBeInstanceOf(ApplicationError);
       expect(errors[0].message).toBe(USER_ERROR_MESSAGES.searchUsers);
     });
   });
