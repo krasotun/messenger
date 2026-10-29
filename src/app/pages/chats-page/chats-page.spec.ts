@@ -7,7 +7,7 @@ import { of, throwError } from 'rxjs';
 import { ChatsPage } from './chats-page';
 
 import { ChatMocks } from '@domains/chats/testing';
-import { CurrentSessionService } from '@domains/users';
+import { CurrentSessionStore } from '@domains/users';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
@@ -52,7 +52,7 @@ describe('chats routing', () => {
           useValue: NotificationMocks.notifier(),
         },
         {
-          provide: CurrentSessionService,
+          provide: CurrentSessionStore,
           useValue: { currentUser: () => ({ id: chatMock.createdBy }) },
         },
         {

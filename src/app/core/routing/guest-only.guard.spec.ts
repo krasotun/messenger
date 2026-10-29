@@ -9,9 +9,9 @@ import {
 
 import { guestOnlyGuard } from './guest-only.guard';
 
-import { CurrentSessionService, CurrentSessionStatus } from '@domains/users';
+import { CurrentSessionStore, CurrentSessionStatus } from '@domains/users';
 
-const currentSessionServiceMock = {
+const currentSessionStoreMock = {
   status: vi.fn(),
 };
 
@@ -20,14 +20,14 @@ describe('guestOnlyGuard', () => {
     TestBed.runInInjectionContext(() => guestOnlyGuard(...guardParameters));
 
   beforeEach(() => {
-    currentSessionServiceMock.status.mockReset();
+    currentSessionStoreMock.status.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         {
-          provide: CurrentSessionService,
-          useValue: currentSessionServiceMock,
+          provide: CurrentSessionStore,
+          useValue: currentSessionStoreMock,
         },
       ],
     });
@@ -42,7 +42,7 @@ describe('guestOnlyGuard', () => {
       const router = TestBed.inject(Router);
       const expectedRedirect = router.parseUrl('/');
 
-      currentSessionServiceMock.status.mockReturnValue(CurrentSessionStatus.Authenticated);
+      currentSessionStoreMock.status.mockReturnValue(CurrentSessionStatus.Authenticated);
 
       const result = executeGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot);
 
@@ -52,7 +52,7 @@ describe('guestOnlyGuard', () => {
 
   describe('anonymous', () => {
     it('should allow anonymous users', () => {
-      currentSessionServiceMock.status.mockReturnValue(CurrentSessionStatus.Anonymous);
+      currentSessionStoreMock.status.mockReturnValue(CurrentSessionStatus.Anonymous);
 
       const result = executeGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot);
 

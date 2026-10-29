@@ -1,11 +1,11 @@
 import { inject, provideAppInitializer } from '@angular/core';
 import { catchError, EMPTY } from 'rxjs';
 
-import { CurrentSessionService } from '@domains/users';
+import { CurrentSessionStore } from '@domains/users';
 
 export const provideCurrentSessionRestore = () => {
   return provideAppInitializer(() => {
-    const currentSession = inject(CurrentSessionService);
+    const currentSession = inject(CurrentSessionStore);
 
     // Отказ бэкенда не должен отменять бутстрап: статус к этому моменту уже
     // Anonymous, и посетителю нужно показать экран входа, а не пустую страницу.

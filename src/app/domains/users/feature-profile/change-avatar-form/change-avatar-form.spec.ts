@@ -4,7 +4,7 @@ import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
 
 import { ChangeAvatarService } from '../../data/change-avatar-service';
-import { CurrentSessionService } from '../../data/current-session-service';
+import { CurrentSessionStore } from '../../data/current-session-store';
 import { CurrentUser } from '../../data/current-user';
 
 import { ChangeAvatarForm } from './change-avatar-form';
@@ -12,7 +12,7 @@ import { ChangeAvatarForm } from './change-avatar-form';
 import { UserMocks } from '@domains/users/testing';
 import { Nullable } from '@shared/types';
 
-let currentSessionServiceMock: {
+let currentSessionStoreMock: {
   currentUser: WritableSignal<Nullable<CurrentUser>>;
 };
 
@@ -66,14 +66,14 @@ describe('ChangeAvatarForm', () => {
       .mockImplementation(() => `blob:mock/${(createdObjectUrlCount += 1)}`);
     revokeObjectUrlSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
 
-    currentSessionServiceMock = {
+    currentSessionStoreMock = {
       currentUser: signal(currentUserMock),
     };
 
     ({ fixture, container } = await render(ChangeAvatarForm, {
       providers: [
         { provide: ChangeAvatarService, useValue: changeAvatarServiceMock },
-        { provide: CurrentSessionService, useValue: currentSessionServiceMock },
+        { provide: CurrentSessionStore, useValue: currentSessionStoreMock },
       ],
       waitForStableOnRender: true,
     }));

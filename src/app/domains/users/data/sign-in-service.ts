@@ -2,8 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { switchMap } from 'rxjs';
 
 import { AUTH_GATEWAY, SignInInput } from './auth-gateway';
-import { CurrentSessionService } from './current-session-service';
 import { CurrentSessionStatus } from './current-session-status';
+import { CurrentSessionStore } from './current-session-store';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
@@ -12,7 +12,7 @@ import { createFormSubmitFlowState } from '@shared/submit-flow';
 @Injectable()
 export class SignInService {
   private readonly _authGateway = inject(AUTH_GATEWAY);
-  private readonly _currentSessionService = inject(CurrentSessionService);
+  private readonly _currentSessionStore = inject(CurrentSessionStore);
   private readonly _notifier = inject(NOTIFIER);
 
   private readonly _flow = createFormSubmitFlowState();
@@ -26,7 +26,7 @@ export class SignInService {
 
     this._authGateway
       .signIn(signInInput)
-      .pipe(switchMap(() => this._currentSessionService.restoreCurrentSession()))
+      .pipe(switchMap(() => this._currentSessionStore.restoreCurrentSession()))
       .subscribe({
         next: ({ status }) => {
           if (status === CurrentSessionStatus.Authenticated) {

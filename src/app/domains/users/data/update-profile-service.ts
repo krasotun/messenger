@@ -1,6 +1,6 @@
 import { computed, inject, Injectable } from '@angular/core';
 
-import { CurrentSessionService } from './current-session-service';
+import { CurrentSessionStore } from './current-session-store';
 import { UpdateProfileInput, USER_GATEWAY } from './user-gateway';
 
 import { ApplicationError } from '@shared/errors';
@@ -19,7 +19,7 @@ const emptyInitialValues: UpdateProfileInput = {
 @Injectable()
 export class UpdateProfileService {
   private readonly _userGateway = inject(USER_GATEWAY);
-  private readonly _currentSessionService = inject(CurrentSessionService);
+  private readonly _currentSessionStore = inject(CurrentSessionStore);
   private readonly _notifier = inject(NOTIFIER);
 
   private readonly _flow = createFormSubmitFlowState();
@@ -29,7 +29,7 @@ export class UpdateProfileService {
   readonly succeeded$ = this._flow.succeeded$;
 
   readonly initialValues = computed<UpdateProfileInput>(() => {
-    const currentUser = this._currentSessionService.currentUser();
+    const currentUser = this._currentSessionStore.currentUser();
 
     if (!currentUser) {
       return emptyInitialValues;
@@ -52,7 +52,7 @@ export class UpdateProfileService {
 
     this._userGateway.updateProfile(updateProfileInput).subscribe({
       next: ({ user }) => {
-        this._currentSessionService.updateCurrentUser(user);
+        this._currentSessionStore.updateCurrentUser(user);
         this._flow.markSuccess();
         this._notifier.success('Update profile', 'Profile updated successfully');
       },

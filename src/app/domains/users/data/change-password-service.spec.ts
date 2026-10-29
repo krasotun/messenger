@@ -5,8 +5,8 @@ import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from './auth-gateway';
 import { ChangePasswordService } from './change-password-service';
-import { CurrentSessionService } from './current-session-service';
 import { CurrentSessionStatus } from './current-session-status';
+import { CurrentSessionStore } from './current-session-store';
 import { ChangePasswordResult, ChangePasswordInput, USER_GATEWAY } from './user-gateway';
 
 import { UserMocks } from '@domains/users/testing';
@@ -32,7 +32,7 @@ describe('ChangePasswordService', () => {
   let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let service: ChangePasswordService;
-  let currentSessionService: CurrentSessionService;
+  let currentSessionStore: CurrentSessionStore;
 
   beforeEach(() => {
     authGatewayMock = UserMocks.authGateway();
@@ -58,11 +58,11 @@ describe('ChangePasswordService', () => {
       ],
     });
 
-    currentSessionService = TestBed.inject(CurrentSessionService);
+    currentSessionStore = TestBed.inject(CurrentSessionStore);
     service = TestBed.inject(ChangePasswordService);
 
     authGatewayMock.currentSession.mockReturnValue(of(authenticatedSessionMock));
-    currentSessionService.restoreCurrentSession().subscribe();
+    currentSessionStore.restoreCurrentSession().subscribe();
   });
 
   it('should be created', () => {
@@ -121,13 +121,13 @@ describe('ChangePasswordService', () => {
       it('should keep the current user unchanged', () => {
         service.changePassword(changePasswordInputMock);
 
-        expect(currentSessionService.currentUser()).toEqual(currentUserMock);
+        expect(currentSessionStore.currentUser()).toEqual(currentUserMock);
       });
 
       it('should keep the session authenticated', () => {
         service.changePassword(changePasswordInputMock);
 
-        expect(currentSessionService.status()).toBe(CurrentSessionStatus.Authenticated);
+        expect(currentSessionStore.status()).toBe(CurrentSessionStatus.Authenticated);
       });
 
       it('should not navigate', async () => {
@@ -160,13 +160,13 @@ describe('ChangePasswordService', () => {
       it('should keep the current user unchanged', () => {
         service.changePassword(changePasswordInputMock);
 
-        expect(currentSessionService.currentUser()).toEqual(currentUserMock);
+        expect(currentSessionStore.currentUser()).toEqual(currentUserMock);
       });
 
       it('should keep the session authenticated', () => {
         service.changePassword(changePasswordInputMock);
 
-        expect(currentSessionService.status()).toBe(CurrentSessionStatus.Authenticated);
+        expect(currentSessionStore.status()).toBe(CurrentSessionStatus.Authenticated);
       });
 
       it('should not navigate', async () => {

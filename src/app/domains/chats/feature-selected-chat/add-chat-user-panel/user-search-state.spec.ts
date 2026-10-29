@@ -4,7 +4,7 @@ import { of, Subject } from 'rxjs';
 import { createUserSearchState, UserSearchState } from './user-search-state';
 import { UserSearchStatus } from './user-search-status';
 
-import { SearchUsersResult, SearchUsersService } from '@domains/users';
+import { SearchUsersResult } from '@domains/users';
 import { UserMocks } from '@domains/users/testing';
 
 const userMock = UserMocks.user({ login: 'jane.roe', name: 'Janie' });
@@ -14,7 +14,7 @@ const debounceMs = 300;
 describe('createUserSearchState', () => {
   let login$: Subject<string>;
   let state: UserSearchState;
-  let searchUsersServiceMock: ReturnType<typeof UserMocks.searchUsersService>;
+  let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
 
   const search = (login: string): void => {
     login$.next(login);
@@ -23,15 +23,13 @@ describe('createUserSearchState', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    searchUsersServiceMock = UserMocks.searchUsersService();
+    userGatewayMock = UserMocks.userGateway();
 
     login$ = new Subject<string>();
 
     TestBed.configureTestingModule({});
 
-    state = TestBed.runInInjectionContext(() =>
-      createUserSearchState(searchUsersServiceMock as unknown as SearchUsersService, login$),
-    );
+    state = TestBed.runInInjectionContext(() => createUserSearchState(userGatewayMock, login$));
   });
 
   afterEach(() => {
@@ -42,11 +40,11 @@ describe('createUserSearchState', () => {
   describe('search not started', () => {
     it('should expose no users and send no request', () => {
       expect(state.result()).toEqual({ status: UserSearchStatus.NotStarted });
-      expect(searchUsersServiceMock.searchUsers).not.toHaveBeenCalled();
+      expect(userGatewayMock.searchUsers).not.toHaveBeenCalled();
     });
 
     it('should go back to not started when the query is cleared', () => {
-      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
+      userGatewayMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       search('jane');
 
@@ -60,24 +58,24 @@ describe('createUserSearchState', () => {
 
   describe('users found', () => {
     it('should expose the found users after the debounce delay', () => {
-      searchUsersServiceMock.searchUsers.mockReturnValue(new Subject<SearchUsersResult>());
+      userGatewayMock.searchUsers.mockReturnValue(new Subject<SearchUsersResult>());
 
       login$.next('jane');
 
-      expect(searchUsersServiceMock.searchUsers).not.toHaveBeenCalled();
+      expect(userGatewayMock.searchUsers).not.toHaveBeenCalled();
 
-      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
+      userGatewayMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
 
       vi.advanceTimersByTime(debounceMs);
 
-      expect(searchUsersServiceMock.searchUsers).toHaveBeenCalledWith({ login: 'jane' });
+      expect(userGatewayMock.searchUsers).toHaveBeenCalledWith({ login: 'jane' });
       expect(state.result()).toEqual({ status: UserSearchStatus.Found, users: [userMock] });
     });
   });
 
   describe('nobody found', () => {
     it('should expose a nobody found result, distinct from not started', () => {
-      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [] }));
+      userGatewayMock.searchUsers.mockReturnValue(of({ users: [] }));
 
       search('nobody');
 
@@ -90,7 +88,7 @@ describe('createUserSearchState', () => {
       const firstResponse$ = new Subject<SearchUsersResult>();
       const secondResponse$ = new Subject<SearchUsersResult>();
 
-      searchUsersServiceMock.searchUsers
+      userGatewayMock.searchUsers
         .mockReturnValueOnce(firstResponse$)
         .mockReturnValueOnce(secondResponse$);
 

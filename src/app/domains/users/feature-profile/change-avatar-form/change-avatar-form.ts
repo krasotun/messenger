@@ -2,7 +2,7 @@ import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ChangeAvatarService } from '../../data/change-avatar-service';
-import { CurrentSessionService } from '../../data/current-session-service';
+import { CurrentSessionStore } from '../../data/current-session-store';
 
 import { Nullable } from '@shared/types';
 import { Avatar } from '@shared/ui/avatar/avatar';
@@ -23,7 +23,7 @@ export class ChangeAvatarForm {
   readonly acceptedMimeTypes = acceptedMimeTypes.join(',');
 
   private readonly _changeAvatarService = inject(ChangeAvatarService);
-  private readonly _currentSessionService = inject(CurrentSessionService);
+  private readonly _currentSessionStore = inject(CurrentSessionStore);
 
   private readonly _selectedFile = signal<Nullable<File>>(null);
   private readonly _previewUrl = signal<Nullable<string>>(null);
@@ -40,7 +40,7 @@ export class ChangeAvatarForm {
   });
 
   protected readonly avatarUrl = computed<Nullable<string>>(() => {
-    return this._previewUrl() ?? this._currentSessionService.currentUser()?.avatar ?? null;
+    return this._previewUrl() ?? this._currentSessionStore.currentUser()?.avatar ?? null;
   });
 
   protected readonly errorMessage = this._validationErrorMessage.asReadonly();

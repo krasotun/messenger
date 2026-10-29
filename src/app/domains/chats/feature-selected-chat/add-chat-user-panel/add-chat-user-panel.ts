@@ -6,7 +6,7 @@ import { createUserSearchState } from './user-search-state';
 import { UserSearchStatus } from './user-search-status';
 
 import { ChatUsersStore } from '@domains/chats/data/chat-users-store';
-import { SearchUsersService, User } from '@domains/users';
+import { User, USER_GATEWAY } from '@domains/users';
 import { Nullable } from '@shared/types';
 import { Avatar } from '@shared/ui/avatar/avatar';
 import { Input } from '@shared/ui/input/input';
@@ -27,11 +27,11 @@ export class AddChatUserPanel {
 
   readonly loginControl = new FormControl('', { nonNullable: true });
 
-  private readonly _searchUsersService = inject(SearchUsersService);
+  private readonly _userGateway = inject(USER_GATEWAY);
   private readonly _chatUsersStore = inject(ChatUsersStore);
 
   private readonly _userSearchState = createUserSearchState(
-    this._searchUsersService,
+    this._userGateway,
     this.loginControl.valueChanges,
   );
 

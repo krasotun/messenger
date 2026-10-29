@@ -6,8 +6,8 @@ import { of, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../../data/auth-gateway';
 import { ChangeAvatarService } from '../../data/change-avatar-service';
-import { CurrentSessionService } from '../../data/current-session-service';
 import { CurrentSessionStatus } from '../../data/current-session-status';
+import { CurrentSessionStore } from '../../data/current-session-store';
 import { UpdateProfileService } from '../../data/update-profile-service';
 import { USER_GATEWAY } from '../../data/user-gateway';
 
@@ -59,7 +59,7 @@ describe('UpdateProfileModalContent', () => {
     render(UpdateProfileModalContent, {
       providers: [
         ...sharedProviders(),
-        { provide: CurrentSessionService, useValue: { currentUser: signal(currentUserMock) } },
+        { provide: CurrentSessionStore, useValue: { currentUser: signal(currentUserMock) } },
       ],
       configureTestBed: (testBed) =>
         testBed.overrideComponent(UpdateProfileModalContent, {
@@ -169,7 +169,7 @@ describe('UpdateProfileModalContent', () => {
           { provide: AUTH_GATEWAY, useValue: authGatewayMock },
         ],
         configureTestBed: (testBed) =>
-          testBed.inject(CurrentSessionService).restoreCurrentSession().subscribe(),
+          testBed.inject(CurrentSessionStore).restoreCurrentSession().subscribe(),
         waitForStableOnRender: true,
       });
 
