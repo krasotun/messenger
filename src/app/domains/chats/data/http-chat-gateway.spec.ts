@@ -1,25 +1,19 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+  TestRequest,
+} from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
 
 import { Chat } from './chat';
 import { ChatUser } from './chat-user';
 import { HttpChatGateway } from './http-chat-gateway';
-import { ChatApi } from './internal/chat-api';
 import { ChatDto, ChatUserDto } from './internal/chat-dto';
 import { CHAT_ERROR_MESSAGES } from './internal/error-messages';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
 import { ApplicationError } from '@shared/errors';
-
-const chatApiMock = {
-  chats: vi.fn(),
-  createChat: vi.fn(),
-  chatUsers: vi.fn(),
-  addChatUser: vi.fn(),
-  deleteChat: vi.fn(),
-  removeChatUser: vi.fn(),
-};
 
 const resourcesBaseUrlMock = 'https://mock.host/resources';
 
@@ -71,23 +65,26 @@ const chatUserMock: ChatUser = {
   avatar: `${resourcesBaseUrlMock}/path/to/user-avatar.png`,
 };
 
+// Ответ с причиной - как отказ бэкенда; без причины - как сбой сервера,
+// для которого Шлюз подставляет свой текст.
+const flushRejection = (request: TestRequest): void => {
+  request.flush({ reason: 'mockReason' }, { status: 400, statusText: 'Bad Request' });
+};
+
+const flushServerFailure = (request: TestRequest): void => {
+  request.flush('Internal Server Error', { status: 500, statusText: 'Internal Server Error' });
+};
+
 describe('HttpChatGateway', () => {
   let service: HttpChatGateway;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
-    chatApiMock.chats.mockReset();
-    chatApiMock.createChat.mockReset();
-    chatApiMock.chatUsers.mockReset();
-    chatApiMock.addChatUser.mockReset();
-    chatApiMock.removeChatUser.mockReset();
-
     TestBed.configureTestingModule({
       providers: [
         HttpChatGateway,
-        {
-          provide: ChatApi,
-          useValue: chatApiMock,
-        },
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: RESOURCES_BASE_URL,
           useValue: resourcesBaseUrlMock,
@@ -96,6 +93,11 @@ describe('HttpChatGateway', () => {
     });
 
     service = TestBed.inject(HttpChatGateway);
+    httpTestingController = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should be created', () => {
@@ -103,86 +105,72 @@ describe('HttpChatGateway', () => {
   });
 
   describe('chats', () => {
-    it('should ask api for chats', () => {
-      chatApiMock.chats.mockReturnValue(of([chatDtoMock]));
+    const loadChats = (): { results: Chat[][]; errors: ApplicationError[] } => {
+      const results: Chat[][] = [];
+      const errors: ApplicationError[] = [];
 
-      service.chats().subscribe();
+      service.chats().subscribe({
+        next: (chats) => results.push(chats),
+        error: (applicationError: ApplicationError) => errors.push(applicationError),
+      });
 
-      expect(chatApiMock.chats).toHaveBeenCalledOnce();
+      return { results, errors };
+    };
+
+    it('should send GET request to relative url', () => {
+      loadChats();
+
+      const request = httpTestingController.expectOne('/chats');
+
+      expect(request.request.method).toBe('GET');
+
+      request.flush([chatDtoMock]);
     });
 
     it('should map response to chats with resolved avatar url', () => {
-      chatApiMock.chats.mockReturnValue(of([chatDtoMock]));
+      const { results } = loadChats();
 
-      const results: unknown[] = [];
-
-      service.chats().subscribe((chats) => {
-        results.push(chats);
-      });
+      httpTestingController.expectOne('/chats').flush([chatDtoMock]);
 
       expect(results).toEqual([[chatMock]]);
     });
 
     it('should map chat without avatar to null avatar', () => {
-      chatApiMock.chats.mockReturnValue(of([{ ...chatDtoMock, avatar: null }]));
+      const { results } = loadChats();
 
-      const results: Chat[][] = [];
-
-      service.chats().subscribe((chats) => {
-        results.push(chats);
-      });
+      httpTestingController.expectOne('/chats').flush([{ ...chatDtoMock, avatar: null }]);
 
       expect(results[0][0].avatar).toBeNull();
     });
 
     it('should map chat without last message to null last message', () => {
-      chatApiMock.chats.mockReturnValue(of([{ ...chatDtoMock, last_message: null }]));
+      const { results } = loadChats();
 
-      const results: Chat[][] = [];
-
-      service.chats().subscribe((chats) => {
-        results.push(chats);
-      });
+      httpTestingController.expectOne('/chats').flush([{ ...chatDtoMock, last_message: null }]);
 
       expect(results[0][0].lastMessage).toBeNull();
     });
 
     it('should name last message author by first name when display name is missing', () => {
-      chatApiMock.chats.mockReturnValue(
-        of([
-          {
-            ...chatDtoMock,
-            last_message: {
-              ...chatDtoMock.last_message,
-              user: { ...chatDtoMock.last_message?.user, display_name: null },
-            },
+      const { results } = loadChats();
+
+      httpTestingController.expectOne('/chats').flush([
+        {
+          ...chatDtoMock,
+          last_message: {
+            ...chatDtoMock.last_message,
+            user: { ...chatDtoMock.last_message?.user, display_name: null },
           },
-        ]),
-      );
-
-      const results: Chat[][] = [];
-
-      service.chats().subscribe((chats) => {
-        results.push(chats);
-      });
+        },
+      ]);
 
       expect(results[0][0].lastMessage?.authorName).toBe('John');
     });
 
     it('should map error to ApplicationError with reason from response body', () => {
-      const error = new HttpErrorResponse({
-        error: { reason: 'mockReason' },
-      });
+      const { errors } = loadChats();
 
-      chatApiMock.chats.mockReturnValue(throwError(() => error));
-
-      const errors: ApplicationError[] = [];
-
-      service.chats().subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushRejection(httpTestingController.expectOne('/chats'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
@@ -190,15 +178,9 @@ describe('HttpChatGateway', () => {
     });
 
     it('should map generic error to ApplicationError with fallback message', () => {
-      chatApiMock.chats.mockReturnValue(throwError(() => 'mockError'));
+      const { errors } = loadChats();
 
-      const errors: ApplicationError[] = [];
-
-      service.chats().subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushServerFailure(httpTestingController.expectOne('/chats'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.chats);
@@ -206,41 +188,41 @@ describe('HttpChatGateway', () => {
   });
 
   describe('createChat', () => {
-    it('should ask api to create a chat with the given title', () => {
-      chatApiMock.createChat.mockReturnValue(of({ id: 1 }));
+    const createChat = (): { results: unknown[]; errors: ApplicationError[] } => {
+      const results: unknown[] = [];
+      const errors: ApplicationError[] = [];
 
-      service.createChat({ title: 'Analytics Q3' }).subscribe();
+      service.createChat({ title: 'Analytics Q3' }).subscribe({
+        next: (result) => results.push(result),
+        error: (applicationError: ApplicationError) => errors.push(applicationError),
+      });
 
-      expect(chatApiMock.createChat).toHaveBeenCalledOnce();
-      expect(chatApiMock.createChat).toHaveBeenCalledWith({ title: 'Analytics Q3' });
+      return { results, errors };
+    };
+
+    it('should send POST request with the title', () => {
+      createChat();
+
+      const request = httpTestingController.expectOne('/chats');
+
+      expect(request.request.method).toBe('POST');
+      expect(request.request.body).toEqual({ title: 'Analytics Q3' });
+
+      request.flush({ id: 1 });
     });
 
     it('should map response to the created chat id', () => {
-      chatApiMock.createChat.mockReturnValue(of({ id: 1 }));
+      const { results } = createChat();
 
-      const results: unknown[] = [];
-
-      service.createChat({ title: 'Analytics Q3' }).subscribe((result) => {
-        results.push(result);
-      });
+      httpTestingController.expectOne('/chats').flush({ id: 1 });
 
       expect(results).toEqual([{ id: 1 }]);
     });
 
     it('should map error to ApplicationError with reason from response body', () => {
-      const error = new HttpErrorResponse({
-        error: { reason: 'mockReason' },
-      });
+      const { errors } = createChat();
 
-      chatApiMock.createChat.mockReturnValue(throwError(() => error));
-
-      const errors: ApplicationError[] = [];
-
-      service.createChat({ title: 'Analytics Q3' }).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushRejection(httpTestingController.expectOne('/chats'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
@@ -248,15 +230,9 @@ describe('HttpChatGateway', () => {
     });
 
     it('should map generic error to ApplicationError with fallback message', () => {
-      chatApiMock.createChat.mockReturnValue(throwError(() => 'mockError'));
+      const { errors } = createChat();
 
-      const errors: ApplicationError[] = [];
-
-      service.createChat({ title: 'Analytics Q3' }).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushServerFailure(httpTestingController.expectOne('/chats'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.createChat);
@@ -264,53 +240,50 @@ describe('HttpChatGateway', () => {
   });
 
   describe('chatUsers', () => {
-    it('should ask api for chat users by chat id', () => {
-      chatApiMock.chatUsers.mockReturnValue(of([chatUserDtoMock]));
+    const loadChatUsers = (): { results: ChatUser[][]; errors: ApplicationError[] } => {
+      const results: ChatUser[][] = [];
+      const errors: ApplicationError[] = [];
 
-      service.chatUsers(1).subscribe();
+      service.chatUsers(1).subscribe({
+        next: (chatUsers) => results.push(chatUsers),
+        error: (applicationError: ApplicationError) => errors.push(applicationError),
+      });
 
-      expect(chatApiMock.chatUsers).toHaveBeenCalledOnce();
-      expect(chatApiMock.chatUsers).toHaveBeenCalledWith(1);
+      return { results, errors };
+    };
+
+    it('should send GET request to the chat users url', () => {
+      loadChatUsers();
+
+      const request = httpTestingController.expectOne('/chats/1/users');
+
+      expect(request.request.method).toBe('GET');
+
+      request.flush([chatUserDtoMock]);
     });
 
     it('should map response to chat users with resolved avatar url', () => {
-      chatApiMock.chatUsers.mockReturnValue(of([chatUserDtoMock]));
+      const { results } = loadChatUsers();
 
-      const results: unknown[] = [];
-
-      service.chatUsers(1).subscribe((chatUsers) => {
-        results.push(chatUsers);
-      });
+      httpTestingController.expectOne('/chats/1/users').flush([chatUserDtoMock]);
 
       expect(results).toEqual([[chatUserMock]]);
     });
 
     it('should name a chat user by first name when display name is missing', () => {
-      chatApiMock.chatUsers.mockReturnValue(of([{ ...chatUserDtoMock, display_name: null }]));
+      const { results } = loadChatUsers();
 
-      const results: ChatUser[][] = [];
-
-      service.chatUsers(1).subscribe((chatUsers) => {
-        results.push(chatUsers);
-      });
+      httpTestingController
+        .expectOne('/chats/1/users')
+        .flush([{ ...chatUserDtoMock, display_name: null }]);
 
       expect(results[0][0].name).toBe('John');
     });
 
     it('should map error to ApplicationError with reason from response body', () => {
-      const error = new HttpErrorResponse({
-        error: { reason: 'mockReason' },
-      });
+      const { errors } = loadChatUsers();
 
-      chatApiMock.chatUsers.mockReturnValue(throwError(() => error));
-
-      const errors: ApplicationError[] = [];
-
-      service.chatUsers(1).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushRejection(httpTestingController.expectOne('/chats/1/users'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
@@ -318,15 +291,9 @@ describe('HttpChatGateway', () => {
     });
 
     it('should map generic error to ApplicationError with fallback message', () => {
-      chatApiMock.chatUsers.mockReturnValue(throwError(() => 'mockError'));
+      const { errors } = loadChatUsers();
 
-      const errors: ApplicationError[] = [];
-
-      service.chatUsers(1).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushServerFailure(httpTestingController.expectOne('/chats/1/users'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.chatUsers);
@@ -334,69 +301,69 @@ describe('HttpChatGateway', () => {
   });
 
   describe('deleteChat', () => {
-    it('should ask api to delete the chat', () => {
-      chatApiMock.deleteChat.mockReturnValue(of(null));
-
+    it('should send DELETE request with the chat id in the body', () => {
       service.deleteChat({ chatId: 1 }).subscribe();
 
-      expect(chatApiMock.deleteChat).toHaveBeenCalledOnce();
-      expect(chatApiMock.deleteChat).toHaveBeenCalledWith({ chatId: 1 });
+      const request = httpTestingController.expectOne('/chats');
+
+      expect(request.request.method).toBe('DELETE');
+      expect(request.request.body).toEqual({ chatId: 1 });
+
+      request.flush(null);
     });
 
     it('should turn a rejected request into an application error', () => {
-      chatApiMock.deleteChat.mockReturnValue(
-        throwError(() => new HttpErrorResponse({ status: 500 })),
-      );
-
-      let caughtError: unknown;
+      const errors: ApplicationError[] = [];
 
       service.deleteChat({ chatId: 1 }).subscribe({
-        error: (error: unknown) => {
-          caughtError = error;
-        },
+        error: (applicationError: ApplicationError) => errors.push(applicationError),
       });
 
-      expect(caughtError).toBeInstanceOf(ApplicationError);
-      expect((caughtError as ApplicationError).message).toBe(CHAT_ERROR_MESSAGES.deleteChat);
+      flushServerFailure(httpTestingController.expectOne('/chats'));
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.deleteChat);
     });
   });
 
   describe('addChatUser', () => {
-    it('should ask api to add the user to the chat', () => {
-      chatApiMock.addChatUser.mockReturnValue(of(null));
+    const addChatUser = (): { results: unknown[]; errors: ApplicationError[] } => {
+      const results: unknown[] = [];
+      const errors: ApplicationError[] = [];
 
-      service.addChatUser({ chatId: 1, userId: 2 }).subscribe();
+      service.addChatUser({ chatId: 1, userId: 2 }).subscribe({
+        next: (result) => results.push(result),
+        error: (applicationError: ApplicationError) => errors.push(applicationError),
+      });
 
-      expect(chatApiMock.addChatUser).toHaveBeenCalledOnce();
-      expect(chatApiMock.addChatUser).toHaveBeenCalledWith({ chatId: 1, users: [2] });
+      return { results, errors };
+    };
+
+    it('should send PUT request with the chat id and user ids as text', () => {
+      addChatUser();
+
+      const request = httpTestingController.expectOne('/chats/users');
+
+      expect(request.request.method).toBe('PUT');
+      expect(request.request.body).toEqual({ chatId: 1, users: [2] });
+      expect(request.request.responseType).toBe('text');
+
+      request.flush('OK');
     });
 
     it('should map response to a success result', () => {
-      chatApiMock.addChatUser.mockReturnValue(of(null));
+      const { results } = addChatUser();
 
-      const results: unknown[] = [];
-
-      service.addChatUser({ chatId: 1, userId: 2 }).subscribe((result) => {
-        results.push(result);
-      });
+      httpTestingController.expectOne('/chats/users').flush('OK');
 
       expect(results).toEqual([{ userAdded: true }]);
     });
 
     it('should map error to ApplicationError with reason from response body', () => {
-      const error = new HttpErrorResponse({
-        error: { reason: 'mockReason' },
-      });
+      const { errors } = addChatUser();
 
-      chatApiMock.addChatUser.mockReturnValue(throwError(() => error));
-
-      const errors: ApplicationError[] = [];
-
-      service.addChatUser({ chatId: 1, userId: 2 }).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushRejection(httpTestingController.expectOne('/chats/users'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toBeInstanceOf(ApplicationError);
@@ -404,15 +371,9 @@ describe('HttpChatGateway', () => {
     });
 
     it('should map generic error to ApplicationError with fallback message', () => {
-      chatApiMock.addChatUser.mockReturnValue(throwError(() => 'mockError'));
+      const { errors } = addChatUser();
 
-      const errors: ApplicationError[] = [];
-
-      service.addChatUser({ chatId: 1, userId: 2 }).subscribe({
-        error: (applicationError: ApplicationError) => {
-          errors.push(applicationError);
-        },
-      });
+      flushServerFailure(httpTestingController.expectOne('/chats/users'));
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.addChatUser);
@@ -420,55 +381,56 @@ describe('HttpChatGateway', () => {
   });
 
   describe('removeChatUser', () => {
-    it('should ask api to remove the user from the chat', () => {
-      chatApiMock.removeChatUser.mockReturnValue(of('OK'));
+    const removeChatUser = (): { results: unknown[]; errors: ApplicationError[] } => {
+      const results: unknown[] = [];
+      const errors: ApplicationError[] = [];
 
-      service.removeChatUser({ chatId: 1, userId: 2 }).subscribe();
+      service.removeChatUser({ chatId: 1, userId: 2 }).subscribe({
+        next: (result) => results.push(result),
+        error: (applicationError: ApplicationError) => errors.push(applicationError),
+      });
 
-      expect(chatApiMock.removeChatUser).toHaveBeenCalledOnce();
-      expect(chatApiMock.removeChatUser).toHaveBeenCalledWith({ chatId: 1, users: [2] });
+      return { results, errors };
+    };
+
+    it('should send DELETE request with the chat id and user ids as text', () => {
+      removeChatUser();
+
+      const request = httpTestingController.expectOne('/chats/users');
+
+      expect(request.request.method).toBe('DELETE');
+      expect(request.request.body).toEqual({ chatId: 1, users: [2] });
+      expect(request.request.responseType).toBe('text');
+
+      request.flush('OK');
     });
 
     it('should emit once when the user is removed', () => {
-      chatApiMock.removeChatUser.mockReturnValue(of('OK'));
+      const { results } = removeChatUser();
 
-      const nextSpy = vi.fn();
+      httpTestingController.expectOne('/chats/users').flush('OK');
 
-      service.removeChatUser({ chatId: 1, userId: 2 }).subscribe(nextSpy);
-
-      expect(nextSpy).toHaveBeenCalledOnce();
+      expect(results).toHaveLength(1);
     });
 
     it('should map error to ApplicationError with reason from response body', () => {
-      chatApiMock.removeChatUser.mockReturnValue(
-        throwError(() => new HttpErrorResponse({ error: { reason: 'mockReason' } })),
-      );
+      const { errors } = removeChatUser();
 
-      let caughtError: unknown;
+      flushRejection(httpTestingController.expectOne('/chats/users'));
 
-      service.removeChatUser({ chatId: 1, userId: 2 }).subscribe({
-        error: (error: unknown) => {
-          caughtError = error;
-        },
-      });
-
-      expect(caughtError).toBeInstanceOf(ApplicationError);
-      expect((caughtError as ApplicationError).message).toBe('mockReason');
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe('mockReason');
     });
 
     it('should map generic error to ApplicationError with fallback message', () => {
-      chatApiMock.removeChatUser.mockReturnValue(throwError(() => 'mockError'));
+      const { errors } = removeChatUser();
 
-      let caughtError: unknown;
+      flushServerFailure(httpTestingController.expectOne('/chats/users'));
 
-      service.removeChatUser({ chatId: 1, userId: 2 }).subscribe({
-        error: (error: unknown) => {
-          caughtError = error;
-        },
-      });
-
-      expect(caughtError).toBeInstanceOf(ApplicationError);
-      expect((caughtError as ApplicationError).message).toBe(CHAT_ERROR_MESSAGES.removeChatUser);
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(ApplicationError);
+      expect(errors[0].message).toBe(CHAT_ERROR_MESSAGES.removeChatUser);
     });
   });
 });
