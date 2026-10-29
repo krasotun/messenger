@@ -1,15 +1,13 @@
-import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { fireEvent, render, screen, within } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../../data/auth-gateway';
-import { ChangeAvatarService } from '../../data/change-avatar-service';
 import { CurrentSessionStatus } from '../../data/current-session-status';
 import { CurrentSessionStore } from '../../data/current-session-store';
 import { UpdateProfileService } from '../../data/update-profile-service';
-import { USER_GATEWAY } from '../../data/user-gateway';
+import { ChangeAvatarResult, USER_GATEWAY } from '../../data/user-gateway';
 
 import { UpdateProfileModalContent } from './update-profile-modal-content';
 
@@ -44,7 +42,8 @@ const changeAvatarError = /^Avatar change failed:/;
 
 describe('UpdateProfileModalContent', () => {
   let updateProfileServiceMock: ReturnType<typeof UserMocks.updateProfileService>;
-  let changeAvatarServiceMock: ReturnType<typeof UserMocks.changeAvatarService>;
+  let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
+  let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
   let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let user: UserEvent;
@@ -52,24 +51,23 @@ describe('UpdateProfileModalContent', () => {
   const sharedProviders = () => [
     { provide: ModalRef, useValue: modalRefMock },
     { provide: NOTIFIER, useValue: notifierMock },
+    { provide: USER_GATEWAY, useValue: userGatewayMock },
+    { provide: AUTH_GATEWAY, useValue: authGatewayMock },
   ];
 
-  // Оба use case живут в providers компонента модалки.
+  // UpdateProfileService живет в providers компонента модалки, Смена аватара
+  // идет через настоящий CurrentSessionStore с восстановленной сессией.
   const renderModal = () =>
     render(UpdateProfileModalContent, {
-      providers: [
-        ...sharedProviders(),
-        { provide: CurrentSessionStore, useValue: { currentUser: signal(currentUserMock) } },
-      ],
-      configureTestBed: (testBed) =>
+      providers: sharedProviders(),
+      configureTestBed: (testBed) => {
         testBed.overrideComponent(UpdateProfileModalContent, {
           set: {
-            providers: [
-              { provide: UpdateProfileService, useValue: updateProfileServiceMock },
-              { provide: ChangeAvatarService, useValue: changeAvatarServiceMock },
-            ],
+            providers: [{ provide: UpdateProfileService, useValue: updateProfileServiceMock }],
           },
-        }),
+        });
+        testBed.inject(CurrentSessionStore).restoreCurrentSession().subscribe();
+      },
       waitForStableOnRender: true,
     });
 
@@ -89,7 +87,11 @@ describe('UpdateProfileModalContent', () => {
   beforeEach(() => {
     user = userEvent.setup();
     updateProfileServiceMock = UserMocks.updateProfileService(initialValuesMock);
-    changeAvatarServiceMock = UserMocks.changeAvatarService();
+    userGatewayMock = UserMocks.userGateway();
+    authGatewayMock = UserMocks.authGateway();
+    authGatewayMock.currentSession.mockImplementation(() =>
+      of({ status: CurrentSessionStatus.Authenticated, user: currentUserMock }),
+    );
     modalRefMock = ModalMocks.modalRef();
     notifierMock = NotificationMocks.notifier();
   });
@@ -124,7 +126,7 @@ describe('UpdateProfileModalContent', () => {
 
       fixture.destroy();
 
-      expect(changeAvatarServiceMock.changeAvatar).not.toHaveBeenCalled();
+      expect(userGatewayMock.changeAvatar).not.toHaveBeenCalled();
     });
   });
 
@@ -137,12 +139,13 @@ describe('UpdateProfileModalContent', () => {
     });
 
     it('should keep the change avatar submit out of the update profile use case', async () => {
+      userGatewayMock.changeAvatar.mockReturnValue(new Subject<ChangeAvatarResult>());
       await renderModal();
 
       await selectAvatarFile();
       await submitChangeAvatarForm();
 
-      expect(changeAvatarServiceMock.changeAvatar).toHaveBeenCalledOnce();
+      expect(userGatewayMock.changeAvatar).toHaveBeenCalledOnce();
       expect(updateProfileServiceMock.updateProfile).not.toHaveBeenCalled();
       expect(modalRefMock.close).not.toHaveBeenCalled();
     });
@@ -153,21 +156,14 @@ describe('UpdateProfileModalContent', () => {
       await changeFirstNameAndSave();
 
       expect(updateProfileServiceMock.updateProfile).toHaveBeenCalledOnce();
-      expect(changeAvatarServiceMock.changeAvatar).not.toHaveBeenCalled();
+      expect(userGatewayMock.changeAvatar).not.toHaveBeenCalled();
     });
   });
 
   describe('flow lifetime', () => {
-    let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
-    let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
-
     const renderWithRealServices = () =>
       render(UpdateProfileModalContent, {
-        providers: [
-          ...sharedProviders(),
-          { provide: USER_GATEWAY, useValue: userGatewayMock },
-          { provide: AUTH_GATEWAY, useValue: authGatewayMock },
-        ],
+        providers: sharedProviders(),
         configureTestBed: (testBed) =>
           testBed.inject(CurrentSessionStore).restoreCurrentSession().subscribe(),
         waitForStableOnRender: true,
@@ -183,17 +179,11 @@ describe('UpdateProfileModalContent', () => {
     };
 
     beforeEach(() => {
-      userGatewayMock = UserMocks.userGateway();
       userGatewayMock.updateProfile.mockImplementation(() =>
         throwError(() => new ApplicationError('Mock error')),
       );
       userGatewayMock.changeAvatar.mockImplementation(() =>
         throwError(() => new ApplicationError('Mock error')),
-      );
-
-      authGatewayMock = UserMocks.authGateway();
-      authGatewayMock.currentSession.mockImplementation(() =>
-        of({ status: CurrentSessionStatus.Authenticated, user: currentUserMock }),
       );
     });
 

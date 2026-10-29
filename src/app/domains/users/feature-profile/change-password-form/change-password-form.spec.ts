@@ -1,18 +1,22 @@
 import { outputBinding } from '@angular/core';
 import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
+import { of, Subject } from 'rxjs';
 
-import { ChangePasswordService } from '../../data/change-password-service';
+import { AUTH_GATEWAY } from '../../data/auth-gateway';
+import { ChangePasswordResult, USER_GATEWAY } from '../../data/user-gateway';
 
 import { ChangePasswordForm } from './change-password-form';
 
 import { UserMocks } from '@domains/users/testing';
+import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 
 const requiredFieldError = 'This field is required';
 const mismatchError = 'Values do not match';
 
 describe('ChangePasswordForm', () => {
-  let changePasswordServiceMock: ReturnType<typeof UserMocks.changePasswordService>;
+  let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
   let user: UserEvent;
 
   const renderForm = async () => {
@@ -20,7 +24,11 @@ describe('ChangePasswordForm', () => {
 
     const result = await render(ChangePasswordForm, {
       bindings: [outputBinding('passwordChanged', passwordChanged)],
-      providers: [{ provide: ChangePasswordService, useValue: changePasswordServiceMock }],
+      providers: [
+        { provide: AUTH_GATEWAY, useValue: UserMocks.authGateway() },
+        { provide: USER_GATEWAY, useValue: userGatewayMock },
+        { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
+      ],
       waitForStableOnRender: true,
     });
 
@@ -43,7 +51,7 @@ describe('ChangePasswordForm', () => {
 
   beforeEach(() => {
     user = userEvent.setup();
-    changePasswordServiceMock = UserMocks.changePasswordService();
+    userGatewayMock = UserMocks.userGateway();
   });
 
   it('should create', async () => {
@@ -69,7 +77,7 @@ describe('ChangePasswordForm', () => {
 
       fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
-      expect(changePasswordServiceMock.changePassword).not.toHaveBeenCalled();
+      expect(userGatewayMock.changePassword).not.toHaveBeenCalled();
     });
   });
 
@@ -81,7 +89,7 @@ describe('ChangePasswordForm', () => {
 
       fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
-      expect(changePasswordServiceMock.changePassword).not.toHaveBeenCalled();
+      expect(userGatewayMock.changePassword).not.toHaveBeenCalled();
     });
 
     it('should disable the submit button after the repeat field loses focus', async () => {
@@ -162,13 +170,14 @@ describe('ChangePasswordForm', () => {
 
   describe('valid submit', () => {
     it('should call changePassword with the old and the new password only', async () => {
+      userGatewayMock.changePassword.mockReturnValue(new Subject<ChangePasswordResult>());
       await renderForm();
 
       await fillForm('oldPassword', 'newPassword', 'newPassword');
       await user.click(getSubmitButton());
 
-      expect(changePasswordServiceMock.changePassword).toHaveBeenCalledOnce();
-      expect(changePasswordServiceMock.changePassword).toHaveBeenCalledWith({
+      expect(userGatewayMock.changePassword).toHaveBeenCalledOnce();
+      expect(userGatewayMock.changePassword).toHaveBeenCalledWith({
         oldPassword: 'oldPassword',
         newPassword: 'newPassword',
       });
@@ -177,19 +186,21 @@ describe('ChangePasswordForm', () => {
 
   describe('submitting state', () => {
     it('should disable submit button', async () => {
-      const { fixture } = await renderForm();
+      userGatewayMock.changePassword.mockReturnValue(new Subject<ChangePasswordResult>());
+      await renderForm();
 
-      changePasswordServiceMock.isSubmitting.set(true);
-      await fixture.whenStable();
+      await fillForm('oldPassword', 'newPassword', 'newPassword');
+      await user.click(getSubmitButton());
 
       expect(getSubmitButton()).toBeDisabled();
     });
 
     it('should disable all controls', async () => {
-      const { fixture } = await renderForm();
+      userGatewayMock.changePassword.mockReturnValue(new Subject<ChangePasswordResult>());
+      await renderForm();
 
-      changePasswordServiceMock.isSubmitting.set(true);
-      await fixture.whenStable();
+      await fillForm('oldPassword', 'newPassword', 'newPassword');
+      await user.click(getSubmitButton());
 
       expect(getOldPasswordField()).toBeDisabled();
       expect(getNewPasswordField()).toBeDisabled();
@@ -206,10 +217,12 @@ describe('ChangePasswordForm', () => {
   });
 
   describe('success state', () => {
-    it('should emit passwordChanged when the service reports success, without a manual application tick', async () => {
+    it('should emit passwordChanged when the store reports success, without a manual application tick', async () => {
+      userGatewayMock.changePassword.mockReturnValue(of({ passwordChanged: true }));
       const { passwordChanged } = await renderForm();
 
-      changePasswordServiceMock.succeeded$.next();
+      await fillForm('oldPassword', 'newPassword', 'newPassword');
+      await user.click(getSubmitButton());
 
       expect(passwordChanged).toHaveBeenCalledOnce();
     });

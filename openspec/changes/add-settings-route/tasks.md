@@ -16,10 +16,10 @@
 
 ## 2. Операции Текущего пользователя в Сторе
 
-- [ ] 2.1 Перенести `it` из `src/app/domains/users/data/refresh-current-user-service.spec.ts` в спек `current-session-store.spec.ts` (`describe('refresh current user')`) и реализовать `CurrentSessionStore.refreshCurrentUser()`: ответ `Authenticated` пишется прямо в состояние Стора; удалить `RefreshCurrentUserService` со спеком и экспорт из `src/app/domains/users/index.ts`
-- [ ] 2.2 Перенести `it` из `change-password-service.spec.ts` в спек Стора (`describe('change password')`) и реализовать `CurrentSessionStore.changePassword(input, flow)`; `ChangePasswordForm` создает свой флоу и зовет Стор, у `change-password-modal-content` пропадают `providers`, спеки формы и модалки - на настоящий Стор с двойником `USER_GATEWAY`; удалить `ChangePasswordService` со спеком и двойник из `UserMocks`
-- [ ] 2.3 То же для **Смены аватара**: `CurrentSessionStore.changeAvatar(input, flow)` (`describe('change avatar')`), свой флоу в `ChangeAvatarForm`, удалить `ChangeAvatarService` со спеком и двойник из `UserMocks`
-- [ ] 2.4 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 2.1 Перенести `it` из `src/app/domains/users/data/refresh-current-user-service.spec.ts` в спек `current-session-store.spec.ts` (`describe('refresh current user')`) и реализовать `CurrentSessionStore.refreshCurrentUser()`: ответ `Authenticated` пишется прямо в состояние Стора; удалить `RefreshCurrentUserService` со спеком и экспорт из `src/app/domains/users/index.ts`
+- [x] 2.2 Перенести `it` из `change-password-service.spec.ts` в спек Стора (`describe('change password')`) и реализовать `CurrentSessionStore.changePassword(input, flow)`; `ChangePasswordForm` создает свой флоу и зовет Стор, у `change-password-modal-content` пропадают `providers`, спеки формы и модалки - на настоящий Стор с двойником `USER_GATEWAY`; удалить `ChangePasswordService` со спеком и двойник из `UserMocks`
+- [x] 2.3 То же для **Смены аватара**: `CurrentSessionStore.changeAvatar(input, flow)` (`describe('change avatar')`), свой флоу в `ChangeAvatarForm`, удалить `ChangeAvatarService` со спеком и двойник из `UserMocks`
+- [x] 2.4 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 3. Формы для страницы
 
