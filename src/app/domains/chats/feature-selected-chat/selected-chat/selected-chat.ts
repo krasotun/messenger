@@ -7,8 +7,7 @@ import { SelectedChatHeader } from '../selected-chat-header/selected-chat-header
 
 import { ChatListStore } from '@domains/chats/data/chat-list-store';
 import { ChatUser } from '@domains/chats/data/chat-user';
-import { ChatUsersService } from '@domains/chats/data/chat-users-service';
-import { RemoveChatUserService } from '@domains/chats/data/remove-chat-user-service';
+import { ChatUsersStore } from '@domains/chats/data/chat-users-store';
 import { CurrentSessionService } from '@domains/identity-access';
 import { ConfirmationService } from '@shared/ui/confirmation';
 
@@ -20,18 +19,16 @@ const DELETE_CHAT_MESSAGE =
   imports: [SelectedChatHeader, ChatUsersPanel],
   templateUrl: './selected-chat.html',
   styleUrl: './selected-chat.scss',
-  providers: [RemoveChatUserService],
 })
 export class SelectedChat {
   readonly chatId = input.required({
     transform: numberAttribute,
   });
 
-  private readonly _chatUsersService = inject(ChatUsersService);
+  private readonly _chatUsersStore = inject(ChatUsersStore);
   private readonly _chatListStore = inject(ChatListStore);
   private readonly _currentSessionService = inject(CurrentSessionService);
   private readonly _confirmationService = inject(ConfirmationService);
-  private readonly _removeChatUserService = inject(RemoveChatUserService);
   private readonly _router = inject(Router);
 
   readonly membersOpen = signal(false);
@@ -51,12 +48,12 @@ export class SelectedChat {
     return !!chat && !!currentUser && chat.createdBy === currentUser.id;
   });
 
-  readonly chatUsers = this._chatUsersService.chatUsers;
-  readonly errorMessage = this._chatUsersService.errorMessage;
+  readonly chatUsers = this._chatUsersStore.chatUsers;
+  readonly errorMessage = this._chatUsersStore.errorMessage;
 
   constructor() {
     effect(() => {
-      this._chatUsersService.loadChatUsers(this.chatId());
+      this._chatUsersStore.loadChatUsers(this.chatId());
     });
 
     this._chatListStore.chatDeletionFlow.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
@@ -110,7 +107,7 @@ export class SelectedChat {
       })
       .subscribe((confirmed) => {
         if (confirmed) {
-          this._removeChatUserService.removeChatUser({ chatId: chat.id, userId: chatUser.id });
+          this._chatUsersStore.removeChatUser({ chatId: chat.id, userId: chatUser.id });
         }
       });
   }

@@ -5,17 +5,14 @@ import { userEvent, UserEvent } from '@testing-library/user-event';
 import { of, Subject } from 'rxjs';
 import { Mock } from 'vitest';
 
-import { AddChatUserService } from '../../data/add-chat-user-service';
-
 import { AddChatUserPanel } from './add-chat-user-panel';
 
+import { CHAT_GATEWAY } from '@domains/chats/data/chat-gateway';
+import { ChatMocks } from '@domains/chats/testing';
 import { SearchUsersResult, SearchUsersService } from '@domains/identity-access';
 import { IdentityMocks } from '@domains/identity-access/testing';
-
-let addChatUserServiceMock: {
-  succeeded$: Subject<void>;
-  addChatUser: ReturnType<typeof vi.fn>;
-};
+import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 
 const userMock = IdentityMocks.user({ login: 'jane.roe', name: 'Janie' });
 
@@ -23,6 +20,7 @@ const debounceMs = 300;
 
 describe('AddChatUserPanel', () => {
   let searchUsersServiceMock: ReturnType<typeof IdentityMocks.searchUsersService>;
+  let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
   let fixture: ComponentFixture<AddChatUserPanel>;
   let userAdded: Mock<() => void>;
   let user: UserEvent;
@@ -39,19 +37,18 @@ describe('AddChatUserPanel', () => {
     vi.useFakeTimers();
     user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 
-    addChatUserServiceMock = {
-      succeeded$: new Subject<void>(),
-      addChatUser: vi.fn(),
-    };
+    chatGatewayMock = ChatMocks.chatGateway();
+    chatGatewayMock.addChatUser.mockReturnValue(of({ userAdded: true }));
+    chatGatewayMock.chatUsers.mockReturnValue(of([]));
     userAdded = vi.fn();
 
     ({ fixture } = await render(AddChatUserPanel, {
       bindings: [inputBinding('chatId', () => 1), outputBinding('userAdded', userAdded)],
-      providers: [{ provide: SearchUsersService, useValue: searchUsersServiceMock }],
-      configureTestBed: (testBed) =>
-        testBed.overrideComponent(AddChatUserPanel, {
-          set: { providers: [{ provide: AddChatUserService, useValue: addChatUserServiceMock }] },
-        }),
+      providers: [
+        { provide: SearchUsersService, useValue: searchUsersServiceMock },
+        { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
+        { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
+      ],
     }));
   });
 
@@ -101,7 +98,7 @@ describe('AddChatUserPanel', () => {
       await search('jane');
       await user.click(screen.getByRole('button', { name: /Janie/ }));
 
-      expect(addChatUserServiceMock.addChatUser).toHaveBeenCalledWith({ chatId: 1, userId: 2 });
+      expect(chatGatewayMock.addChatUser).toHaveBeenCalledWith({ chatId: 1, userId: 2 });
     });
   });
 
@@ -128,8 +125,11 @@ describe('AddChatUserPanel', () => {
   });
 
   describe('successful add', () => {
-    it('should emit userAdded when the service reports success, without a manual application tick', () => {
-      addChatUserServiceMock.succeeded$.next();
+    it('should emit userAdded when the user is added, without a manual application tick', async () => {
+      searchUsersServiceMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
+
+      await search('jane');
+      await user.click(screen.getByRole('button', { name: /Janie/ }));
 
       expect(userAdded).toHaveBeenCalledOnce();
     });

@@ -2,12 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Routes, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { screen, within } from '@testing-library/angular/zoneless';
-import { of, Subject } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { ChatsPage } from './chats-page';
 
 import { ChatMocks } from '@domains/chats/testing';
 import { CurrentSessionService } from '@domains/identity-access';
+import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
 import { ConfirmationService } from '@shared/ui/confirmation';
@@ -16,21 +17,14 @@ const chatMock = ChatMocks.chat({ title: 'Analytics Q3' });
 
 describe('chats routing', () => {
   let routes: Routes;
-  let chatUsersServiceMock: {
-    chatUsers: () => unknown[];
-    errorMessage: () => string | null;
-    loadChatUsers: (chatId: number) => void;
-  };
 
   beforeEach(async () => {
     // Роут-конфигурация чатов недоступна для статического импорта из
     // `src/app/pages` (граница ESLint), поэтому берется динамически, как это
     // уже делает production-код в `app.routes.ts`.
     const { CHAT_GATEWAY } = await import('@domains/chats/data/chat-gateway');
-    const { ChatUsersService } = await import('@domains/chats/data/chat-users-service');
     const { SelectedChat } =
       await import('@domains/chats/feature-selected-chat/selected-chat/selected-chat');
-    const { RemoveChatUserService } = await import('@domains/chats/data/remove-chat-user-service');
 
     routes = [
       {
@@ -40,18 +34,11 @@ describe('chats routing', () => {
       },
     ];
 
-    let usersErrorMessage: string | null = null;
-
     const chatGatewayMock = ChatMocks.chatGateway();
     chatGatewayMock.chats.mockReturnValue(of([chatMock]));
-
-    chatUsersServiceMock = {
-      chatUsers: () => [],
-      errorMessage: () => usersErrorMessage,
-      loadChatUsers: (chatId: number) => {
-        usersErrorMessage = chatId === chatMock.id ? null : 'Not found chat';
-      },
-    };
+    chatGatewayMock.chatUsers.mockImplementation((chatId) =>
+      chatId === chatMock.id ? of([]) : throwError(() => new ApplicationError('Not found chat')),
+    );
 
     TestBed.configureTestingModule({
       providers: [
@@ -65,10 +52,6 @@ describe('chats routing', () => {
           useValue: NotificationMocks.notifier(),
         },
         {
-          provide: ChatUsersService,
-          useValue: chatUsersServiceMock,
-        },
-        {
           provide: CurrentSessionService,
           useValue: { currentUser: () => ({ id: chatMock.createdBy }) },
         },
@@ -77,17 +60,6 @@ describe('chats routing', () => {
           useValue: { confirm: () => of(false) },
         },
       ],
-    });
-
-    TestBed.overrideComponent(SelectedChat, {
-      set: {
-        providers: [
-          {
-            provide: RemoveChatUserService,
-            useValue: { removeChatUser: vi.fn(), succeeded$: new Subject<void>() },
-          },
-        ],
-      },
     });
   });
 

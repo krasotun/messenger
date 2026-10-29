@@ -2,10 +2,15 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, Observable, Subject, switchMap, tap } from 'rxjs';
 
-import { CHAT_GATEWAY } from './chat-gateway';
-import { ChatUser } from './chat-user';
-
+import {
+  AddChatUserInput,
+  CHAT_GATEWAY,
+  RemoveChatUserInput,
+} from '@domains/chats/data/chat-gateway';
+import { ChatUser } from '@domains/chats/data/chat-user';
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
+import { createActionFlowState, createFormSubmitFlowState } from '@shared/submit-flow';
 import { LoadStatus } from '@shared/types';
 
 type ChatUsersState =
@@ -14,11 +19,23 @@ type ChatUsersState =
   | { status: LoadStatus.Loaded; chatUsers: ChatUser[] }
   | { status: LoadStatus.Error; errorMessage: string };
 
-@Injectable({
-  providedIn: 'root',
-})
-export class ChatUsersService {
+@Injectable({ providedIn: 'root' })
+export class ChatUsersStore {
   private readonly _chatGateway = inject(CHAT_GATEWAY);
+  private readonly _notifier = inject(NOTIFIER);
+
+  private readonly _chatUserAdditionFlow = createFormSubmitFlowState();
+
+  readonly chatUserAdditionFlow = {
+    isSubmitting: this._chatUserAdditionFlow.isSubmitting,
+    succeeded$: this._chatUserAdditionFlow.succeeded$,
+  };
+
+  private readonly _chatUserRemovalFlow = createActionFlowState();
+
+  readonly chatUserRemovalFlow = {
+    succeeded$: this._chatUserRemovalFlow.succeeded$,
+  };
 
   private readonly _requestedChatId$ = new Subject<number>();
 
@@ -45,6 +62,34 @@ export class ChatUsersService {
         takeUntilDestroyed(),
       )
       .subscribe();
+  }
+
+  addChatUser(addChatUserInput: AddChatUserInput): void {
+    this._chatUserAdditionFlow.startSubmitting();
+
+    this._chatGateway.addChatUser(addChatUserInput).subscribe({
+      next: () => {
+        this.loadChatUsers(addChatUserInput.chatId);
+        this._chatUserAdditionFlow.markSuccess();
+      },
+      error: ({ message }: ApplicationError) => {
+        this._chatUserAdditionFlow.markError();
+        this._notifier.error('Failed to add chat user', message);
+      },
+    });
+  }
+
+  removeChatUser(removeChatUserInput: RemoveChatUserInput): void {
+    this._chatGateway.removeChatUser(removeChatUserInput).subscribe({
+      next: () => {
+        this.loadChatUsers(removeChatUserInput.chatId);
+        this._chatUserRemovalFlow.markSuccess();
+        this._notifier.success('Remove member', 'Member removed');
+      },
+      error: ({ message }: ApplicationError) => {
+        this._notifier.error('Failed to remove member', message);
+      },
+    });
   }
 
   loadChatUsers(chatId: number): void {
