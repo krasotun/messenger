@@ -13,10 +13,14 @@
 - Дерево маршрутов (`app.routes.ts`) уже вложенное и ленивое через
   `loadComponent`; стражи `authenticatedOnlyGuard` и `guestOnlyGuard` живут в
   `core/routing`. `provideRouter` подключен с `withComponentInputBinding()`.
-- `CurrentSessionService.restoreCurrentSession()` на любой ошибке переводит
+- С #275 состояние держит Стор, а флоу формы она создает сама и передает в
+  метод Стора аргументом (ADR `2026-10-28-page-part-stores-and-folder-boundaries.md`).
+  `UpdateProfileService`, `ChangeAvatarService`, `ChangePasswordService` и
+  `RefreshCurrentUserService` - последние сервисы на сценарий в `users`.
+- `CurrentSessionStore.restoreCurrentSession()` на любой ошибке переводит
   сессию в `Anonymous` - для подготовки профиля он не годится: спека требует,
   чтобы ошибка сессию не трогала.
-- Глобальной обработки `401` нет: сигнал `status` в `CurrentSessionService`
+- Глобальной обработки `401` нет: сигнал `status` в `CurrentSessionStore`
   меняется только кодом приложения. Истекшая посреди работы кука оставляет
   `Authenticated` до перезагрузки - `restore-current-session.initializer.ts`
   выясняет сессию только на старте.
@@ -50,36 +54,36 @@
 появляется. Решения ниже объясняют «почему» каждой стрелки.
 
 ```
-Человек в Чатах выбирает Settings в меню аватара               [4]
+Человек в Чатах выбирает Settings в меню аватара               [5]
 │
-├─ роутер: /settings → redirectTo → /settings/profile            [4]
-│    NavigationStart: через 200 мс без ответа - полоска сверху    [5]
+├─ роутер: /settings → redirectTo → /settings/profile            [5]
+│    NavigationStart: через 200 мс без ответа - полоска сверху    [6]
 │
 ├─ resolve { currentUser } маршрута profile
-│    currentUserResolver (pages)                                  [4]
-│      → RefreshCurrentUserService.refreshCurrentUser()           [1]
+│    currentUserResolver (pages)                                  [5]
+│      → CurrentSessionStore.refreshCurrentUser()                 [1, 2]
 │          → AUTH_GATEWAY.currentSession() → GET /auth/user
 │    пока ответа нет - на экране Чаты
 │
 ├─ ответ
-│    Authenticated → CurrentSessionService.updateCurrentUser      [1]
+│    Authenticated → состояние CurrentSessionStore                [1, 2]
 │                    (шапка тоже свежая)
-│                  → currentUser во вход ProfileSettings          [4]
-│                  → profile во вход UpdateProfileForm            [2]
+│                  → currentUser во вход ProfileSettings          [5]
+│                  → profile во вход UpdateProfileForm            [3]
 │    401 → sessionExpiryInterceptor (распознает)                  [0]
 │            → SessionExpiryService.handle(): сессия Anonymous,
 │              Уведомление, /sign-in
 │          шлюз → Anonymous → поток пуст, без Уведомления         [1]
 │    ошибка → Уведомление, поток пуст                             [1]
-│           → навигация отменена, человек в Чатах                 [4]
+│           → навигация отменена, человек в Чатах                 [5]
 │
 └─ уход из раздела (ссылка, «назад», Logout → /logout)
-     canDeactivate: unsavedChangesGuard                           [3]
-       → раздел.hasUnsavedChanges() → формы: dirty / файл         [2, 4]
+     canDeactivate: unsavedChangesGuard                           [4]
+       → раздел.hasUnsavedChanges() → формы: dirty / файл         [3, 5]
        → есть изменения: подтверждение Discard changes
-       → Истечение сессии: страж пропускает без вопроса           [3]
-     /logout: canActivate logoutGuard → Выход → /sign-in          [3]
-     закрытие вкладки: beforeunload в разделе                     [4]
+       → Истечение сессии: страж пропускает без вопроса           [4]
+     /logout: canActivate logoutGuard → Выход → /sign-in          [4]
+     закрытие вкладки: beforeunload в разделе                     [5]
 ```
 
 Раздел пароля идет той же веткой без `resolve`.
@@ -91,8 +95,8 @@
 `SettingsPage` - композиция страницы (навигация разделов, возврат к **Чатам**,
 `<router-outlet>`) - живет в `src/app/pages/settings-page/` рядом со своим
 `settings.routes.ts`. Разделы `ProfileSettings` и `PasswordSettings` - в
-`identity-access`, в папках своих сервисов (`update-profile/`,
-`change-password/`): им нужны сервисы домена в `providers`.
+`users/feature-profile/`, рядом с формами, которые они собирают. `providers`
+им не нужны: операции живут в `CurrentSessionStore` (решение 10).
 `app.routes.ts` подключает группу через `loadChildren` внутри оболочки
 `AuthenticatedShell`, рядом с маршрутом **Чатов**:
 
@@ -107,29 +111,32 @@
 'logout'      canActivate: logoutGuard   (компонента нет)
 ```
 
-Альтернатива - вся ветка в домене (`identity-access/settings.routes.ts`).
+Альтернатива - вся ветка в домене (`users/settings.routes.ts`).
 Отклонена: маршрут с `redirectTo` и стражами из `core` - композиция, как
 `ChatsPage`; домен отдает только разделы. `loadComponent` разделов идет
-динамическим импортом по пути внутри домена, как у `SelectedChat`
-(`app.routes.ts:37-40`): статический глубокий импорт в домен ESLint
-запрещает, динамический - нет, и чанк остается ленивым.
+динамическим импортом по пути внутри домена, как у `SignInPage` и
+`SelectedChat` в `app.routes.ts`: Sheriff такой импорт пропускает, и чанк
+остается ленивым.
 
 ### 2. Resolver отменяет навигацию, а не переадресует
 
 `currentUserResolver` (`pages/settings-page`) зовет
-`RefreshCurrentUserService.refreshCurrentUser()` и отдает `CurrentUser`. На
-ошибке сервис сообщает ее **Уведомлением** и завершает поток без значения;
+`CurrentSessionStore.refreshCurrentUser()` и отдает `CurrentUser`. На
+ошибке Стор сообщает ее **Уведомлением** и завершает поток без значения;
 роутер отменяет навигацию (`NavigationCancellationCode.NoDataFromResolver`),
 человек остается на прежнем экране. Ключ `currentUser` попадает в input
 `ProfileSettings` через `withComponentInputBinding()`.
 
-`RefreshCurrentUserService` (application, `providedIn: 'root'`) зовет
-`AUTH_GATEWAY.currentSession()`: `Authenticated` →
-`CurrentSessionService.updateCurrentUser(user)` и значение; `Anonymous` →
-пустое завершение без **Уведомления** (его уже показал перехватчик, решение 9);
-ошибка → `NOTIFIER.error('Failed to load profile', message)` (текст - из
-**Ошибки приложения**, запасной кладет шлюз) и пустое завершение. Сессию сервис не меняет ни
-в одной из веток.
+`refreshCurrentUser()` - метод `CurrentSessionStore`, он зовет
+`AUTH_GATEWAY.currentSession()`: `Authenticated` → ответ пишется прямо в
+состояние Стора и отдается значением; `Anonymous` → пустое завершение без
+**Уведомления** (его уже показал перехватчик, решение 9), состояние не
+трогается; ошибка → `NOTIFIER.error('Failed to load profile', message)`
+(текст - из **Ошибки приложения**, запасной кладет шлюз) и пустое
+завершение, состояние не трогается. Блок 1 сделал это сервисом
+`RefreshCurrentUserService` через `updateCurrentUser`; после #265 тот бросает
+без признанной сессии, и `catchError` сервиса прятал бы исключение под
+«Failed to load profile». Запись прямо в состояние эту ловушку снимает.
 
 Альтернативы: `restoreCurrentSession()` - сбрасывает сессию на ошибке, против
 спеки; `RedirectCommand` на `/` - уводит со страницы, где человек был, против
@@ -139,8 +146,9 @@
 ### 3. Форма профиля получает исходные значения входом
 
 `UpdateProfileForm` получает `profile: UpdateProfileInput` и заполняется
-им (`setValue`). `UpdateProfileService.initialValues` удаляется вместе с
-чтением сессии. После успешной отправки форма сама делает
+им (`setValue`). `UpdateProfileService` удаляется целиком вместе с
+`initialValues` и чтением сессии, операция -
+`CurrentSessionStore.updateProfile(input, flow)`. После успешной отправки форма сама делает
 `reset(getRawValue())`: значения остаются, `dirty` сбрасывается - Save снова
 недоступна и страж ухода молчит. Маппинг `CurrentUser → UpdateProfileInput`
 (`displayName ?? ''`) уезжает в `ProfileSettings`.
@@ -185,7 +193,7 @@
 
 Пункт меню `Logout` становится ссылкой на `/logout`. У маршрута нет
 компонента, только `canActivate: [logoutGuard]` (`core/routing`): страж
-выполняет `CurrentSessionService.logout()` и на успехе и на ошибке отдает
+выполняет `CurrentSessionStore.logout()` и на успехе и на ошибке отдает
 `UrlTree` на `/sign-in` - как сейчас делает меню. Порядок роутера дает нужное
 поведение даром: `canDeactivate` уходящего раздела → `canActivate` маршрута
 `/logout`. Отказ в подтверждении отменяет навигацию до запроса. К моменту
@@ -222,11 +230,11 @@ ADR не пишем: решение легко откатить - условие
 `sessionExpiryInterceptor` (`core/http`) стоит в конце `withInterceptors`
 (`app.config.ts`) и только распознает **Истечение сессии**: на
 `HttpErrorResponse` со статусом `401` при
-`CurrentSessionService.status() === Authenticated` он зовет
+`CurrentSessionStore.status() === Authenticated` он зовет
 `SessionExpiryService.handle()`. Ошибка идет дальше вызывающему без изменений.
 
 Реакция - в `SessionExpiryService` (`core/session`, `providedIn: 'root'`):
-`CurrentSessionService.expireCurrentSession()` (новый метод: сессия в
+`CurrentSessionStore.expireCurrentSession()` (новый метод: сессия в
 `Anonymous`, без запроса), `NOTIFIER.error('Session expired', 'Please sign in
 again.')` и `Router.navigateByUrl('/sign-in')`. Отдельно от перехватчика -
 потому что ее же позовет лента на WebSocket, где `HttpClient` не участвует;
@@ -240,7 +248,7 @@ again.')` и `Router.navigateByUrl('/sign-in')`. Отдельно от пере�
 старте (`Loading`) и повторные `401` параллельных запросов - первый уже
 перевел статус в `Anonymous`.
 
-**Уведомление** и переход - в `SessionExpiryService`, а не в `CurrentSessionService`:
+**Уведомление** и переход - в `SessionExpiryService`, а не в `CurrentSessionStore`:
 сервис сессии остается тихим состоянием, **Уведомления** показывает слой
 выше - как у сценариев в `application`. `expireCurrentSession()` отдельно от
 `logout()`: тот шлет запрос к бэкенду.
@@ -258,6 +266,55 @@ again.')` и `Router.navigateByUrl('/sign-in')`. Отдельно от пере�
 ADR не пишем: перехватчик легко убрать - условие «тяжело откатить» не
 выполнено.
 
+### 10. Операции Текущего пользователя - методы Стора
+
+`updateProfile`, `changeAvatar`, `changePassword(input, flow)` и
+`refreshCurrentUser()` - методы `CurrentSessionStore`. Флоу каждая форма
+создает сама и передает аргументом, как `signIn`/`signUp` и
+`ChatListStore.createChat` (требование `shared-form-submission` «Флоу
+отправки живет вместе с формой»). Стор делает запрос, обновляет **Текущего
+пользователя** там, где операция его меняет, и показывает **Уведомление**.
+Три сервиса и `RefreshCurrentUserService` удаляются, их `it` переезжают в спек
+Стора. Смена пароля **Текущего пользователя** не меняет, но это операция над
+ним - отдельный Стор ради одного метода вернул бы файл на сценарий.
+
+Цена - ширина Стора (~10 методов); она уже принята в ADR от 28-10. ADR не
+пишем: правило «флоу формы - аргументом» записано там же.
+
+### 11. Зависимые поля - в форме, через `valueChanges`
+
+Профиль: флажок `showFullName` - контрол внутри группы формы, поэтому его
+смена считается изменением (`dirty`, страж ухода, `requireChanges`). На
+открытии он равен «**Отображаемого имени** нет». Подписка на его
+`valueChanges`: стоит → `displayName.reset('')` и `disable()`; снят →
+`enable()`, поле обязательно (`Validators.required`). Отправка берет
+`getRawValue()`: при стоящем флажке `displayName` равно `''`.
+
+Пароль: подписка на `valueChanges` старого пароля: пусто → `newPassword` и
+`repeatNewPassword` - `reset()` и `disable()`; иначе - `enable()`.
+
+Альтернатива - `computed` и `[disabled]` в шаблоне. Отклонена: Angular
+предупреждает о `disabled` на реактивных контролах, а выключенный так контрол
+все равно уходит в `value` формы.
+
+### 12. `connectSubmitFlow` помнит выключенные поля
+
+Сейчас примитив на конце отправки включает форму целиком и включил бы поле,
+выключенное правилом формы. Перед блокировкой он собирает контролы, уже
+выключенные до отправки, а после ответа включает все, кроме них. Правило
+одно для всех форм - в дельте `shared-form-submission`.
+
+Альтернатива - каждая форма перепринимает свою зависимость после отправки.
+Отклонена: ловушка повторялась бы в каждой следующей форме с зависимостями.
+
+### 13. Пустое `display_name` - отсутствие Отображаемого имени
+
+`UserUpdateRequest.display_name` в swagger - строка, не `null`. При стоящем
+флажке уходит `''`, а `current-user-mapper` читает пустое `display_name` как
+`null`, и интерфейс показывает имя и фамилию, как для **Пользователя** без
+**Отображаемого имени**. Альтернатива - не отправлять поле вовсе - отклонена:
+бэкенд оставил бы прежнее имя, и снять **Отображаемое имя** было бы нельзя.
+
 ## Контракты компонентов
 
 ### `SettingsPage` (pages, новый)
@@ -270,23 +327,22 @@ ADR не пишем: перехватчик легко убрать - услов
 (`routerLinkActive`, `aria-current="page"`), ссылка `Back to chats` на `/`,
 `<router-outlet>`.
 
-### `ProfileSettings` (identity-access/update-profile, новый)
+### `ProfileSettings` (users/feature-profile, новый)
 
 | Вход / выход                      | Тип           |
 | --------------------------------- | ------------- |
 | `currentUser` (вход, из resolver) | `CurrentUser` |
 
-Решает сам: `providers: [UpdateProfileService, ChangeAvatarService]`; маппинг
-в `UpdateProfileInput` для формы; `hasUnsavedChanges(): boolean` (любая из
+Решает сам: маппинг в `UpdateProfileInput` для формы; `hasUnsavedChanges(): boolean` (любая из
 двух форм); `beforeunload`.
 
-### `PasswordSettings` (identity-access/change-password, новый)
+### `PasswordSettings` (users/feature-profile, новый)
 
 | Вход / выход | Тип |
 | ------------ | --- |
 | -            | -   |
 
-Решает сам: `providers: [ChangePasswordService]`; `hasUnsavedChanges()`;
+Решает сам: `hasUnsavedChanges()`;
 `beforeunload`.
 
 ### `UpdateProfileForm` (меняется)
@@ -297,7 +353,9 @@ ADR не пишем: перехватчик легко убрать - услов
 | `profileUpdated` (выход)      | `void`               |
 | `hasUnsavedChanges()` (метод) | `boolean`            |
 
-Решает сам: валидация, отправка, `reset(getRawValue())` на успехе.
+Решает сам: валидация, флажок `Show first and last name` и зависимость
+поля **Отображаемого имени** от него, свой флоу и отправка через
+`CurrentSessionStore.updateProfile`, `reset(getRawValue())` на успехе.
 
 ### `ChangePasswordForm` (меняется)
 
@@ -306,7 +364,9 @@ ADR не пишем: перехватчик легко убрать - услов
 | `passwordChanged` (выход)     | `void`    |
 | `hasUnsavedChanges()` (метод) | `boolean` |
 
-Решает сам: валидация, совпадение повтора, `reset()` на успехе.
+Решает сам: валидация, совпадение повтора, зависимость нового пароля и
+повтора от старого, свой флоу и отправка через
+`CurrentSessionStore.changePassword`, `reset()` на успехе.
 
 ### `ChangeAvatarForm` (меняется)
 
@@ -339,7 +399,7 @@ ADR не пишем: перехватчик легко убрать - услов
 | Требование / сценарии                                                           | Уровень                                                                                                                                   |
 | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | Страница Настроек: меню, `/settings` → профиль, прямой адрес, переходы, возврат | component (`SettingsPage`, меню), routing (`RouterTestingHarness` на `settings.routes`), e2e                                              |
-| Свежий профиль: данные из ответа, сессия обновлена                              | application (`RefreshCurrentUserService`), component (`ProfileSettings` получает вход)                                                    |
+| Свежий профиль: данные из ответа, сессия обновлена                              | application (`CurrentSessionStore.refreshCurrentUser`), component (`ProfileSettings` получает вход)                                       |
 | Свежий профиль: ошибка, экран прежний                                           | application (Уведомление, сессия не тронута; `Anonymous` - без Уведомления), routing                                                      |
 | Истечение сессии: `401` при `Authenticated`, не при другом статусе, один раз    | interceptor (`HttpTestingController`), service (`SessionExpiryService`), application (`expireCurrentSession`), e2e (`page.route` → `401`) |
 | Истечение сессии: несохраненные изменения не держат                             | guard (`unsavedChangesGuard`)                                                                                                             |
@@ -352,6 +412,9 @@ ADR не пишем: перехватчик легко убрать - услов
 | Пароль: очистка после успеха                                                    | component (`ChangePasswordForm`)                                                                                                          |
 | Аватар: действия после выбора, `Cancel`, ошибка формата                         | component (`ChangeAvatarForm`)                                                                                                            |
 | Политика доступа к `/settings`                                                  | routing                                                                                                                                   |
+| Профиль: флажок `Show first and last name`, сохранение без Отображаемого имени  | component (`UpdateProfileForm`), mapper (`current-user-mapper`), application (`CurrentSessionStore.updateProfile`)                        |
+| Пароль: новый пароль ждет старого, стертый старый очищает новые                 | component (`ChangePasswordForm`)                                                                                                          |
+| Поле, недоступное до отправки, остается недоступным                             | unit (`connectSubmitFlow`)                                                                                                                |
 | Индикатор: долгий / быстрый / отмена                                            | component (`NavigationProgress`, fake timers)                                                                                             |
 | Вид страницы                                                                    | e2e `@visual`: профиль и пароль по умолчанию                                                                                              |
 
@@ -370,6 +433,12 @@ ADR не пишем: перехватчик легко убрать - услов
   → Это и есть смысл маршрута; ссылки на него есть только в меню.
 - [`dirty` вместо сравнения с исходными: вернул значение как было - страж все
   равно спросит] → Согласовано: сравнение - форма A.
+- [Флажок поставили и сняли обратно - форма `dirty`, страж ухода спросит]
+  → То же правило `dirty`, что и для полей профиля: сравнение с исходными -
+  форма A.
+- [Бэкенд хранит `''` вместо отсутствия **Отображаемого имени**] → Маппер
+  чтения сводит `''` к `null` (решение 13); другие клиенты API нас не
+  касаются.
 - [Удаление модалок ломает e2e профиля, пароля и аватара] → Сценарии
   переписываются в том же блоке, что и меню.
 - [Индикатор на fake timers в zoneless-спеке] → Проверить, что
