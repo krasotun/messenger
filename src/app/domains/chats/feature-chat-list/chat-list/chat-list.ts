@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, Injector, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { ChatListItem } from '../../ui/chat-list-item/chat-list-item';
@@ -17,6 +17,7 @@ import { ModalService } from '@shared/ui/modal/modal-service';
 export class ChatList implements OnInit {
   private readonly _chatListStore = inject(ChatListStore);
   private readonly _modalService = inject(ModalService);
+  private readonly _injector = inject(Injector);
 
   readonly chats = this._chatListStore.chats;
   readonly errorMessage = this._chatListStore.errorMessage;
@@ -31,6 +32,10 @@ export class ChatList implements OnInit {
   }
 
   protected createChat(): void {
-    this._modalService.open(CreateChatModalContent, { title: 'New chat' });
+    // Форма в модалке создает чат через Стор страницы, а не через новый.
+    this._modalService.open(CreateChatModalContent, {
+      title: 'New chat',
+      injector: this._injector,
+    });
   }
 }

@@ -6,6 +6,7 @@ import { of, Subject } from 'rxjs';
 import { CreateChatForm } from './create-chat-form';
 
 import { CHAT_GATEWAY, CreateChatResult } from '@domains/chats/data/chat-gateway';
+import { ChatListStore } from '@domains/chats/data/chat-list-store';
 import { ChatMocks } from '@domains/chats/testing';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
@@ -21,6 +22,7 @@ describe('CreateChatForm', () => {
     const result = await render(CreateChatForm, {
       bindings: [outputBinding('chatCreated', chatCreated)],
       providers: [
+        ChatListStore,
         { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
         { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
       ],

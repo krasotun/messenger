@@ -1,3 +1,4 @@
+import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
@@ -5,6 +6,7 @@ import { of, Subject, throwError } from 'rxjs';
 
 import { Chat } from '../../data/chat';
 import { CHAT_GATEWAY } from '../../data/chat-gateway';
+import { ChatListStore } from '../../data/chat-list-store';
 import { CreateChatModalContent } from '../create-chat-modal-content/create-chat-modal-content';
 
 import { ChatList } from './chat-list';
@@ -26,6 +28,7 @@ describe('ChatList', () => {
     render(ChatList, {
       providers: [
         provideRouter([]),
+        ChatListStore,
         { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
         { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
         { provide: ModalService, useValue: modalServiceMock },
@@ -114,7 +117,19 @@ describe('ChatList', () => {
       expect(modalServiceMock.open).toHaveBeenCalledOnce();
       expect(modalServiceMock.open).toHaveBeenCalledWith(CreateChatModalContent, {
         title: 'New chat',
+        injector: expect.anything(),
       });
+    });
+
+    it('should let the create chat modal use the chat list store of the page', async () => {
+      const user = userEvent.setup();
+      await renderList();
+
+      await user.click(screen.getByRole('button', { name: 'Create' }));
+
+      const [, options] = modalServiceMock.open.mock.calls[0];
+
+      expect(options?.injector?.get(ChatListStore)).toBe(TestBed.inject(ChatListStore));
     });
   });
 

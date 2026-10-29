@@ -4,6 +4,7 @@ import { userEvent } from '@testing-library/user-event';
 import { of, throwError } from 'rxjs';
 
 import { CHAT_GATEWAY } from '../../data/chat-gateway';
+import { ChatListStore } from '../../data/chat-list-store';
 
 import { CreateChatModalContent } from './create-chat-modal-content';
 
@@ -20,6 +21,7 @@ describe('CreateChatModalContent', () => {
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
 
   const sharedProviders = () => [
+    ChatListStore,
     { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
     { provide: ModalRef, useValue: modalRefMock },
     { provide: NOTIFIER, useValue: notifierMock },

@@ -28,6 +28,7 @@ describe('ChatListStore', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        ChatListStore,
         {
           provide: CHAT_GATEWAY,
           useValue: chatGatewayMock,

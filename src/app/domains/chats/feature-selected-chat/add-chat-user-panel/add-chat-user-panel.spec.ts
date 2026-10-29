@@ -8,6 +8,7 @@ import { Mock } from 'vitest';
 import { AddChatUserPanel } from './add-chat-user-panel';
 
 import { CHAT_GATEWAY } from '@domains/chats/data/chat-gateway';
+import { ChatUsersStore } from '@domains/chats/data/chat-users-store';
 import { ChatMocks } from '@domains/chats/testing';
 import { SearchUsersResult, SearchUsersService } from '@domains/identity-access';
 import { IdentityMocks } from '@domains/identity-access/testing';
@@ -46,6 +47,7 @@ describe('AddChatUserPanel', () => {
       bindings: [inputBinding('chatId', () => 1), outputBinding('userAdded', userAdded)],
       providers: [
         { provide: SearchUsersService, useValue: searchUsersServiceMock },
+        ChatUsersStore,
         { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
         { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
       ],

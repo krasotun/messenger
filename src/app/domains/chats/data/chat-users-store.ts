@@ -19,7 +19,7 @@ type ChatUsersState =
   | { status: LoadStatus.Loaded; chatUsers: ChatUser[] }
   | { status: LoadStatus.Error; errorMessage: string };
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ChatUsersStore {
   private readonly _chatGateway = inject(CHAT_GATEWAY);
   private readonly _notifier = inject(NOTIFIER);

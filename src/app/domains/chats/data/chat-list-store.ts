@@ -13,7 +13,7 @@ type ChatListState =
   | { status: LoadStatus.Loaded; chats: Chat[] }
   | { status: LoadStatus.Error; errorMessage: string };
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ChatListStore {
   private readonly _chatGateway = inject(CHAT_GATEWAY);
   private readonly _notifier = inject(NOTIFIER);
