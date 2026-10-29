@@ -30,7 +30,6 @@ describe('chats routing', () => {
     const { ChatUsersService } = await import('@domains/chats/data/chat-users-service');
     const { SelectedChat } =
       await import('@domains/chats/feature-selected-chat/selected-chat/selected-chat');
-    const { DeleteChatService } = await import('@domains/chats/data/delete-chat-service');
     const { RemoveChatUserService } = await import('@domains/chats/data/remove-chat-user-service');
 
     routes = [
@@ -83,10 +82,6 @@ describe('chats routing', () => {
     TestBed.overrideComponent(SelectedChat, {
       set: {
         providers: [
-          {
-            provide: DeleteChatService,
-            useValue: { deleteChat: vi.fn(), succeeded$: new Subject<void>() },
-          },
           {
             provide: RemoveChatUserService,
             useValue: { removeChatUser: vi.fn(), succeeded$: new Subject<void>() },

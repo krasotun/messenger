@@ -7,7 +7,6 @@ import { of, throwError } from 'rxjs';
 
 import { CHAT_GATEWAY } from '../../data/chat-gateway';
 import { ChatListStore } from '../../data/chat-list-store';
-import { DeleteChatService } from '../../data/delete-chat-service';
 
 import { SelectedChat } from './selected-chat';
 
@@ -51,10 +50,9 @@ describe('SelectedChat', () => {
   };
 
   let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
-  let deleteChatServiceMock: ReturnType<typeof ChatMocks.deleteChatService>;
   let removeChatUserServiceMock: ReturnType<typeof ChatMocks.removeChatUserService>;
 
-  // Сервисы удаления живут в providers компонента и подменяются через
+  // Сервис удаления участника живет в providers компонента и подменяется через
   // overrideComponent; список чатов загружается до рендера, как это делает
   // страница чатов.
   const createComponent = async (
@@ -78,10 +76,7 @@ describe('SelectedChat', () => {
       configureTestBed: (testBed) => {
         testBed.overrideComponent(SelectedChat, {
           set: {
-            providers: [
-              { provide: DeleteChatService, useValue: deleteChatServiceMock },
-              { provide: RemoveChatUserService, useValue: removeChatUserServiceMock },
-            ],
+            providers: [{ provide: RemoveChatUserService, useValue: removeChatUserServiceMock }],
           },
         });
 
@@ -137,13 +132,13 @@ describe('SelectedChat', () => {
     chatGatewayMock = ChatMocks.chatGateway();
     chatGatewayMock.chats.mockReturnValue(of([firstChatMock, secondChatMock]));
     chatGatewayMock.chatUsers.mockReturnValue(of([firstChatUserMock]));
+    chatGatewayMock.deleteChat.mockReturnValue(of(undefined));
 
     currentUser.set(chatCreatorMock);
 
     confirmationServiceMock.confirm.mockReset();
     confirmationServiceMock.confirm.mockReturnValue(of(false));
 
-    deleteChatServiceMock = ChatMocks.deleteChatService();
     removeChatUserServiceMock = ChatMocks.removeChatUserService();
   });
 
@@ -246,7 +241,7 @@ describe('SelectedChat', () => {
 
       await requestDeletion();
 
-      expect(deleteChatServiceMock.deleteChat).not.toHaveBeenCalled();
+      expect(chatGatewayMock.deleteChat).not.toHaveBeenCalled();
     });
 
     it('deletes the chat when the confirmation is accepted', async () => {
@@ -256,15 +251,16 @@ describe('SelectedChat', () => {
 
       await requestDeletion();
 
-      expect(deleteChatServiceMock.deleteChat).toHaveBeenCalledWith({ chatId: 1 });
+      expect(chatGatewayMock.deleteChat).toHaveBeenCalledWith({ chatId: 1 });
     });
 
     it('navigates to / when the chat is deleted', async () => {
       await createComponent('1');
       // Выбранный чат открыт по своему адресу, как на странице чатов.
       await TestBed.inject(Router).navigateByUrl('/1');
+      confirmationServiceMock.confirm.mockReturnValue(of(true));
 
-      deleteChatServiceMock.succeeded$.next();
+      await requestDeletion();
       await fixture.whenStable();
 
       expect(TestBed.inject(Router).url).toBe('/');

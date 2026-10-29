@@ -3,9 +3,10 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { Chat } from '@domains/chats/data/chat';
 import { CHAT_GATEWAY } from '@domains/chats/data/chat-gateway';
 import { CreateChatInput } from '@domains/chats/data/create-chat-input';
+import { DeleteChatInput } from '@domains/chats/data/delete-chat-input';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
-import { createFormSubmitFlowState } from '@shared/submit-flow';
+import { createActionFlowState, createFormSubmitFlowState } from '@shared/submit-flow';
 import { LoadStatus } from '@shared/types';
 
 type ChatListState =
@@ -24,6 +25,12 @@ export class ChatListStore {
   readonly chatCreationFlow = {
     isSubmitting: this._chatCreationFlow.isSubmitting,
     succeeded$: this._chatCreationFlow.succeeded$,
+  };
+
+  private readonly _chatDeletionFlow = createActionFlowState();
+
+  readonly chatDeletionFlow = {
+    succeeded$: this._chatDeletionFlow.succeeded$,
   };
 
   private readonly _state = signal<ChatListState>({ status: LoadStatus.Idle });
@@ -61,6 +68,19 @@ export class ChatListStore {
       error: ({ message }: ApplicationError) => {
         this._chatCreationFlow.markError();
         this._notifier.error('Failed to create chat', message);
+      },
+    });
+  }
+
+  deleteChat(deleteChatInput: DeleteChatInput): void {
+    this._chatGateway.deleteChat(deleteChatInput).subscribe({
+      next: () => {
+        this.loadChats();
+        this._chatDeletionFlow.markSuccess();
+        this._notifier.success('Delete chat', 'Chat deleted successfully');
+      },
+      error: ({ message }: ApplicationError) => {
+        this._notifier.error('Failed to delete chat', message);
       },
     });
   }

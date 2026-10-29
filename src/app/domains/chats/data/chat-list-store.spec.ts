@@ -239,4 +239,78 @@ describe('ChatListStore', () => {
       });
     });
   });
+
+  describe('delete chat', () => {
+    it('should call chat gateway with the given chat id', () => {
+      chatGatewayMock.deleteChat.mockReturnValue(of(undefined));
+      chatGatewayMock.chats.mockReturnValue(of([]));
+
+      store.deleteChat({ chatId: 1 });
+
+      expect(chatGatewayMock.deleteChat).toHaveBeenCalledOnce();
+      expect(chatGatewayMock.deleteChat).toHaveBeenCalledWith({ chatId: 1 });
+    });
+
+    describe('when the chat is deleted', () => {
+      beforeEach(() => {
+        chatGatewayMock.deleteChat.mockReturnValue(of(undefined));
+        chatGatewayMock.chats.mockReturnValueOnce(of([chatMock]));
+        chatGatewayMock.chats.mockReturnValueOnce(of([]));
+
+        store.loadChats();
+      });
+
+      it('should drop the chat from the list', () => {
+        store.deleteChat({ chatId: 1 });
+
+        expect(store.chats()).toEqual([]);
+      });
+
+      it('should emit succeeded$ once', () => {
+        const succeededSpy = vi.fn();
+        store.chatDeletionFlow.succeeded$.subscribe(succeededSpy);
+
+        store.deleteChat({ chatId: 1 });
+
+        expect(succeededSpy).toHaveBeenCalledOnce();
+      });
+
+      it('should notify about the success', () => {
+        store.deleteChat({ chatId: 1 });
+
+        expect(notifierMock.success).toHaveBeenCalledWith(
+          'Delete chat',
+          'Chat deleted successfully',
+        );
+      });
+    });
+
+    describe('when deleting is rejected', () => {
+      beforeEach(() => {
+        chatGatewayMock.deleteChat.mockReturnValue(
+          throwError(() => new ApplicationError('mockReason')),
+        );
+        chatGatewayMock.chats.mockReturnValueOnce(of([chatMock]));
+        chatGatewayMock.chats.mockReturnValueOnce(of([]));
+
+        store.loadChats();
+      });
+
+      it('should notify with the reason and not emit succeeded$', () => {
+        const succeededSpy = vi.fn();
+        store.chatDeletionFlow.succeeded$.subscribe(succeededSpy);
+
+        store.deleteChat({ chatId: 1 });
+
+        expect(succeededSpy).not.toHaveBeenCalled();
+        expect(notifierMock.error).toHaveBeenCalledWith('Failed to delete chat', 'mockReason');
+      });
+
+      it('should keep the chat in the list', () => {
+        store.deleteChat({ chatId: 1 });
+
+        expect(store.chats()).toEqual([chatMock]);
+      });
+    });
+  });
 });
