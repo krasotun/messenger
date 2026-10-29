@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
 import { CHAT_GATEWAY } from './chat-gateway';
-import { ChatListService } from './chat-list-service';
+import { ChatListStore } from './chat-list-store';
 import { DeleteChatService } from './delete-chat-service';
 
 import { ChatMocks } from '@domains/chats/testing';
@@ -12,24 +12,21 @@ import { NotificationMocks } from '@shared/notifications/testing';
 
 describe('DeleteChatService', () => {
   let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
-  let chatListServiceMock: ReturnType<typeof ChatMocks.chatListService>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let service: DeleteChatService;
 
   beforeEach(() => {
     chatGatewayMock = ChatMocks.chatGateway();
-    chatListServiceMock = ChatMocks.chatListService();
     notifierMock = NotificationMocks.notifier();
+    // Удаление перезагружает список настоящего Стора: без ответа шлюза
+    // loadChats упадет на subscribe.
+    chatGatewayMock.chats.mockReturnValue(of([]));
 
     TestBed.configureTestingModule({
       providers: [
         {
           provide: CHAT_GATEWAY,
           useValue: chatGatewayMock,
-        },
-        {
-          provide: ChatListService,
-          useValue: chatListServiceMock,
         },
         {
           provide: NOTIFIER,
@@ -66,10 +63,15 @@ describe('DeleteChatService', () => {
         expect(succeededSpy).toHaveBeenCalledOnce();
       });
 
-      it('should reload the chat list', () => {
+      it('should remove the chat from the list', () => {
+        const store = TestBed.inject(ChatListStore);
+        chatGatewayMock.chats.mockReturnValueOnce(of([ChatMocks.chat()]));
+        chatGatewayMock.chats.mockReturnValueOnce(of([]));
+        store.loadChats();
+
         service.deleteChat({ chatId: 1 });
 
-        expect(chatListServiceMock.loadChats).toHaveBeenCalledOnce();
+        expect(store.chats()).toEqual([]);
       });
 
       it('should notify about the success', () => {
@@ -99,10 +101,16 @@ describe('DeleteChatService', () => {
         expect(notifierMock.error).toHaveBeenCalledWith('Failed to delete chat', 'mockReason');
       });
 
-      it('should not reload the chat list', () => {
+      it('should keep the chat in the list', () => {
+        const store = TestBed.inject(ChatListStore);
+        const chatMock = ChatMocks.chat();
+        chatGatewayMock.chats.mockReturnValueOnce(of([chatMock]));
+        chatGatewayMock.chats.mockReturnValueOnce(of([]));
+        store.loadChats();
+
         service.deleteChat({ chatId: 1 });
 
-        expect(chatListServiceMock.loadChats).not.toHaveBeenCalled();
+        expect(store.chats()).toEqual([chatMock]);
       });
     });
   });

@@ -6,7 +6,7 @@ import { userEvent, UserEvent } from '@testing-library/user-event';
 import { of, throwError } from 'rxjs';
 
 import { CHAT_GATEWAY } from '../../data/chat-gateway';
-import { ChatListService } from '../../data/chat-list-service';
+import { ChatListStore } from '../../data/chat-list-store';
 import { DeleteChatService } from '../../data/delete-chat-service';
 
 import { SelectedChat } from './selected-chat';
@@ -16,6 +16,8 @@ import { ChatMocks } from '@domains/chats/testing';
 import { CurrentSessionService, CurrentUser } from '@domains/identity-access';
 import { IdentityMocks } from '@domains/identity-access/testing';
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 import { Nullable } from '@shared/types';
 import { ConfirmationService } from '@shared/ui/confirmation';
 
@@ -65,6 +67,7 @@ describe('SelectedChat', () => {
       bindings: [inputBinding('chatId', chatId)],
       providers: [
         { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
+        { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
         { provide: CurrentSessionService, useValue: currentSessionServiceMock },
         { provide: ConfirmationService, useValue: confirmationServiceMock },
         provideRouter([
@@ -83,7 +86,7 @@ describe('SelectedChat', () => {
         });
 
         if (options.loadChats ?? true) {
-          TestBed.inject(ChatListService).loadChats();
+          TestBed.inject(ChatListStore).loadChats();
         }
       },
       waitForStableOnRender: true,

@@ -8,18 +8,14 @@ import { ChatsPage } from './chats-page';
 
 import { ChatMocks } from '@domains/chats/testing';
 import { CurrentSessionService } from '@domains/identity-access';
+import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 import { ConfirmationService } from '@shared/ui/confirmation';
 
 const chatMock = ChatMocks.chat({ title: 'Analytics Q3' });
 
 describe('chats routing', () => {
   let routes: Routes;
-  let chatListServiceMock: {
-    chats: () => unknown[];
-    errorMessage: () => string | null;
-    isEmpty: () => boolean;
-    loadChats: () => void;
-  };
   let chatUsersServiceMock: {
     chatUsers: () => unknown[];
     errorMessage: () => string | null;
@@ -30,7 +26,7 @@ describe('chats routing', () => {
     // Роут-конфигурация чатов недоступна для статического импорта из
     // `src/app/pages` (граница ESLint), поэтому берется динамически, как это
     // уже делает production-код в `app.routes.ts`.
-    const { ChatListService } = await import('@domains/chats/data/chat-list-service');
+    const { CHAT_GATEWAY } = await import('@domains/chats/data/chat-gateway');
     const { ChatUsersService } = await import('@domains/chats/data/chat-users-service');
     const { SelectedChat } =
       await import('@domains/chats/feature-selected-chat/selected-chat/selected-chat');
@@ -47,12 +43,8 @@ describe('chats routing', () => {
 
     let usersErrorMessage: string | null = null;
 
-    chatListServiceMock = {
-      chats: () => [chatMock],
-      errorMessage: () => null,
-      isEmpty: () => false,
-      loadChats: vi.fn(),
-    };
+    const chatGatewayMock = ChatMocks.chatGateway();
+    chatGatewayMock.chats.mockReturnValue(of([chatMock]));
 
     chatUsersServiceMock = {
       chatUsers: () => [],
@@ -66,8 +58,12 @@ describe('chats routing', () => {
       providers: [
         provideRouter(routes, withComponentInputBinding()),
         {
-          provide: ChatListService,
-          useValue: chatListServiceMock,
+          provide: CHAT_GATEWAY,
+          useValue: chatGatewayMock,
+        },
+        {
+          provide: NOTIFIER,
+          useValue: NotificationMocks.notifier(),
         },
         {
           provide: ChatUsersService,
