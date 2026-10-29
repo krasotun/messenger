@@ -1,17 +1,15 @@
 import { signal } from '@angular/core';
 import { Subject } from 'rxjs';
 
-import { AuthGateway } from '../data/auth-gateway';
+import { AuthGateway, CurrentSessionResult } from '../data/auth-gateway';
 import { ChangeAvatarService } from '../data/change-avatar-service';
 import { ChangePasswordService } from '../data/change-password-service';
-import { CurrentSessionResult } from '../data/current-session-result';
 import { CurrentSessionStatus } from '../data/current-session-status';
 import { CurrentUser } from '../data/current-user';
 import { SearchUsersService } from '../data/search-users-service';
-import { UpdateProfileInput } from '../data/update-profile-input';
 import { UpdateProfileService } from '../data/update-profile-service';
 import { User } from '../data/user';
-import { UserGateway } from '../data/user-gateway';
+import { UpdateProfileInput, UserGateway } from '../data/user-gateway';
 
 const currentUser = (overrides: Partial<CurrentUser> = {}): CurrentUser => ({
   id: 1,

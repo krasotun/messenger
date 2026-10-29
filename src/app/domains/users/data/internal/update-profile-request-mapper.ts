@@ -1,5 +1,5 @@
 import { UpdateProfileRequestDto } from '@domains/users/data/internal/update-profile-dto';
-import { UpdateProfileInput } from '@domains/users/data/update-profile-input';
+import { UpdateProfileInput } from '@domains/users/data/user-gateway';
 
 export const updateProfileRequestMapper = (
   updateProfileInput: UpdateProfileInput,

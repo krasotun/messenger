@@ -6,15 +6,14 @@ import {
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { ChangePasswordInput } from './change-password-input';
 import { CurrentUser } from './current-user';
 import { HttpUserGateway } from './http-user-gateway';
 import { ChangePasswordRequestDto } from './internal/change-password-dto';
 import { USER_ERROR_MESSAGES } from './internal/error-messages';
 import { UpdateProfileRequestDto } from './internal/update-profile-dto';
 import { UserDto } from './internal/user-dto';
-import { UpdateProfileInput } from './update-profile-input';
 import { User } from './user';
+import { UpdateProfileInput, ChangePasswordInput } from './user-gateway';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
 import { ApplicationError } from '@shared/errors';

@@ -1,9 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { SearchUsersInput } from './search-users-input';
-import { SearchUsersResult } from './search-users-result';
-import { USER_GATEWAY } from './user-gateway';
+import { SearchUsersInput, SearchUsersResult, USER_GATEWAY } from './user-gateway';
 
 @Injectable({
   providedIn: 'root',

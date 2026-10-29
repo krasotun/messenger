@@ -6,8 +6,7 @@ import { Subject } from 'rxjs';
 
 import { SignUpForm } from './sign-up-form';
 
-import { AUTH_GATEWAY } from '@domains/users/data/auth-gateway';
-import { SignUpInput } from '@domains/users/data/sign-up-input';
+import { AUTH_GATEWAY, SignUpInput } from '@domains/users/data/auth-gateway';
 import { SignUpService } from '@domains/users/data/sign-up-service';
 import { UserMocks } from '@domains/users/testing';
 import { ApplicationError } from '@shared/errors';

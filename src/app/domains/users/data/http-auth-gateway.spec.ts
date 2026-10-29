@@ -6,6 +6,7 @@ import {
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
+import { SignInInput, SignUpInput } from './auth-gateway';
 import { CurrentSessionStatus } from './current-session-status';
 import { CurrentUser } from './current-user';
 import { HttpAuthGateway } from './http-auth-gateway';
@@ -13,8 +14,6 @@ import { AUTH_ERROR_MESSAGES } from './internal/error-messages';
 import { SignInRequestDto } from './internal/sign-in-dto';
 import { SignUpRequestDto } from './internal/sign-up-dto';
 import { UserDto } from './internal/user-dto';
-import { SignInInput } from './sign-in-input';
-import { SignUpInput } from './sign-up-input';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
 import { ApplicationError } from '@shared/errors';

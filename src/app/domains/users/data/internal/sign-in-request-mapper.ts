@@ -1,4 +1,4 @@
-import { SignInInput } from '../sign-in-input';
+import { SignInInput } from '../auth-gateway';
 
 import { SignInRequestDto } from './sign-in-dto';
 

@@ -7,9 +7,8 @@ import { AUTH_GATEWAY } from './auth-gateway';
 import { CurrentSessionService } from './current-session-service';
 import { CurrentSessionStatus } from './current-session-status';
 import { CurrentUser } from './current-user';
-import { UpdateProfileResult } from './update-profile-result';
 import { UpdateProfileService } from './update-profile-service';
-import { USER_GATEWAY } from './user-gateway';
+import { UpdateProfileResult, USER_GATEWAY } from './user-gateway';
 
 import { UserMocks } from '@domains/users/testing';
 import { ApplicationError } from '@shared/errors';

@@ -1,10 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
-import { AUTH_GATEWAY } from './auth-gateway';
+import { AUTH_GATEWAY, SignInInput } from './auth-gateway';
 import { CurrentSessionService } from './current-session-service';
 import { CurrentSessionStatus } from './current-session-status';
-import { SignInInput } from './sign-in-input';
 import { SignInService } from './sign-in-service';
 
 import { UserMocks } from '@domains/users/testing';

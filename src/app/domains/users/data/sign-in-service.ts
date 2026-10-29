@@ -1,10 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { switchMap } from 'rxjs';
 
-import { AUTH_GATEWAY } from './auth-gateway';
+import { AUTH_GATEWAY, SignInInput } from './auth-gateway';
 import { CurrentSessionService } from './current-session-service';
 import { CurrentSessionStatus } from './current-session-status';
-import { SignInInput } from './sign-in-input';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';

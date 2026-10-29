@@ -1,8 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 
-import { AUTH_GATEWAY } from './auth-gateway';
+import { AUTH_GATEWAY, SignUpInput } from './auth-gateway';
 
-import { SignUpInput } from '@domains/users/data/sign-up-input';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { createFormSubmitFlowState } from '@shared/submit-flow';

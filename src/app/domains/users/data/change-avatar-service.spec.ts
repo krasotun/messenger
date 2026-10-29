@@ -4,13 +4,11 @@ import { provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from './auth-gateway';
-import { ChangeAvatarInput } from './change-avatar-input';
-import { ChangeAvatarResult } from './change-avatar-result';
 import { ChangeAvatarService } from './change-avatar-service';
 import { CurrentSessionService } from './current-session-service';
 import { CurrentSessionStatus } from './current-session-status';
 import { CurrentUser } from './current-user';
-import { USER_GATEWAY } from './user-gateway';
+import { ChangeAvatarResult, ChangeAvatarInput, USER_GATEWAY } from './user-gateway';
 
 import { UserMocks } from '@domains/users/testing';
 import { ApplicationError } from '@shared/errors';

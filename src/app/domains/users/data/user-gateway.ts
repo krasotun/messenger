@@ -1,14 +1,46 @@
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { ChangeAvatarInput } from './change-avatar-input';
-import { ChangeAvatarResult } from './change-avatar-result';
-import { ChangePasswordInput } from './change-password-input';
-import { ChangePasswordResult } from './change-password-result';
-import { SearchUsersInput } from './search-users-input';
-import { SearchUsersResult } from './search-users-result';
-import { UpdateProfileInput } from './update-profile-input';
-import { UpdateProfileResult } from './update-profile-result';
+import { CurrentUser } from './current-user';
+import { User } from './user';
+
+export interface UpdateProfileInput {
+  firstName: string;
+  secondName: string;
+  displayName: string;
+  login: string;
+  email: string;
+  phone: string;
+}
+
+export interface UpdateProfileResult {
+  user: CurrentUser;
+}
+
+export interface ChangePasswordInput {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResult {
+  passwordChanged: boolean;
+}
+
+export interface ChangeAvatarInput {
+  file: File;
+}
+
+export interface ChangeAvatarResult {
+  user: CurrentUser;
+}
+
+export interface SearchUsersInput {
+  login: string;
+}
+
+export interface SearchUsersResult {
+  users: User[];
+}
 
 export interface UserGateway {
   updateProfile(input: UpdateProfileInput): Observable<UpdateProfileResult>;

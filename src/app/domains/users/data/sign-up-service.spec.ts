@@ -1,8 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
-import { AUTH_GATEWAY } from './auth-gateway';
-import { SignUpInput } from './sign-up-input';
+import { AUTH_GATEWAY, SignUpInput } from './auth-gateway';
 import { SignUpService } from './sign-up-service';
 
 import { UserMocks } from '@domains/users/testing';

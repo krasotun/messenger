@@ -6,7 +6,6 @@ export type { CurrentUser } from './data/current-user';
 export { CurrentUserAvatarMenu } from './feature-profile/current-user-avatar-menu/current-user-avatar-menu';
 
 export { SearchUsersService } from './data/search-users-service';
-export type { SearchUsersInput } from './data/search-users-input';
-export type { SearchUsersResult } from './data/search-users-result';
+export type { SearchUsersInput, SearchUsersResult } from './data/user-gateway';
 export type { User } from './data/user';
 export type { UserId } from './data/user-id';
