@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { fireEvent, render, within } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
-import { CHAT_GATEWAY } from '../../data/chat-gateway';
+import { CHAT_GATEWAY, CreateChatResult } from '../../data/chat-gateway';
 import { ChatListStore } from '../../data/chat-list-store';
 
 import { CreateChatModalContent } from './create-chat-modal-content';
@@ -112,6 +112,46 @@ describe('CreateChatModalContent', () => {
 
       expect(reopenedModal.getByLabelText('Title')).toHaveValue('');
       expect(reopenedFixture.nativeElement.querySelector('.create-chat-form__error')).toBeNull();
+    });
+
+    it('should keep the reopened form usable while the previous creation has not answered yet', async () => {
+      chatGatewayMock.createChat.mockReturnValue(new Subject<CreateChatResult>());
+      const user = userEvent.setup();
+      const { fixture: firstFixture, container } = await renderModal();
+      const firstModal = within(container);
+
+      await user.type(firstModal.getByLabelText('Title'), 'typedTitle');
+      await user.click(firstModal.getByRole('button', { name: 'Create' }));
+      await firstFixture.whenStable();
+
+      firstFixture.destroy();
+
+      const reopenedFixture = TestBed.createComponent(CreateChatModalContent);
+      await reopenedFixture.whenStable();
+      const reopenedModal = within(reopenedFixture.nativeElement);
+
+      await user.type(reopenedModal.getByLabelText('Title'), 'anotherTitle');
+
+      expect(reopenedModal.getByLabelText('Title')).toBeEnabled();
+      expect(reopenedModal.getByRole('button', { name: 'Create' })).toBeEnabled();
+    });
+
+    it('should not cancel the creation when the modal is closed before the gateway answers', async () => {
+      const createChat$ = new Subject<CreateChatResult>();
+      chatGatewayMock.createChat.mockReturnValue(createChat$);
+      const user = userEvent.setup();
+      const { fixture, container } = await renderModal();
+      const modal = within(container);
+
+      await user.type(modal.getByLabelText('Title'), 'typedTitle');
+      await user.click(modal.getByRole('button', { name: 'Create' }));
+      await fixture.whenStable();
+
+      fixture.destroy();
+
+      createChat$.error(new ApplicationError('Mock error'));
+
+      expect(notifierMock.error).toHaveBeenCalledWith('Failed to create chat', 'Mock error');
     });
   });
 });

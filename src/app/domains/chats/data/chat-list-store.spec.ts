@@ -9,6 +9,7 @@ import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
+import { createFormSubmitFlowState, FormSubmitFlowState } from '@shared/submit-flow';
 import { LoadStatus } from '@shared/types';
 
 const createChatResultMock: CreateChatResult = {
@@ -44,6 +45,12 @@ describe('ChatListStore', () => {
   });
 
   describe('create chat', () => {
+    let chatCreationFlow: FormSubmitFlowState;
+
+    beforeEach(() => {
+      chatCreationFlow = createFormSubmitFlowState();
+    });
+
     it('should expose the new chat in the list after it is created', () => {
       const newChat = ChatMocks.chat({ title: 'New chat' });
 
@@ -52,20 +59,16 @@ describe('ChatListStore', () => {
       chatGatewayMock.createChat.mockReturnValue(of(createChatResultMock));
 
       store.loadChats();
-      store.createChat({ title: 'New chat' });
+      store.createChat({ title: 'New chat' }, chatCreationFlow);
 
       expect(store.chats()).toEqual([newChat]);
-    });
-
-    it('should be idle before any chat is created', () => {
-      expect(store.chatCreationFlow.isSubmitting()).toBe(false);
     });
 
     it('should call chat gateway with the given title', () => {
       chatGatewayMock.chats.mockReturnValue(of([]));
       chatGatewayMock.createChat.mockReturnValue(of(createChatResultMock));
 
-      store.createChat({ title: 'Analytics Q3' });
+      store.createChat({ title: 'Analytics Q3' }, chatCreationFlow);
 
       expect(chatGatewayMock.createChat).toHaveBeenCalledOnce();
       expect(chatGatewayMock.createChat).toHaveBeenCalledWith({ title: 'Analytics Q3' });
@@ -74,9 +77,9 @@ describe('ChatListStore', () => {
     it('should mark submitting while the request is pending', () => {
       chatGatewayMock.createChat.mockReturnValue(new Subject<CreateChatResult>());
 
-      store.createChat({ title: 'Analytics Q3' });
+      store.createChat({ title: 'Analytics Q3' }, chatCreationFlow);
 
-      expect(store.chatCreationFlow.isSubmitting()).toBe(true);
+      expect(chatCreationFlow.isSubmitting()).toBe(true);
     });
 
     describe('when the chat is created', () => {
@@ -87,16 +90,16 @@ describe('ChatListStore', () => {
 
       it('should emit succeeded$ once', () => {
         const succeededSpy = vi.fn();
-        store.chatCreationFlow.succeeded$.subscribe(succeededSpy);
+        chatCreationFlow.succeeded$.subscribe(succeededSpy);
 
-        store.createChat({ title: 'Analytics Q3' });
+        store.createChat({ title: 'Analytics Q3' }, chatCreationFlow);
 
         expect(succeededSpy).toHaveBeenCalledOnce();
-        expect(store.chatCreationFlow.isSubmitting()).toBe(false);
+        expect(chatCreationFlow.isSubmitting()).toBe(false);
       });
 
       it('should not notify', () => {
-        store.createChat({ title: 'Analytics Q3' });
+        store.createChat({ title: 'Analytics Q3' }, chatCreationFlow);
 
         expect(notifierMock.success).not.toHaveBeenCalled();
         expect(notifierMock.error).not.toHaveBeenCalled();
@@ -112,12 +115,12 @@ describe('ChatListStore', () => {
 
       it('should notify with the reason and not emit succeeded$', () => {
         const succeededSpy = vi.fn();
-        store.chatCreationFlow.succeeded$.subscribe(succeededSpy);
+        chatCreationFlow.succeeded$.subscribe(succeededSpy);
 
-        store.createChat({ title: 'Analytics Q3' });
+        store.createChat({ title: 'Analytics Q3' }, chatCreationFlow);
 
         expect(succeededSpy).not.toHaveBeenCalled();
-        expect(store.chatCreationFlow.isSubmitting()).toBe(false);
+        expect(chatCreationFlow.isSubmitting()).toBe(false);
         expect(notifierMock.error).toHaveBeenCalledWith('Failed to create chat', 'mockReason');
       });
 
@@ -128,7 +131,7 @@ describe('ChatListStore', () => {
         chatGatewayMock.chats.mockReturnValueOnce(of([otherChat]));
 
         store.loadChats();
-        store.createChat({ title: 'Analytics Q3' });
+        store.createChat({ title: 'Analytics Q3' }, chatCreationFlow);
 
         expect(store.chats()).toEqual([]);
       });

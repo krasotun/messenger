@@ -4,7 +4,7 @@ import { Chat } from '@domains/chats/data/chat';
 import { CHAT_GATEWAY, CreateChatInput, DeleteChatInput } from '@domains/chats/data/chat-gateway';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
-import { createActionFlowState, createFormSubmitFlowState } from '@shared/submit-flow';
+import { createActionFlowState, FormSubmitFlowState } from '@shared/submit-flow';
 import { LoadStatus } from '@shared/types';
 
 type ChatListState =
@@ -17,13 +17,6 @@ type ChatListState =
 export class ChatListStore {
   private readonly _chatGateway = inject(CHAT_GATEWAY);
   private readonly _notifier = inject(NOTIFIER);
-
-  private readonly _chatCreationFlow = createFormSubmitFlowState();
-
-  readonly chatCreationFlow = {
-    isSubmitting: this._chatCreationFlow.isSubmitting,
-    succeeded$: this._chatCreationFlow.succeeded$,
-  };
 
   private readonly _chatDeletionFlow = createActionFlowState();
 
@@ -55,16 +48,18 @@ export class ChatListStore {
     return state.status === LoadStatus.Loaded && state.chats.length === 0;
   });
 
-  createChat(createChatInput: CreateChatInput): void {
-    this._chatCreationFlow.startSubmitting();
+  // Флоу приносит форма: он принадлежит одному ее открытию, а Стор живет со
+  // страницей и пережил бы закрытие модалки вместе с идущей отправкой.
+  createChat(createChatInput: CreateChatInput, chatCreationFlow: FormSubmitFlowState): void {
+    chatCreationFlow.startSubmitting();
 
     this._chatGateway.createChat(createChatInput).subscribe({
       next: () => {
         this.loadChats();
-        this._chatCreationFlow.markSuccess();
+        chatCreationFlow.markSuccess();
       },
       error: ({ message }: ApplicationError) => {
-        this._chatCreationFlow.markError();
+        chatCreationFlow.markError();
         this._notifier.error('Failed to create chat', message);
       },
     });
