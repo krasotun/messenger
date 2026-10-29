@@ -2,8 +2,14 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
 
-import { AuthGateway } from './auth-gateway';
-import { CurrentSessionResult } from './current-session-result';
+import {
+  AuthGateway,
+  CurrentSessionResult,
+  SignInInput,
+  SignInResult,
+  SignUpInput,
+  SignUpResult,
+} from './auth-gateway';
 import { CurrentSessionStatus } from './current-session-status';
 import { currentUserMapper } from './internal/current-user-mapper';
 import { AUTH_ERROR_MESSAGES } from './internal/error-messages';
@@ -11,10 +17,6 @@ import { signInRequestMapper } from './internal/sign-in-request-mapper';
 import { SignUpResponseDto } from './internal/sign-up-dto';
 import { signUpRequestMapper } from './internal/sign-up-request-mapper';
 import { UserDto } from './internal/user-dto';
-import { SignInInput } from './sign-in-input';
-import { SignInResult } from './sign-in-result';
-import { SignUpInput } from './sign-up-input';
-import { SignUpResult } from './sign-up-result';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
 import { toApplicationError } from '@shared/errors';

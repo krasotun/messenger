@@ -1,8 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 
-import { AUTH_GATEWAY } from './auth-gateway';
-import { CurrentSessionResult } from './current-session-result';
+import { AUTH_GATEWAY, CurrentSessionResult } from './auth-gateway';
 import { CurrentSessionService } from './current-session-service';
 import { CurrentSessionStatus } from './current-session-status';
 import { CurrentUser } from './current-user';

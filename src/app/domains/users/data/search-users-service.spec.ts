@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
-import { SearchUsersResult } from './search-users-result';
 import { SearchUsersService } from './search-users-service';
-import { USER_GATEWAY } from './user-gateway';
+import { SearchUsersResult, USER_GATEWAY } from './user-gateway';
 
 import { UserMocks } from '@domains/users/testing';
 import { ApplicationError } from '@shared/errors';

@@ -1,7 +1,7 @@
 import { UpdateProfileRequestDto } from './update-profile-dto';
 import { updateProfileRequestMapper } from './update-profile-request-mapper';
 
-import { UpdateProfileInput } from '@domains/users/data/update-profile-input';
+import { UpdateProfileInput } from '@domains/users/data/user-gateway';
 
 describe('updateProfileRequestMapper', () => {
   it('should map update profile input to snake_case request DTO', () => {

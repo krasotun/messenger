@@ -4,9 +4,8 @@ import { fireEvent, render, screen, within } from '@testing-library/angular/zone
 import { userEvent } from '@testing-library/user-event';
 import { Subject } from 'rxjs';
 
-import { AUTH_GATEWAY } from '../../data/auth-gateway';
+import { AUTH_GATEWAY, SignInInput } from '../../data/auth-gateway';
 import { CurrentSessionService } from '../../data/current-session-service';
-import { SignInInput } from '../../data/sign-in-input';
 import { SignInService } from '../../data/sign-in-service';
 
 import { SignInForm } from './sign-in-form';

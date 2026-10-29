@@ -4,12 +4,10 @@ import { provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from './auth-gateway';
-import { ChangePasswordInput } from './change-password-input';
-import { ChangePasswordResult } from './change-password-result';
 import { ChangePasswordService } from './change-password-service';
 import { CurrentSessionService } from './current-session-service';
 import { CurrentSessionStatus } from './current-session-status';
-import { USER_GATEWAY } from './user-gateway';
+import { ChangePasswordResult, ChangePasswordInput, USER_GATEWAY } from './user-gateway';
 
 import { UserMocks } from '@domains/users/testing';
 import { ApplicationError } from '@shared/errors';

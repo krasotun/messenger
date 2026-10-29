@@ -1,8 +1,7 @@
 import { computed, inject, Injectable } from '@angular/core';
 
 import { CurrentSessionService } from './current-session-service';
-import { UpdateProfileInput } from './update-profile-input';
-import { USER_GATEWAY } from './user-gateway';
+import { UpdateProfileInput, USER_GATEWAY } from './user-gateway';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';

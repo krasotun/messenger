@@ -1,7 +1,7 @@
 import { ChangePasswordRequestDto } from './change-password-dto';
 import { changePasswordRequestMapper } from './change-password-request-mapper';
 
-import { ChangePasswordInput } from '@domains/users/data/change-password-input';
+import { ChangePasswordInput } from '@domains/users/data/user-gateway';
 
 describe('changePasswordRequestMapper', () => {
   it('should map change password input to camelCase request DTO', () => {

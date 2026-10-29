@@ -1,8 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 
-import { ChangeAvatarInput } from './change-avatar-input';
 import { CurrentSessionService } from './current-session-service';
-import { USER_GATEWAY } from './user-gateway';
+import { ChangeAvatarInput, USER_GATEWAY } from './user-gateway';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';

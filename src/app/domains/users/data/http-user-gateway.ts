@@ -2,10 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-import { ChangeAvatarInput } from './change-avatar-input';
-import { ChangeAvatarResult } from './change-avatar-result';
-import { ChangePasswordInput } from './change-password-input';
-import { ChangePasswordResult } from './change-password-result';
 import { changeAvatarRequestMapper } from './internal/change-avatar-request-mapper';
 import { changePasswordRequestMapper } from './internal/change-password-request-mapper';
 import { currentUserMapper } from './internal/current-user-mapper';
@@ -14,11 +10,17 @@ import { FindUserRequestDto } from './internal/search-users-dto';
 import { updateProfileRequestMapper } from './internal/update-profile-request-mapper';
 import { UserDto } from './internal/user-dto';
 import { userMapper } from './internal/user-mapper';
-import { SearchUsersInput } from './search-users-input';
-import { SearchUsersResult } from './search-users-result';
-import { UpdateProfileInput } from './update-profile-input';
-import { UpdateProfileResult } from './update-profile-result';
-import { UserGateway } from './user-gateway';
+import {
+  ChangePasswordResult,
+  ChangePasswordInput,
+  ChangeAvatarResult,
+  ChangeAvatarInput,
+  SearchUsersInput,
+  SearchUsersResult,
+  UpdateProfileInput,
+  UpdateProfileResult,
+  UserGateway,
+} from './user-gateway';
 
 import { RESOURCES_BASE_URL } from '@core/tokens';
 import { toApplicationError } from '@shared/errors';

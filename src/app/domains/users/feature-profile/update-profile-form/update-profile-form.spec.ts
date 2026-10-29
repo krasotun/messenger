@@ -2,8 +2,8 @@ import { outputBinding } from '@angular/core';
 import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
 
-import { UpdateProfileInput } from '../../data/update-profile-input';
 import { UpdateProfileService } from '../../data/update-profile-service';
+import { UpdateProfileInput } from '../../data/user-gateway';
 
 import { UpdateProfileForm } from './update-profile-form';
 

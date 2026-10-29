@@ -1,8 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 
-import { AUTH_GATEWAY } from './auth-gateway';
-import { CurrentSessionResult } from './current-session-result';
+import { AUTH_GATEWAY, CurrentSessionResult } from './auth-gateway';
 import { CurrentSessionStatus } from './current-session-status';
 import { CurrentUser } from './current-user';
 
