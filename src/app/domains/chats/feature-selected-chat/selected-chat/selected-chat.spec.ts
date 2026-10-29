@@ -60,6 +60,7 @@ describe('SelectedChat', () => {
     ({ fixture } = await render(SelectedChat, {
       bindings: [inputBinding('chatId', chatId)],
       providers: [
+        ChatListStore,
         { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
         { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
         { provide: CurrentSessionService, useValue: currentSessionServiceMock },

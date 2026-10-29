@@ -19,6 +19,7 @@ const DELETE_CHAT_MESSAGE =
   imports: [SelectedChatHeader, ChatUsersPanel],
   templateUrl: './selected-chat.html',
   styleUrl: './selected-chat.scss',
+  providers: [ChatUsersStore],
 })
 export class SelectedChat {
   readonly chatId = input.required({
