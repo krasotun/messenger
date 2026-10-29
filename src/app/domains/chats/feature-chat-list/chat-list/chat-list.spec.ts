@@ -11,6 +11,8 @@ import { ChatList } from './chat-list';
 
 import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 import { ModalService } from '@shared/ui/modal/modal-service';
 import { ModalMocks } from '@shared/ui/modal/testing';
 
@@ -25,6 +27,7 @@ describe('ChatList', () => {
       providers: [
         provideRouter([]),
         { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
+        { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
         { provide: ModalService, useValue: modalServiceMock },
       ],
       waitForStableOnRender: true,

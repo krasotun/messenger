@@ -2,7 +2,6 @@ import { Subject } from 'rxjs';
 
 import { Chat } from '../data/chat';
 import { ChatGateway } from '../data/chat-gateway';
-import { ChatListService } from '../data/chat-list-service';
 import { ChatUser } from '../data/chat-user';
 import { ChatUsersService } from '../data/chat-users-service';
 import { DeleteChatService } from '../data/delete-chat-service';
@@ -45,10 +44,6 @@ export const ChatMocks = {
   removeChatUserService: () => ({
     removeChatUser: vi.fn<RemoveChatUserService['removeChatUser']>(),
     succeeded$: new Subject<void>(),
-  }),
-
-  chatListService: () => ({
-    loadChats: vi.fn<ChatListService['loadChats']>(),
   }),
 
   chatUsersService: () => ({

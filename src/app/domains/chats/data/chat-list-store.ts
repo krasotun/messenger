@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 
 import { Chat } from '@domains/chats/data/chat';
 import { CHAT_GATEWAY } from '@domains/chats/data/chat-gateway';
@@ -6,6 +6,13 @@ import { CreateChatInput } from '@domains/chats/data/create-chat-input';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { createFormSubmitFlowState } from '@shared/submit-flow';
+import { LoadStatus } from '@shared/types';
+
+type ChatListState =
+  | { status: LoadStatus.Idle }
+  | { status: LoadStatus.Loading }
+  | { status: LoadStatus.Loaded; chats: Chat[] }
+  | { status: LoadStatus.Error; errorMessage: string };
 
 @Injectable({ providedIn: 'root' })
 export class ChatListStore {
@@ -19,8 +26,29 @@ export class ChatListStore {
     succeeded$: this._chatCreationFlow.succeeded$,
   };
 
-  private readonly _chats = signal<Chat[]>([]);
-  readonly chats = this._chats.asReadonly();
+  private readonly _state = signal<ChatListState>({ status: LoadStatus.Idle });
+
+  readonly status = computed(() => this._state().status);
+
+  readonly chats = computed(() => {
+    const state = this._state();
+
+    return state.status === LoadStatus.Loaded ? state.chats : [];
+  });
+
+  readonly errorMessage = computed(() => {
+    const state = this._state();
+
+    return state.status === LoadStatus.Error ? state.errorMessage : null;
+  });
+
+  // Пустота - это состояние загруженного списка, а не отсутствие данных:
+  // до ответа и после ошибки показывать «чатов еще нет» нельзя.
+  readonly isEmpty = computed(() => {
+    const state = this._state();
+
+    return state.status === LoadStatus.Loaded && state.chats.length === 0;
+  });
 
   createChat(createChatInput: CreateChatInput): void {
     this._chatCreationFlow.startSubmitting();
@@ -38,8 +66,15 @@ export class ChatListStore {
   }
 
   loadChats(): void {
-    this._chatGateway.chats().subscribe((chats) => {
-      this._chats.set(chats);
+    this._state.set({ status: LoadStatus.Loading });
+
+    this._chatGateway.chats().subscribe({
+      next: (chats) => {
+        this._state.set({ status: LoadStatus.Loaded, chats });
+      },
+      error: ({ message }: ApplicationError) => {
+        this._state.set({ status: LoadStatus.Error, errorMessage: message });
+      },
     });
   }
 }

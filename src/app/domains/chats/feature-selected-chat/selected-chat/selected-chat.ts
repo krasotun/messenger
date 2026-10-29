@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { ChatUsersPanel } from '../../ui/chat-users-panel/chat-users-panel';
 import { SelectedChatHeader } from '../selected-chat-header/selected-chat-header';
 
-import { ChatListService } from '@domains/chats/data/chat-list-service';
+import { ChatListStore } from '@domains/chats/data/chat-list-store';
 import { ChatUser } from '@domains/chats/data/chat-user';
 import { ChatUsersService } from '@domains/chats/data/chat-users-service';
 import { DeleteChatService } from '@domains/chats/data/delete-chat-service';
@@ -29,7 +29,7 @@ export class SelectedChat {
   });
 
   private readonly _chatUsersService = inject(ChatUsersService);
-  private readonly _chatListService = inject(ChatListService);
+  private readonly _chatListStore = inject(ChatListStore);
   private readonly _currentSessionService = inject(CurrentSessionService);
   private readonly _confirmationService = inject(ConfirmationService);
   private readonly _deleteChatService = inject(DeleteChatService);
@@ -43,7 +43,7 @@ export class SelectedChat {
   readonly chat = computed(() => {
     const chatId = this.chatId();
 
-    return this._chatListService.chats().find((chat) => chat.id === chatId) ?? null;
+    return this._chatListStore.chats().find((chat) => chat.id === chatId) ?? null;
   });
 
   readonly isChatCreator = computed(() => {

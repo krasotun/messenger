@@ -3,12 +3,14 @@ import { of, Subject, throwError } from 'rxjs';
 
 import { ChatListStore } from './chat-list-store';
 
+import { Chat } from '@domains/chats/data/chat';
 import { CHAT_GATEWAY } from '@domains/chats/data/chat-gateway';
 import { CreateChatResult } from '@domains/chats/data/create-chat-result';
 import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
+import { LoadStatus } from '@shared/types';
 
 const createChatResultMock: CreateChatResult = {
   id: 1,
@@ -18,10 +20,12 @@ describe('ChatListStore', () => {
   let store: ChatListStore;
   let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
+  let chatMock: Chat;
 
   beforeEach(() => {
     chatGatewayMock = ChatMocks.chatGateway();
     notifierMock = NotificationMocks.notifier();
+    chatMock = ChatMocks.chat();
 
     TestBed.configureTestingModule({
       providers: [
@@ -127,6 +131,111 @@ describe('ChatListStore', () => {
         store.createChat({ title: 'Analytics Q3' });
 
         expect(store.chats()).toEqual([]);
+      });
+    });
+  });
+
+  describe('initial state', () => {
+    it('should be idle with an empty list and no error', () => {
+      expect(store.status()).toBe(LoadStatus.Idle);
+      expect(store.chats()).toEqual([]);
+      expect(store.errorMessage()).toBeNull();
+    });
+  });
+
+  describe('load chats', () => {
+    it('should mark loading while the request is pending', () => {
+      chatGatewayMock.chats.mockReturnValue(new Subject<Chat[]>());
+
+      store.loadChats();
+
+      expect(store.status()).toBe(LoadStatus.Loading);
+    });
+
+    describe('when the current user has chats', () => {
+      beforeEach(() => {
+        chatGatewayMock.chats.mockReturnValue(of([chatMock]));
+      });
+
+      it('should expose the loaded chats', () => {
+        store.loadChats();
+
+        expect(store.status()).toBe(LoadStatus.Loaded);
+        expect(store.chats()).toEqual([chatMock]);
+      });
+
+      it('should not report the list as empty', () => {
+        store.loadChats();
+
+        expect(store.isEmpty()).toBe(false);
+      });
+    });
+
+    describe('when there are no chats yet', () => {
+      beforeEach(() => {
+        chatGatewayMock.chats.mockReturnValue(of([]));
+      });
+
+      it('should report the loaded list as empty', () => {
+        store.loadChats();
+
+        expect(store.status()).toBe(LoadStatus.Loaded);
+        expect(store.isEmpty()).toBe(true);
+        expect(store.errorMessage()).toBeNull();
+      });
+    });
+
+    describe('when the list fails to load', () => {
+      beforeEach(() => {
+        chatGatewayMock.chats.mockReturnValue(throwError(() => new ApplicationError('mockReason')));
+      });
+
+      it('should expose the error message', () => {
+        store.loadChats();
+
+        expect(store.status()).toBe(LoadStatus.Error);
+        expect(store.errorMessage()).toBe('mockReason');
+      });
+
+      it('should not report the list as empty', () => {
+        store.loadChats();
+
+        expect(store.isEmpty()).toBe(false);
+      });
+    });
+
+    describe('when loading again after an error', () => {
+      it('should replace the error with the loaded chats', () => {
+        chatGatewayMock.chats.mockReturnValueOnce(
+          throwError(() => new ApplicationError('mockReason')),
+        );
+
+        store.loadChats();
+
+        expect(store.status()).toBe(LoadStatus.Error);
+
+        chatGatewayMock.chats.mockReturnValueOnce(of([chatMock]));
+
+        store.loadChats();
+
+        expect(store.status()).toBe(LoadStatus.Loaded);
+        expect(store.errorMessage()).toBeNull();
+        expect(store.chats()).toEqual([chatMock]);
+      });
+
+      it('should clear the error message while the retry is pending', () => {
+        chatGatewayMock.chats.mockReturnValueOnce(
+          throwError(() => new ApplicationError('mockReason')),
+        );
+
+        store.loadChats();
+
+        chatGatewayMock.chats.mockReturnValueOnce(new Subject<Chat[]>());
+
+        store.loadChats();
+
+        expect(store.errorMessage()).toBeNull();
+        expect(store.status()).toBe(LoadStatus.Loading);
       });
     });
   });
