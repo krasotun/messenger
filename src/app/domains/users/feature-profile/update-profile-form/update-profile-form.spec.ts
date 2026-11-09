@@ -1,15 +1,19 @@
-import { outputBinding } from '@angular/core';
+import { inputBinding, outputBinding } from '@angular/core';
 import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
+import { of, Subject } from 'rxjs';
 
-import { UpdateProfileService } from '../../data/update-profile-service';
-import { UpdateProfileInput } from '../../data/user-gateway';
+import { AUTH_GATEWAY } from '../../data/auth-gateway';
+import { CurrentSessionStore } from '../../data/current-session-store';
+import { UpdateProfileInput, UpdateProfileResult, USER_GATEWAY } from '../../data/user-gateway';
 
 import { UpdateProfileForm } from './update-profile-form';
 
 import { UserMocks } from '@domains/users/testing';
+import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 
-const initialValuesMock = UserMocks.updateProfileInput();
+const profileMock = UserMocks.updateProfileInput();
 
 const fieldLabels: Record<keyof UpdateProfileInput, string> = {
   firstName: 'First name',
@@ -23,15 +27,28 @@ const fieldLabels: Record<keyof UpdateProfileInput, string> = {
 const invalidFormatError = 'Value has an invalid format';
 
 describe('UpdateProfileForm', () => {
-  let updateProfileServiceMock: ReturnType<typeof UserMocks.updateProfileService>;
+  let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
+  let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
   let user: UserEvent;
 
-  const renderForm = async () => {
+  // Сохранение профиля обновляет Текущего пользователя, поэтому сессия
+  // восстанавливается: иначе Стор откажется ее менять.
+  const renderForm = async (profile: UpdateProfileInput = profileMock) => {
     const profileUpdated = vi.fn();
 
     const result = await render(UpdateProfileForm, {
-      bindings: [outputBinding('profileUpdated', profileUpdated)],
-      providers: [{ provide: UpdateProfileService, useValue: updateProfileServiceMock }],
+      bindings: [
+        inputBinding('profile', () => profile),
+        outputBinding('profileUpdated', profileUpdated),
+      ],
+      providers: [
+        { provide: AUTH_GATEWAY, useValue: authGatewayMock },
+        { provide: USER_GATEWAY, useValue: userGatewayMock },
+        { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
+      ],
+      configureTestBed: (testBed) => {
+        testBed.inject(CurrentSessionStore).restoreCurrentSession().subscribe();
+      },
       waitForStableOnRender: true,
     });
 
@@ -48,9 +65,16 @@ describe('UpdateProfileForm', () => {
     await user.type(getField(field), value);
   };
 
+  const submitChangedForm = async (): Promise<void> => {
+    await replaceValue('firstName', 'changed');
+    await user.click(getSubmitButton());
+  };
+
   beforeEach(() => {
     user = userEvent.setup();
-    updateProfileServiceMock = UserMocks.updateProfileService(initialValuesMock);
+    userGatewayMock = UserMocks.userGateway();
+    authGatewayMock = UserMocks.authGateway();
+    authGatewayMock.currentSession.mockReturnValue(of(UserMocks.authenticatedSession()));
   });
 
   it('should create', async () => {
@@ -60,11 +84,11 @@ describe('UpdateProfileForm', () => {
   });
 
   describe('prefilled form', () => {
-    it('should prefill form with initial values of the current user', async () => {
+    it('should prefill the form with the profile input', async () => {
       await renderForm();
 
       for (const field of Object.keys(fieldLabels) as (keyof UpdateProfileInput)[]) {
-        expect(getField(field)).toHaveValue(initialValuesMock[field]);
+        expect(getField(field)).toHaveValue(profileMock[field]);
       }
     });
   });
@@ -101,7 +125,7 @@ describe('UpdateProfileForm', () => {
 
       fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
-      expect(updateProfileServiceMock.updateProfile).not.toHaveBeenCalled();
+      expect(userGatewayMock.updateProfile).not.toHaveBeenCalled();
     });
 
     it('should disable the submit button when a changed field becomes invalid', async () => {
@@ -125,49 +149,40 @@ describe('UpdateProfileForm', () => {
 
   describe('valid submit', () => {
     it('should call updateProfile with form value when a changed valid form is submitted', async () => {
+      userGatewayMock.updateProfile.mockReturnValue(new Subject<UpdateProfileResult>());
       await renderForm();
 
-      await replaceValue('firstName', 'changed');
-      await user.click(getSubmitButton());
+      await submitChangedForm();
 
-      expect(updateProfileServiceMock.updateProfile).toHaveBeenCalledOnce();
-      expect(updateProfileServiceMock.updateProfile).toHaveBeenCalledWith({
-        ...initialValuesMock,
+      expect(userGatewayMock.updateProfile).toHaveBeenCalledOnce();
+      expect(userGatewayMock.updateProfile).toHaveBeenCalledWith({
+        ...profileMock,
         firstName: 'changed',
       });
     });
   });
 
   describe('submitting state', () => {
-    it('should disable submit button', async () => {
-      const { fixture } = await renderForm();
+    beforeEach(() => {
+      userGatewayMock.updateProfile.mockReturnValue(new Subject<UpdateProfileResult>());
+    });
 
-      updateProfileServiceMock.isSubmitting.set(true);
-      await fixture.whenStable();
+    it('should disable submit button', async () => {
+      await renderForm();
+
+      await submitChangedForm();
 
       expect(getSubmitButton()).toBeDisabled();
     });
 
     it('should disable all controls', async () => {
-      const { fixture } = await renderForm();
+      await renderForm();
 
-      updateProfileServiceMock.isSubmitting.set(true);
-      await fixture.whenStable();
+      await submitChangedForm();
 
       for (const field of Object.keys(fieldLabels) as (keyof UpdateProfileInput)[]) {
         expect(getField(field)).toBeDisabled();
       }
-    });
-
-    it('should not treat the lock while submitting as a form change', async () => {
-      const { fixture } = await renderForm();
-
-      updateProfileServiceMock.isSubmitting.set(true);
-      await fixture.whenStable();
-      updateProfileServiceMock.isSubmitting.set(false);
-      await fixture.whenStable();
-
-      expect(getSubmitButton()).toBeDisabled();
     });
   });
 
@@ -180,10 +195,13 @@ describe('UpdateProfileForm', () => {
   });
 
   describe('success state', () => {
-    it('should emit profileUpdated when the service reports success, without a manual application tick', async () => {
+    it('should emit profileUpdated when the store reports success, without a manual application tick', async () => {
+      userGatewayMock.updateProfile.mockReturnValue(
+        of({ user: UserMocks.currentUser({ firstName: 'changed' }) }),
+      );
       const { profileUpdated } = await renderForm();
 
-      updateProfileServiceMock.succeeded$.next();
+      await submitChangedForm();
 
       expect(profileUpdated).toHaveBeenCalledOnce();
     });

@@ -4,7 +4,12 @@ import { catchError, EMPTY, filter, map, Observable, switchMap, tap, throwError 
 import { AUTH_GATEWAY, CurrentSessionResult, SignInInput, SignUpInput } from './auth-gateway';
 import { CurrentSessionStatus } from './current-session-status';
 import { CurrentUser } from './current-user';
-import { ChangeAvatarInput, ChangePasswordInput, USER_GATEWAY } from './user-gateway';
+import {
+  ChangeAvatarInput,
+  ChangePasswordInput,
+  UpdateProfileInput,
+  USER_GATEWAY,
+} from './user-gateway';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
@@ -71,6 +76,25 @@ export class CurrentSessionStore {
       error: ({ message }: ApplicationError) => {
         signUpFlow.markError();
         this._notifier.error('Sign-up failed', message);
+      },
+    });
+  }
+
+  updateProfile(
+    updateProfileInput: UpdateProfileInput,
+    updateProfileFlow: FormSubmitFlowState,
+  ): void {
+    updateProfileFlow.startSubmitting();
+
+    this._userGateway.updateProfile(updateProfileInput).subscribe({
+      next: ({ user }) => {
+        this.updateCurrentUser(user);
+        updateProfileFlow.markSuccess();
+        this._notifier.success('Update profile', 'Profile updated successfully');
+      },
+      error: ({ message }: ApplicationError) => {
+        updateProfileFlow.markError();
+        this._notifier.error('Failed to update profile', message);
       },
     });
   }
