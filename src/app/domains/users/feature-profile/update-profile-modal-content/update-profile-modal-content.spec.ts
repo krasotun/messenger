@@ -1,3 +1,4 @@
+import { inputBinding } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { fireEvent, render, screen, within } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
@@ -6,7 +7,7 @@ import { of, Subject, throwError } from 'rxjs';
 import { AUTH_GATEWAY } from '../../data/auth-gateway';
 import { CurrentSessionStatus } from '../../data/current-session-status';
 import { CurrentSessionStore } from '../../data/current-session-store';
-import { UpdateProfileService } from '../../data/update-profile-service';
+import { CurrentUser } from '../../data/current-user';
 import { ChangeAvatarResult, USER_GATEWAY } from '../../data/user-gateway';
 
 import { UpdateProfileModalContent } from './update-profile-modal-content';
@@ -27,21 +28,11 @@ const currentUserMock = UserMocks.currentUser({
   phone: '+79991234567',
 });
 
-const initialValuesMock = UserMocks.updateProfileInput({
-  firstName: 'firstName',
-  secondName: 'secondName',
-  displayName: 'displayName',
-  login: 'login',
-  email: 'email@mock.ru',
-  phone: '+79991234567',
-});
-
 const pngFileMock = new File(['mockContent'], 'avatar.png', { type: 'image/png' });
 
 const changeAvatarError = /^Avatar change failed:/;
 
 describe('UpdateProfileModalContent', () => {
-  let updateProfileServiceMock: ReturnType<typeof UserMocks.updateProfileService>;
   let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
   let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
   let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
@@ -55,17 +46,13 @@ describe('UpdateProfileModalContent', () => {
     { provide: AUTH_GATEWAY, useValue: authGatewayMock },
   ];
 
-  // UpdateProfileService живет в providers компонента модалки, Смена аватара
-  // идет через настоящий CurrentSessionStore с восстановленной сессией.
-  const renderModal = () =>
+  // Смена аватара и Редактирование профиля идут через настоящий
+  // CurrentSessionStore с восстановленной сессией.
+  const renderModal = (currentUser: CurrentUser = currentUserMock) =>
     render(UpdateProfileModalContent, {
+      bindings: [inputBinding('currentUser', () => currentUser)],
       providers: sharedProviders(),
       configureTestBed: (testBed) => {
-        testBed.overrideComponent(UpdateProfileModalContent, {
-          set: {
-            providers: [{ provide: UpdateProfileService, useValue: updateProfileServiceMock }],
-          },
-        });
         testBed.inject(CurrentSessionStore).restoreCurrentSession().subscribe();
       },
       waitForStableOnRender: true,
@@ -86,7 +73,6 @@ describe('UpdateProfileModalContent', () => {
 
   beforeEach(() => {
     user = userEvent.setup();
-    updateProfileServiceMock = UserMocks.updateProfileService(initialValuesMock);
     userGatewayMock = UserMocks.userGateway();
     authGatewayMock = UserMocks.authGateway();
     authGatewayMock.currentSession.mockImplementation(() =>
@@ -102,11 +88,31 @@ describe('UpdateProfileModalContent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  describe('successful save', () => {
-    it('should close the modal without a manual application tick', async () => {
+  describe('profile mapping', () => {
+    it('should fill the form with the current user from the input', async () => {
       await renderModal();
 
-      updateProfileServiceMock.succeeded$.next();
+      expect(screen.getByLabelText('First name')).toHaveValue(currentUserMock.firstName);
+      expect(screen.getByLabelText('Second name')).toHaveValue(currentUserMock.secondName);
+      expect(screen.getByLabelText('Display name')).toHaveValue(currentUserMock.displayName);
+      expect(screen.getByLabelText('Login')).toHaveValue(currentUserMock.login);
+      expect(screen.getByLabelText('Email')).toHaveValue(currentUserMock.email);
+      expect(screen.getByLabelText('Mobile phone')).toHaveValue(currentUserMock.phone);
+    });
+
+    it('should fill the display name with an empty string when the current user has none', async () => {
+      await renderModal({ ...currentUserMock, displayName: null });
+
+      expect(screen.getByLabelText('Display name')).toHaveValue('');
+    });
+  });
+
+  describe('successful save', () => {
+    it('should close the modal without a manual application tick', async () => {
+      userGatewayMock.updateProfile.mockReturnValue(of({ user: currentUserMock }));
+      await renderModal();
+
+      await changeFirstNameAndSave();
 
       expect(modalRefMock.close).toHaveBeenCalledOnce();
     });
@@ -116,7 +122,7 @@ describe('UpdateProfileModalContent', () => {
     it('should not call updateProfile', async () => {
       await renderModal();
 
-      expect(updateProfileServiceMock.updateProfile).not.toHaveBeenCalled();
+      expect(userGatewayMock.updateProfile).not.toHaveBeenCalled();
     });
 
     it('should not call changeAvatar even when a file has been selected', async () => {
@@ -146,33 +152,27 @@ describe('UpdateProfileModalContent', () => {
       await submitChangeAvatarForm();
 
       expect(userGatewayMock.changeAvatar).toHaveBeenCalledOnce();
-      expect(updateProfileServiceMock.updateProfile).not.toHaveBeenCalled();
+      expect(userGatewayMock.updateProfile).not.toHaveBeenCalled();
       expect(modalRefMock.close).not.toHaveBeenCalled();
     });
 
     it('should keep the update profile submit out of the change avatar use case', async () => {
+      userGatewayMock.updateProfile.mockReturnValue(of({ user: currentUserMock }));
       await renderModal();
 
       await changeFirstNameAndSave();
 
-      expect(updateProfileServiceMock.updateProfile).toHaveBeenCalledOnce();
+      expect(userGatewayMock.updateProfile).toHaveBeenCalledOnce();
       expect(userGatewayMock.changeAvatar).not.toHaveBeenCalled();
     });
   });
 
   describe('flow lifetime', () => {
-    const renderWithRealServices = () =>
-      render(UpdateProfileModalContent, {
-        providers: sharedProviders(),
-        configureTestBed: (testBed) =>
-          testBed.inject(CurrentSessionStore).restoreCurrentSession().subscribe(),
-        waitForStableOnRender: true,
-      });
-
     // render настраивает TestBed и второй раз в одном тесте не вызывается:
     // повторное открытие модалки идет через TestBed.createComponent.
     const reopenModal = async (): Promise<ComponentFixture<UpdateProfileModalContent>> => {
       const reopenedFixture = TestBed.createComponent(UpdateProfileModalContent);
+      reopenedFixture.componentRef.setInput('currentUser', currentUserMock);
       await reopenedFixture.whenStable();
 
       return reopenedFixture;
@@ -188,7 +188,7 @@ describe('UpdateProfileModalContent', () => {
     });
 
     it('should show a form without an error when reopened after a failed save', async () => {
-      const { fixture: failedFixture, container } = await renderWithRealServices();
+      const { fixture: failedFixture, container } = await renderModal();
 
       await changeFirstNameAndSave(container);
       await failedFixture.whenStable();
@@ -206,7 +206,7 @@ describe('UpdateProfileModalContent', () => {
     });
 
     it('should show the change avatar form without a file and without an error when reopened', async () => {
-      const { fixture: failedFixture, container } = await renderWithRealServices();
+      const { fixture: failedFixture, container } = await renderModal();
 
       await selectAvatarFile(container);
       await submitChangeAvatarForm(container);

@@ -1,11 +1,8 @@
-import { signal } from '@angular/core';
-import { Subject } from 'rxjs';
 import { vi } from 'vitest';
 
 import { AuthGateway, CurrentSessionResult } from '../data/auth-gateway';
 import { CurrentSessionStatus } from '../data/current-session-status';
 import { CurrentUser } from '../data/current-user';
-import { UpdateProfileService } from '../data/update-profile-service';
 import { User } from '../data/user';
 import { UpdateProfileInput, UserGateway } from '../data/user-gateway';
 
@@ -32,8 +29,6 @@ const updateProfileInput = (overrides: Partial<UpdateProfileInput> = {}): Update
 });
 
 // Каждый вызов отдает новый двойник: сбрасывать его между тестами не нужно.
-// isSubmitting и succeeded$ у use case - сигнал и Subject, которыми тест
-// управляет сам: переключает отправку и сообщает об успехе через next().
 export const UserMocks = {
   currentUser,
 
@@ -68,12 +63,5 @@ export const UserMocks = {
     changePassword: vi.fn<UserGateway['changePassword']>(),
     changeAvatar: vi.fn<UserGateway['changeAvatar']>(),
     searchUsers: vi.fn<UserGateway['searchUsers']>(),
-  }),
-
-  updateProfileService: (initialValues: UpdateProfileInput = updateProfileInput()) => ({
-    updateProfile: vi.fn<UpdateProfileService['updateProfile']>(),
-    initialValues: signal(initialValues),
-    isSubmitting: signal(false),
-    succeeded$: new Subject<void>(),
   }),
 };
