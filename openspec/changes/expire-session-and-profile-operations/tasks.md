@@ -27,7 +27,7 @@
 - [x] 3.2 Добавить в `update-profile-form.ts` вход `profile` и свой флоу; реализовать `CurrentSessionStore.updateProfile(input, flow)`; удалить `UpdateProfileService` со спеком и двойник из `UserMocks`; дать `update-profile-modal-content` вход `currentUser` и маппинг в `profile`; проверить, что спеки 3.1 зеленые
 - [x] 3.3 Переписать падающие спеки `current-user-avatar-menu.spec.ts`: `Edit profile` закрывает меню и открывает модалку только после ответа `refreshCurrentUser()`, передавая в нее **Текущего пользователя** из ответа; пустое завершение модалку не открывает; `Change password` открывает модалку без вызова `refreshCurrentUser()`
 - [x] 3.4 Реализовать в `current-user-avatar-menu.ts`, проверив, что спеки 3.3 зеленые
-- [ ] 3.5 Прогнать `npm run lint` и `npm run test:ci`
+- [x] 3.5 Прогнать `npm run lint` и `npm run test:ci`
 
 ## 4. Модалка закрывается при смене маршрута
 
