@@ -1,10 +1,12 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, effect, inject, input, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { UpdateProfileService } from '../../data/update-profile-service';
+import { CurrentSessionStore } from '../../data/current-session-store';
 import { emailPattern, phonePattern } from '../../data/user-field-patterns';
+import { UpdateProfileInput } from '../../data/user-gateway';
 
 import { connectSubmitFlow } from '@shared/forms';
+import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
 import { FormField } from '@shared/ui/form-field/form-field';
 import { Input } from '@shared/ui/input/input';
@@ -24,6 +26,8 @@ interface UpdateProfileFormModel {
   templateUrl: './update-profile-form.html',
 })
 export class UpdateProfileForm {
+  readonly profile = input.required<UpdateProfileInput>();
+
   readonly updateProfileForm = new FormGroup<UpdateProfileFormModel>({
     firstName: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     secondName: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -46,9 +50,11 @@ export class UpdateProfileForm {
 
   readonly profileUpdated = output<void>();
 
-  private readonly _updateProfileService = inject(UpdateProfileService);
+  private readonly _currentSessionStore = inject(CurrentSessionStore);
 
-  protected readonly isSubmitting = this._updateProfileService.isSubmitting;
+  private readonly _updateProfileFlow = createFormSubmitFlowState();
+
+  protected readonly isSubmitting = this._updateProfileFlow.isSubmitting;
 
   protected readonly fields = [
     { label: 'First name', type: 'text', control: this.updateProfileForm.controls.firstName },
@@ -60,13 +66,15 @@ export class UpdateProfileForm {
   ];
 
   constructor() {
-    this.updateProfileForm.setValue(this._updateProfileService.initialValues());
+    effect(() => {
+      this.updateProfileForm.setValue(this.profile());
+    });
 
-    connectSubmitFlow(this.updateProfileForm, this._updateProfileService, this.profileUpdated);
+    connectSubmitFlow(this.updateProfileForm, this._updateProfileFlow, this.profileUpdated);
   }
 
   protected onSubmit(): void {
     const updateProfileFormValue = this.updateProfileForm.getRawValue();
-    this._updateProfileService.updateProfile(updateProfileFormValue);
+    this._currentSessionStore.updateProfile(updateProfileFormValue, this._updateProfileFlow);
   }
 }

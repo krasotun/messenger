@@ -39,7 +39,12 @@ export class CurrentUserAvatarMenu {
   protected editProfile(): void {
     this._popover()?.close();
 
-    this._modalService.open(UpdateProfileModalContent, { title: 'Edit profile' });
+    this._currentSessionStore.refreshCurrentUser().subscribe((currentUser) => {
+      this._modalService.open(UpdateProfileModalContent, {
+        title: 'Edit profile',
+        inputs: { currentUser },
+      });
+    });
   }
 
   protected changePassword(): void {

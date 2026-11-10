@@ -1,13 +1,24 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { catchError, Observable, switchMap, tap, throwError } from 'rxjs';
+import { catchError, EMPTY, filter, map, Observable, switchMap, tap, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY, CurrentSessionResult, SignInInput, SignUpInput } from './auth-gateway';
 import { CurrentSessionStatus } from './current-session-status';
 import { CurrentUser } from './current-user';
+import {
+  ChangeAvatarInput,
+  ChangePasswordInput,
+  UpdateProfileInput,
+  USER_GATEWAY,
+} from './user-gateway';
 
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { FormSubmitFlowState } from '@shared/submit-flow';
+
+type AuthenticatedSession = Extract<
+  CurrentSessionResult,
+  { status: CurrentSessionStatus.Authenticated }
+>;
 
 type CurrentSessionState =
   | { status: CurrentSessionStatus.Unknown }
@@ -19,6 +30,7 @@ type CurrentSessionState =
 })
 export class CurrentSessionStore {
   private readonly _authGateway = inject(AUTH_GATEWAY);
+  private readonly _userGateway = inject(USER_GATEWAY);
   private readonly _notifier = inject(NOTIFIER);
 
   private readonly _state = signal<CurrentSessionState>({ status: CurrentSessionStatus.Unknown });
@@ -68,6 +80,80 @@ export class CurrentSessionStore {
     });
   }
 
+  updateProfile(
+    updateProfileInput: UpdateProfileInput,
+    updateProfileFlow: FormSubmitFlowState,
+  ): void {
+    updateProfileFlow.startSubmitting();
+
+    this._userGateway.updateProfile(updateProfileInput).subscribe({
+      next: ({ user }) => {
+        this.updateCurrentUser(user);
+        updateProfileFlow.markSuccess();
+        this._notifier.success('Update profile', 'Profile updated successfully');
+      },
+      error: ({ message }: ApplicationError) => {
+        updateProfileFlow.markError();
+        this._notifier.error('Failed to update profile', message);
+      },
+    });
+  }
+
+  changeAvatar(changeAvatarInput: ChangeAvatarInput, changeAvatarFlow: FormSubmitFlowState): void {
+    changeAvatarFlow.startSubmitting();
+
+    this._userGateway.changeAvatar(changeAvatarInput).subscribe({
+      next: ({ user }) => {
+        this.updateCurrentUser(user);
+        changeAvatarFlow.markSuccess();
+        this._notifier.success('Change avatar', 'Avatar changed successfully');
+      },
+      error: ({ message }: ApplicationError) => {
+        changeAvatarFlow.markError();
+        this._notifier.error('Failed to change avatar', message);
+      },
+    });
+  }
+
+  changePassword(
+    changePasswordInput: ChangePasswordInput,
+    changePasswordFlow: FormSubmitFlowState,
+  ): void {
+    changePasswordFlow.startSubmitting();
+
+    this._userGateway.changePassword(changePasswordInput).subscribe({
+      next: () => {
+        changePasswordFlow.markSuccess();
+        this._notifier.success('Change password', 'Password changed successfully');
+      },
+      error: ({ message }: ApplicationError) => {
+        changePasswordFlow.markError();
+        this._notifier.error('Failed to change password', message);
+      },
+    });
+  }
+
+  // Ответ пишется прямо в состояние, а не через updateCurrentUser: тот бросает
+  // без признанной сессии, и catchError спрятал бы исключение под ошибку
+  // загрузки профиля.
+  refreshCurrentUser(): Observable<CurrentUser> {
+    return this._authGateway.currentSession().pipe(
+      filter(
+        (result): result is AuthenticatedSession =>
+          result.status === CurrentSessionStatus.Authenticated,
+      ),
+      tap((result) => {
+        this._state.set(result);
+      }),
+      map(({ user }) => user),
+      catchError(({ message }: ApplicationError) => {
+        this._notifier.error('Failed to load profile', message);
+
+        return EMPTY;
+      }),
+    );
+  }
+
   restoreCurrentSession(): Observable<CurrentSessionResult> {
     this._state.set({ status: CurrentSessionStatus.Loading });
 
@@ -103,6 +189,10 @@ export class CurrentSessionStore {
         return throwError(() => error);
       }),
     );
+  }
+
+  expireCurrentSession(): void {
+    this._markAnonymous();
   }
 
   private _markAnonymous(): void {

@@ -1,10 +1,20 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { of, Subject, throwError } from 'rxjs';
+import { provideRouter, Router } from '@angular/router';
+import { of, Subject, throwError, toArray } from 'rxjs';
 
 import { AUTH_GATEWAY, CurrentSessionResult, SignInInput, SignUpInput } from './auth-gateway';
 import { CurrentSessionStatus } from './current-session-status';
 import { CurrentSessionStore } from './current-session-store';
 import { CurrentUser } from './current-user';
+import {
+  ChangeAvatarInput,
+  ChangeAvatarResult,
+  ChangePasswordInput,
+  ChangePasswordResult,
+  UpdateProfileResult,
+  USER_GATEWAY,
+} from './user-gateway';
 
 import { UserMocks } from '@domains/users/testing';
 import { ApplicationError } from '@shared/errors';
@@ -15,6 +25,37 @@ import { createFormSubmitFlowState, FormSubmitFlowState } from '@shared/submit-f
 const currentUserMock = UserMocks.currentUser();
 
 const successResponseMock = UserMocks.authenticatedSession(currentUserMock);
+
+const userWithNewAvatarMock: CurrentUser = {
+  ...currentUserMock,
+  avatar: 'https://mock.host/resources/path/to/avatar.png',
+};
+
+const changeAvatarInputMock: ChangeAvatarInput = {
+  file: new File(['mockContent'], 'avatar.png', { type: 'image/png' }),
+};
+
+const changePasswordInputMock: ChangePasswordInput = {
+  oldPassword: 'oldPassword',
+  newPassword: 'newPassword',
+};
+
+const changePasswordResultMock: ChangePasswordResult = {
+  passwordChanged: true,
+};
+
+const updatedUserMock: CurrentUser = {
+  ...currentUserMock,
+  firstName: 'updatedFirstName',
+  displayName: 'updatedDisplayName',
+  email: 'updated@email.email',
+};
+
+const updateProfileInputMock = UserMocks.updateProfileInput({
+  firstName: 'updatedFirstName',
+  displayName: 'updatedDisplayName',
+  email: 'updated@email.email',
+});
 
 const anonymousResponseMock: CurrentSessionResult = {
   status: CurrentSessionStatus.Anonymous,
@@ -36,11 +77,13 @@ const signUpInputMock: SignUpInput = {
 
 describe('CurrentSessionStore', () => {
   let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
+  let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let store: CurrentSessionStore;
 
   beforeEach(() => {
     authGatewayMock = UserMocks.authGateway();
+    userGatewayMock = UserMocks.userGateway();
     notifierMock = NotificationMocks.notifier();
 
     TestBed.configureTestingModule({
@@ -49,6 +92,11 @@ describe('CurrentSessionStore', () => {
           provide: AUTH_GATEWAY,
           useValue: authGatewayMock,
         },
+        {
+          provide: USER_GATEWAY,
+          useValue: userGatewayMock,
+        },
+        provideRouter([]),
         {
           provide: NOTIFIER,
           useValue: notifierMock,
@@ -191,14 +239,14 @@ describe('CurrentSessionStore', () => {
       authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
       store.restoreCurrentSession().subscribe();
 
-      const updatedUserMock: CurrentUser = {
+      const replacedUserMock: CurrentUser = {
         ...currentUserMock,
         firstName: 'updatedFirstName',
       };
 
-      store.updateCurrentUser(updatedUserMock);
+      store.updateCurrentUser(replacedUserMock);
 
-      expect(store.currentUser()).toEqual(updatedUserMock);
+      expect(store.currentUser()).toEqual(replacedUserMock);
     });
 
     it('should keep the session authenticated', () => {
@@ -212,6 +260,455 @@ describe('CurrentSessionStore', () => {
 
     it('should throw when the session is not authenticated', () => {
       expect(() => store.updateCurrentUser(currentUserMock)).toThrow();
+    });
+  });
+
+  describe('expireCurrentSession', () => {
+    beforeEach(() => {
+      authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
+      store.restoreCurrentSession().subscribe();
+    });
+
+    it('should clear current user', () => {
+      store.expireCurrentSession();
+
+      expect(store.currentUser()).toBe(null);
+    });
+
+    it('should set Anonymous status', () => {
+      store.expireCurrentSession();
+
+      expect(store.status()).toBe(CurrentSessionStatus.Anonymous);
+    });
+
+    it('should not call auth gateway logout', () => {
+      store.expireCurrentSession();
+
+      expect(authGatewayMock.logout).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('refresh current user', () => {
+    describe('when the gateway answers Authenticated', () => {
+      const refreshedUser = UserMocks.currentUser({ firstName: 'Refreshed' });
+
+      // Обновление идет на странице Настроек, куда пускают только после Входа,
+      // поэтому сессия сначала восстанавливается с прежними данными.
+      beforeEach(() => {
+        authGatewayMock.currentSession.mockReturnValueOnce(of(UserMocks.authenticatedSession()));
+        store.restoreCurrentSession().subscribe();
+
+        authGatewayMock.currentSession.mockReturnValue(
+          of(UserMocks.authenticatedSession(refreshedUser)),
+        );
+      });
+
+      it('should update the current session', () => {
+        store.refreshCurrentUser().subscribe();
+
+        expect(store.currentUser()).toEqual(refreshedUser);
+      });
+
+      it('should emit the current user', () => {
+        let received: CurrentUser | undefined;
+
+        store.refreshCurrentUser().subscribe((currentUser) => {
+          received = currentUser;
+        });
+        expect(received).toEqual(refreshedUser);
+      });
+    });
+
+    describe('when the gateway answers Anonymous', () => {
+      beforeEach(() => {
+        authGatewayMock.currentSession.mockReturnValue(of(UserMocks.anonymousSession()));
+      });
+
+      it('should not notify', () => {
+        store.refreshCurrentUser().subscribe();
+
+        expect(notifierMock.error).not.toHaveBeenCalled();
+        expect(notifierMock.success).not.toHaveBeenCalled();
+      });
+
+      it('should complete without a value', () => {
+        let values: CurrentUser[] | undefined;
+
+        store
+          .refreshCurrentUser()
+          .pipe(toArray())
+          .subscribe((v) => (values = v));
+
+        expect(values).toEqual([]);
+      });
+    });
+
+    describe('when the gateway fails', () => {
+      beforeEach(() => {
+        authGatewayMock.currentSession.mockReturnValue(
+          throwError(() => new ApplicationError('mockReason')),
+        );
+      });
+
+      it('should notify about the error with the reason when it has one', () => {
+        store.refreshCurrentUser().subscribe();
+
+        expect(notifierMock.error).toHaveBeenCalledWith('Failed to load profile', 'mockReason');
+      });
+
+      it('should complete without a value', () => {
+        let values: CurrentUser[] | undefined;
+
+        store
+          .refreshCurrentUser()
+          .pipe(toArray())
+          .subscribe((v) => (values = v));
+
+        expect(values).toEqual([]);
+      });
+
+      it('should keep the current session unchanged', () => {
+        authGatewayMock.currentSession.mockReturnValueOnce(of(UserMocks.authenticatedSession()));
+        store.restoreCurrentSession().subscribe();
+
+        store.refreshCurrentUser().subscribe();
+
+        expect(store.currentUser()).toEqual(UserMocks.currentUser());
+      });
+
+      it('should keep the session status unchanged', () => {
+        const statusBefore = store.status();
+
+        store.refreshCurrentUser().subscribe();
+
+        expect(store.status()).toBe(statusBefore);
+      });
+    });
+  });
+
+  describe('change avatar', () => {
+    let changeAvatarFlow: FormSubmitFlowState;
+
+    beforeEach(() => {
+      changeAvatarFlow = createFormSubmitFlowState();
+
+      authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
+      store.restoreCurrentSession().subscribe();
+    });
+
+    it('should call user gateway with the selected file', () => {
+      userGatewayMock.changeAvatar.mockReturnValue(of({ user: userWithNewAvatarMock }));
+
+      store.changeAvatar(changeAvatarInputMock, changeAvatarFlow);
+
+      expect(userGatewayMock.changeAvatar).toHaveBeenCalledOnce();
+      expect(userGatewayMock.changeAvatar).toHaveBeenCalledWith(changeAvatarInputMock);
+    });
+
+    it('should mark submitting while the request is pending', () => {
+      const changeAvatarResult$ = new Subject<ChangeAvatarResult>();
+      userGatewayMock.changeAvatar.mockReturnValueOnce(changeAvatarResult$);
+
+      store.changeAvatar(changeAvatarInputMock, changeAvatarFlow);
+
+      expect(changeAvatarFlow.isSubmitting()).toBe(true);
+    });
+
+    describe('on success', () => {
+      beforeEach(() => {
+        userGatewayMock.changeAvatar.mockReturnValue(of({ user: userWithNewAvatarMock }));
+      });
+
+      it('should emit succeeded$ once', () => {
+        const succeededSpy = vi.fn();
+        changeAvatarFlow.succeeded$.subscribe(succeededSpy);
+
+        store.changeAvatar(changeAvatarInputMock, changeAvatarFlow);
+
+        expect(succeededSpy).toHaveBeenCalledOnce();
+        expect(changeAvatarFlow.isSubmitting()).toBe(false);
+      });
+
+      it('should notify about success', () => {
+        store.changeAvatar(changeAvatarInputMock, changeAvatarFlow);
+
+        expect(notifierMock.success).toHaveBeenCalledWith(
+          'Change avatar',
+          'Avatar changed successfully',
+        );
+      });
+
+      it('should update the current session from the backend response', () => {
+        store.changeAvatar(changeAvatarInputMock, changeAvatarFlow);
+
+        expect(store.currentUser()).toEqual(userWithNewAvatarMock);
+      });
+
+      it('should keep the session authenticated', () => {
+        store.changeAvatar(changeAvatarInputMock, changeAvatarFlow);
+
+        expect(store.status()).toBe(CurrentSessionStatus.Authenticated);
+      });
+
+      it('should not navigate', async () => {
+        store.changeAvatar(changeAvatarInputMock, changeAvatarFlow);
+
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
+      });
+    });
+
+    describe('on error', () => {
+      beforeEach(() => {
+        userGatewayMock.changeAvatar.mockReturnValue(
+          throwError(() => new ApplicationError('mockReason')),
+        );
+      });
+
+      it('should notify with the reason and not emit succeeded$', () => {
+        const succeededSpy = vi.fn();
+        changeAvatarFlow.succeeded$.subscribe(succeededSpy);
+
+        store.changeAvatar(changeAvatarInputMock, changeAvatarFlow);
+
+        expect(succeededSpy).not.toHaveBeenCalled();
+        expect(changeAvatarFlow.isSubmitting()).toBe(false);
+        expect(notifierMock.error).toHaveBeenCalledWith('Failed to change avatar', 'mockReason');
+      });
+
+      it('should keep the current session unchanged', () => {
+        store.changeAvatar(changeAvatarInputMock, changeAvatarFlow);
+
+        expect(store.currentUser()).toEqual(currentUserMock);
+      });
+
+      it('should not navigate', async () => {
+        store.changeAvatar(changeAvatarInputMock, changeAvatarFlow);
+
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
+      });
+    });
+  });
+
+  describe('change password', () => {
+    let changePasswordFlow: FormSubmitFlowState;
+
+    beforeEach(() => {
+      changePasswordFlow = createFormSubmitFlowState();
+
+      authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
+      store.restoreCurrentSession().subscribe();
+    });
+
+    it('should call user gateway with form values', () => {
+      userGatewayMock.changePassword.mockReturnValue(of(changePasswordResultMock));
+
+      store.changePassword(changePasswordInputMock, changePasswordFlow);
+
+      expect(userGatewayMock.changePassword).toHaveBeenCalledOnce();
+      expect(userGatewayMock.changePassword).toHaveBeenCalledWith(changePasswordInputMock);
+    });
+
+    it('should mark submitting while the request is pending', () => {
+      userGatewayMock.changePassword.mockReturnValue(new Subject<ChangePasswordResult>());
+
+      store.changePassword(changePasswordInputMock, changePasswordFlow);
+
+      expect(changePasswordFlow.isSubmitting()).toBe(true);
+    });
+
+    describe('on success', () => {
+      beforeEach(() => {
+        userGatewayMock.changePassword.mockReturnValue(of(changePasswordResultMock));
+      });
+
+      it('should emit succeeded$ once', () => {
+        const succeededSpy = vi.fn();
+        changePasswordFlow.succeeded$.subscribe(succeededSpy);
+
+        store.changePassword(changePasswordInputMock, changePasswordFlow);
+
+        expect(succeededSpy).toHaveBeenCalledOnce();
+        expect(changePasswordFlow.isSubmitting()).toBe(false);
+      });
+
+      it('should notify about success', () => {
+        store.changePassword(changePasswordInputMock, changePasswordFlow);
+
+        expect(notifierMock.success).toHaveBeenCalledWith(
+          'Change password',
+          'Password changed successfully',
+        );
+      });
+
+      it('should keep the current user unchanged', () => {
+        store.changePassword(changePasswordInputMock, changePasswordFlow);
+
+        expect(store.currentUser()).toEqual(currentUserMock);
+      });
+
+      it('should keep the session authenticated', () => {
+        store.changePassword(changePasswordInputMock, changePasswordFlow);
+
+        expect(store.status()).toBe(CurrentSessionStatus.Authenticated);
+      });
+
+      it('should not navigate', async () => {
+        store.changePassword(changePasswordInputMock, changePasswordFlow);
+
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
+      });
+    });
+
+    describe('on error', () => {
+      beforeEach(() => {
+        userGatewayMock.changePassword.mockReturnValue(
+          throwError(() => new ApplicationError('mockReason')),
+        );
+      });
+
+      it('should notify with the reason and not emit succeeded$', () => {
+        const succeededSpy = vi.fn();
+        changePasswordFlow.succeeded$.subscribe(succeededSpy);
+
+        store.changePassword(changePasswordInputMock, changePasswordFlow);
+
+        expect(succeededSpy).not.toHaveBeenCalled();
+        expect(changePasswordFlow.isSubmitting()).toBe(false);
+        expect(notifierMock.error).toHaveBeenCalledWith('Failed to change password', 'mockReason');
+      });
+
+      it('should keep the current user unchanged', () => {
+        store.changePassword(changePasswordInputMock, changePasswordFlow);
+
+        expect(store.currentUser()).toEqual(currentUserMock);
+      });
+
+      it('should keep the session authenticated', () => {
+        store.changePassword(changePasswordInputMock, changePasswordFlow);
+
+        expect(store.status()).toBe(CurrentSessionStatus.Authenticated);
+      });
+
+      it('should not navigate', async () => {
+        store.changePassword(changePasswordInputMock, changePasswordFlow);
+
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
+      });
+    });
+  });
+
+  describe('update profile', () => {
+    let updateProfileFlow: FormSubmitFlowState;
+
+    beforeEach(() => {
+      updateProfileFlow = createFormSubmitFlowState();
+
+      authGatewayMock.currentSession.mockReturnValue(of(successResponseMock));
+      store.restoreCurrentSession().subscribe();
+    });
+
+    it('should call user gateway with form values', () => {
+      userGatewayMock.updateProfile.mockReturnValue(of({ user: updatedUserMock }));
+
+      store.updateProfile(updateProfileInputMock, updateProfileFlow);
+
+      expect(userGatewayMock.updateProfile).toHaveBeenCalledOnce();
+      expect(userGatewayMock.updateProfile).toHaveBeenCalledWith(updateProfileInputMock);
+    });
+
+    it('should mark submitting while the request is pending', () => {
+      const updateProfileResult$ = new Subject<UpdateProfileResult>();
+      userGatewayMock.updateProfile.mockReturnValueOnce(updateProfileResult$);
+
+      store.updateProfile(updateProfileInputMock, updateProfileFlow);
+
+      expect(updateProfileFlow.isSubmitting()).toBe(true);
+    });
+
+    describe('on success', () => {
+      beforeEach(() => {
+        userGatewayMock.updateProfile.mockReturnValue(of({ user: updatedUserMock }));
+      });
+
+      it('should emit succeeded$ once', () => {
+        const succeededSpy = vi.fn();
+        updateProfileFlow.succeeded$.subscribe(succeededSpy);
+
+        store.updateProfile(updateProfileInputMock, updateProfileFlow);
+
+        expect(succeededSpy).toHaveBeenCalledOnce();
+        expect(updateProfileFlow.isSubmitting()).toBe(false);
+      });
+
+      it('should notify about success', () => {
+        store.updateProfile(updateProfileInputMock, updateProfileFlow);
+
+        expect(notifierMock.success).toHaveBeenCalledWith(
+          'Update profile',
+          'Profile updated successfully',
+        );
+      });
+
+      it('should update the current session from the backend response', () => {
+        store.updateProfile(updateProfileInputMock, updateProfileFlow);
+
+        expect(store.currentUser()).toEqual(updatedUserMock);
+      });
+
+      it('should keep the session authenticated', () => {
+        store.updateProfile(updateProfileInputMock, updateProfileFlow);
+
+        expect(store.status()).toBe(CurrentSessionStatus.Authenticated);
+      });
+
+      it('should not navigate', async () => {
+        store.updateProfile(updateProfileInputMock, updateProfileFlow);
+
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
+      });
+    });
+
+    describe('on error', () => {
+      beforeEach(() => {
+        userGatewayMock.updateProfile.mockReturnValue(
+          throwError(() => new ApplicationError('mockReason')),
+        );
+      });
+
+      it('should notify with the reason and not emit succeeded$', () => {
+        const succeededSpy = vi.fn();
+        updateProfileFlow.succeeded$.subscribe(succeededSpy);
+
+        store.updateProfile(updateProfileInputMock, updateProfileFlow);
+
+        expect(succeededSpy).not.toHaveBeenCalled();
+        expect(updateProfileFlow.isSubmitting()).toBe(false);
+        expect(notifierMock.error).toHaveBeenCalledWith('Failed to update profile', 'mockReason');
+      });
+
+      it('should keep the current session unchanged', () => {
+        store.updateProfile(updateProfileInputMock, updateProfileFlow);
+
+        expect(store.currentUser()).toEqual(currentUserMock);
+      });
+
+      it('should not navigate', async () => {
+        store.updateProfile(updateProfileInputMock, updateProfileFlow);
+
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(TestBed.inject(Router).url).toBe('/');
+      });
     });
   });
 

@@ -1,20 +1,19 @@
-import { signal, WritableSignal } from '@angular/core';
-import { ComponentFixture } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
+import { of, Subject, throwError } from 'rxjs';
 
-import { ChangeAvatarService } from '../../data/change-avatar-service';
+import { AUTH_GATEWAY } from '../../data/auth-gateway';
 import { CurrentSessionStore } from '../../data/current-session-store';
-import { CurrentUser } from '../../data/current-user';
+import { ChangeAvatarResult, USER_GATEWAY } from '../../data/user-gateway';
 
 import { ChangeAvatarForm } from './change-avatar-form';
 
 import { UserMocks } from '@domains/users/testing';
+import { ApplicationError } from '@shared/errors';
+import { NOTIFIER } from '@shared/notifications';
+import { NotificationMocks } from '@shared/notifications/testing';
 import { Nullable } from '@shared/types';
-
-let currentSessionStoreMock: {
-  currentUser: WritableSignal<Nullable<CurrentUser>>;
-};
 
 const currentUserMock = UserMocks.currentUser({
   avatar: 'https://mock.host/resources/path/to/avatar.png',
@@ -25,7 +24,7 @@ const otherPngFileMock = new File(['otherContent'], 'other-avatar.png', { type: 
 const pdfFileMock = new File(['mockContent'], 'avatar.pdf', { type: 'application/pdf' });
 
 describe('ChangeAvatarForm', () => {
-  let changeAvatarServiceMock: ReturnType<typeof UserMocks.changeAvatarService>;
+  let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
   let fixture: ComponentFixture<ChangeAvatarForm>;
   let container: HTMLElement;
   let user: UserEvent;
@@ -58,7 +57,11 @@ describe('ChangeAvatarForm', () => {
     // applyAccept: false - пользователь может выбрать «все файлы» в диалоге,
     // и форма сама должна отсечь неподдерживаемый формат.
     user = userEvent.setup({ applyAccept: false });
-    changeAvatarServiceMock = UserMocks.changeAvatarService();
+    userGatewayMock = UserMocks.userGateway();
+    const authGatewayMock = UserMocks.authGateway();
+    authGatewayMock.currentSession.mockReturnValue(
+      of(UserMocks.authenticatedSession(currentUserMock)),
+    );
     createdObjectUrlCount = 0;
 
     createObjectUrlSpy = vi
@@ -66,15 +69,15 @@ describe('ChangeAvatarForm', () => {
       .mockImplementation(() => `blob:mock/${(createdObjectUrlCount += 1)}`);
     revokeObjectUrlSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
 
-    currentSessionStoreMock = {
-      currentUser: signal(currentUserMock),
-    };
-
     ({ fixture, container } = await render(ChangeAvatarForm, {
       providers: [
-        { provide: ChangeAvatarService, useValue: changeAvatarServiceMock },
-        { provide: CurrentSessionStore, useValue: currentSessionStoreMock },
+        { provide: AUTH_GATEWAY, useValue: authGatewayMock },
+        { provide: USER_GATEWAY, useValue: userGatewayMock },
+        { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
       ],
+      configureTestBed: () => {
+        TestBed.inject(CurrentSessionStore).restoreCurrentSession().subscribe();
+      },
       waitForStableOnRender: true,
     }));
   });
@@ -136,7 +139,7 @@ describe('ChangeAvatarForm', () => {
       await selectFile(pdfFileMock);
       await submitForm();
 
-      expect(changeAvatarServiceMock.changeAvatar).not.toHaveBeenCalled();
+      expect(userGatewayMock.changeAvatar).not.toHaveBeenCalled();
       expect(queryErrorMessage()).toHaveTextContent('JPEG');
     });
   });
@@ -149,25 +152,27 @@ describe('ChangeAvatarForm', () => {
     it('should not call changeAvatar and should ask to select a file', async () => {
       await submitForm();
 
-      expect(changeAvatarServiceMock.changeAvatar).not.toHaveBeenCalled();
+      expect(userGatewayMock.changeAvatar).not.toHaveBeenCalled();
       expect(queryErrorMessage()).toHaveTextContent('Select a file');
     });
   });
 
   describe('valid submit', () => {
     it('should call changeAvatar with the selected file', async () => {
+      userGatewayMock.changeAvatar.mockReturnValue(new Subject<ChangeAvatarResult>());
       await selectFile(pngFileMock);
       await user.click(getSubmitButton());
 
-      expect(changeAvatarServiceMock.changeAvatar).toHaveBeenCalledOnce();
-      expect(changeAvatarServiceMock.changeAvatar).toHaveBeenCalledWith({ file: pngFileMock });
+      expect(userGatewayMock.changeAvatar).toHaveBeenCalledOnce();
+      expect(userGatewayMock.changeAvatar).toHaveBeenCalledWith({ file: pngFileMock });
     });
   });
 
   describe('submitting state', () => {
     it('should disable the file input and the submit button', async () => {
-      changeAvatarServiceMock.isSubmitting.set(true);
-      await fixture.whenStable();
+      userGatewayMock.changeAvatar.mockReturnValue(new Subject<ChangeAvatarResult>());
+      await selectFile(pngFileMock);
+      await user.click(getSubmitButton());
 
       expect(getFileInput()).toBeDisabled();
       expect(getSubmitButton()).toBeDisabled();
@@ -176,6 +181,9 @@ describe('ChangeAvatarForm', () => {
 
   describe('backend rejects the submission', () => {
     it('should not show a submit error and should keep the selected file with its preview', async () => {
+      userGatewayMock.changeAvatar.mockReturnValue(
+        throwError(() => new ApplicationError('mockReason')),
+      );
       await selectFile(pngFileMock);
       await user.click(getSubmitButton());
 
@@ -186,16 +194,16 @@ describe('ChangeAvatarForm', () => {
 
   describe('success state', () => {
     it('should reset the form to the state without a selected file and preview, without a manual application tick', async () => {
+      userGatewayMock.changeAvatar.mockReturnValue(of({ user: currentUserMock }));
       await selectFile(pngFileMock);
-
-      changeAvatarServiceMock.succeeded$.next();
+      await user.click(getSubmitButton());
       await fixture.whenStable();
 
       expect(getPreviewSrc()).toBe(currentUserMock.avatar);
 
       await submitForm();
 
-      expect(changeAvatarServiceMock.changeAvatar).not.toHaveBeenCalled();
+      expect(userGatewayMock.changeAvatar).toHaveBeenCalledOnce();
       expect(queryErrorMessage()).toHaveTextContent('Select a file');
     });
   });

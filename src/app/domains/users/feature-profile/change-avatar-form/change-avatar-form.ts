@@ -1,9 +1,9 @@
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { ChangeAvatarService } from '../../data/change-avatar-service';
 import { CurrentSessionStore } from '../../data/current-session-store';
 
+import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Nullable } from '@shared/types';
 import { Avatar } from '@shared/ui/avatar/avatar';
 import { Button } from '@shared/ui/button/button';
@@ -22,14 +22,15 @@ const missingFileErrorMessage = 'Select a file';
 export class ChangeAvatarForm {
   readonly acceptedMimeTypes = acceptedMimeTypes.join(',');
 
-  private readonly _changeAvatarService = inject(ChangeAvatarService);
   private readonly _currentSessionStore = inject(CurrentSessionStore);
+
+  private readonly _changeAvatarFlow = createFormSubmitFlowState();
 
   private readonly _selectedFile = signal<Nullable<File>>(null);
   private readonly _previewUrl = signal<Nullable<string>>(null);
   private readonly _validationErrorMessage = signal<Nullable<string>>(null);
 
-  protected readonly isSubmitting = this._changeAvatarService.isSubmitting;
+  protected readonly isSubmitting = this._changeAvatarFlow.isSubmitting;
 
   protected readonly canSubmit = computed<boolean>(() => this._selectedFile() !== null);
 
@@ -46,7 +47,7 @@ export class ChangeAvatarForm {
   protected readonly errorMessage = this._validationErrorMessage.asReadonly();
 
   constructor() {
-    this._changeAvatarService.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
+    this._changeAvatarFlow.succeeded$.pipe(takeUntilDestroyed()).subscribe(() => {
       this._selectFile(null);
     });
 
@@ -80,7 +81,7 @@ export class ChangeAvatarForm {
       return;
     }
 
-    this._changeAvatarService.changeAvatar({ file });
+    this._currentSessionStore.changeAvatar({ file }, this._changeAvatarFlow);
   }
 
   private _selectFile(file: Nullable<File>): void {

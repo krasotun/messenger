@@ -5,6 +5,7 @@ import { userEvent } from '@testing-library/user-event';
 import { of, Subject } from 'rxjs';
 
 import { AUTH_GATEWAY, SignInInput } from '../../data/auth-gateway';
+import { USER_GATEWAY } from '../../data/user-gateway';
 
 import { SignInForm } from './sign-in-form';
 
@@ -31,6 +32,7 @@ describe('SignInForm', () => {
       bindings: [outputBinding('signInSucceeded', signInSucceeded)],
       providers: [
         { provide: AUTH_GATEWAY, useValue: authGatewayMock },
+        { provide: USER_GATEWAY, useValue: UserMocks.userGateway() },
         { provide: NOTIFIER, useValue: notifierMock },
       ],
       waitForStableOnRender: true,

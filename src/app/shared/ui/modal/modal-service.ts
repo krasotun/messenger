@@ -1,6 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { inject, Injectable, Injector, Type } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
 import { filter, merge, takeUntil } from 'rxjs';
 
 import { ModalRef } from './modal-ref';
@@ -26,6 +27,8 @@ export class ModalService {
   private readonly _overlay = inject(Overlay);
 
   private readonly _injector = inject(Injector);
+
+  private readonly _router = inject(Router);
 
   private _activeOverlayRef: OverlayRef | null = null;
 
@@ -85,7 +88,14 @@ export class ModalService {
     const escape$ = overlayRef.keydownEvents().pipe(filter(({ key }) => key === ESCAPE_KEY));
     const backdropClick$ = overlayRef.backdropClick();
 
-    merge(escape$, backdropClick$)
+    // Только завершенный переход: отмененный или упавший оставляет человека на
+    // месте, и модалка ему еще нужна. CDK disposeOnNavigation не годится - он
+    // слушает Location и не видит router.navigateByUrl.
+    const navigationEnd$ = this._router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+    );
+
+    merge(escape$, backdropClick$, navigationEnd$)
       .pipe(takeUntil(overlayRef.detachments()))
       .subscribe(() => modalRef.close());
 

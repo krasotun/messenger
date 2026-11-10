@@ -7,6 +7,7 @@ import { of, Subject } from 'rxjs';
 import { SignUpForm } from './sign-up-form';
 
 import { AUTH_GATEWAY, SignUpInput } from '@domains/users/data/auth-gateway';
+import { USER_GATEWAY } from '@domains/users/data/user-gateway';
 import { UserMocks } from '@domains/users/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
@@ -43,6 +44,7 @@ describe('SignUpForm', () => {
       bindings: [outputBinding('signUpSucceeded', signUpSucceeded)],
       providers: [
         { provide: AUTH_GATEWAY, useValue: authGatewayMock },
+        { provide: USER_GATEWAY, useValue: UserMocks.userGateway() },
         { provide: NOTIFIER, useValue: notifierMock },
       ],
       waitForStableOnRender: true,

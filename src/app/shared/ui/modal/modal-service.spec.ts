@@ -1,5 +1,6 @@
 import { ApplicationRef, Component, inject, InjectionToken, Injector, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 
 import { ModalRef } from './modal-ref';
 import { ModalService } from './modal-service';
@@ -61,6 +62,12 @@ class TestModalContentCapturingRef {
 })
 class TestModalContentWithFocusable {}
 
+@Component({
+  selector: 'app-test-page',
+  template: '',
+})
+class TestPage {}
+
 /**
  * Блокировка скролла в CDK включается только для документа, который длиннее
  * вьюпорта. В тестовой среде layout не считается, поэтому длину задаем явно.
@@ -86,7 +93,15 @@ describe('ModalService', () => {
   let service: ModalService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          { path: '', component: TestPage },
+          { path: 'other', component: TestPage },
+          { path: 'blocked', component: TestPage, canActivate: [() => false] },
+        ]),
+      ],
+    });
     service = TestBed.inject(ModalService);
 
     capturedModalRef = null;
@@ -456,6 +471,82 @@ describe('ModalService', () => {
       const overlayPaneEl = document.querySelector('.cdk-overlay-container .cdk-overlay-pane');
 
       expect(overlayPaneEl).toBeNull();
+    });
+  });
+
+  describe('navigation', () => {
+    it('should close modal when a navigation to another route completes', async () => {
+      service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      await TestBed.inject(Router).navigateByUrl('/other');
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const contentEl = document.querySelector(
+        '.cdk-overlay-container [data-testid="modal-content"]',
+      );
+
+      expect(contentEl).toBeNull();
+    });
+
+    it('should deliver no result when closed by a completed navigation', async () => {
+      const modalRef = service.open(TestModalContent)!;
+      const closeSpy = vi.fn();
+
+      modalRef.closed$.subscribe(closeSpy);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      await TestBed.inject(Router).navigateByUrl('/other');
+
+      expect(closeSpy).toHaveBeenCalledTimes(1);
+      expect(closeSpy).toHaveBeenCalledWith(undefined);
+    });
+
+    it('should destroy overlay when closed by a completed navigation', async () => {
+      service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      await TestBed.inject(Router).navigateByUrl('/other');
+
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(document.querySelector('.cdk-overlay-container .cdk-overlay-pane')).toBeNull();
+    });
+
+    it('should keep modal open when a navigation is cancelled', async () => {
+      const modalRef = service.open(TestModalContent)!;
+      const closeSpy = vi.fn();
+
+      modalRef.closed$.subscribe(closeSpy);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      await TestBed.inject(Router).navigateByUrl('/blocked');
+
+      TestBed.inject(ApplicationRef).tick();
+
+      const contentEl = document.querySelector(
+        '.cdk-overlay-container [data-testid="modal-content"]',
+      );
+
+      expect(contentEl).toBeTruthy();
+      expect(closeSpy).not.toHaveBeenCalled();
+    });
+
+    it('should open a new modal after one was closed by navigation', async () => {
+      service.open(TestModalContent);
+
+      TestBed.inject(ApplicationRef).tick();
+
+      await TestBed.inject(Router).navigateByUrl('/other');
+
+      const modalRef = service.open(TestModalContent);
+
+      expect(modalRef).toBeInstanceOf(ModalRef);
     });
   });
 
