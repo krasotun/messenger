@@ -31,7 +31,7 @@
 
 ## 4. Модалка закрывается при смене маршрута
 
-- [ ] 4.1 Дописать падающие спеки `src/app/shared/ui/modal/modal-service.spec.ts` (настоящий `Router`, `RouterTestingHarness` или `provideRouter` с двумя маршрутами): завершенный переход закрывает модалку, событие закрытия приходит без результата, overlay уничтожен; отмененный переход (страж `canActivate` отдает `false`) модалку не закрывает
-- [ ] 4.2 Реализовать в `modal-service.ts` закрытие на `NavigationEnd`, проверив, что спеки 4.1 и прежние спеки примитива зеленые
-- [ ] 4.3 Написать e2e `e2e/auth/session-expiry.spec.ts`: открыта форма профиля, `page.route` отвечает `401` на сохранение - **Уведомление** `Session expired`, адрес `/sign-in`, модалки на экране нет
-- [ ] 4.4 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e`
+- [x] 4.1 Дописать падающие спеки `src/app/shared/ui/modal/modal-service.spec.ts` (настоящий `Router`, `RouterTestingHarness` или `provideRouter` с двумя маршрутами): завершенный переход закрывает модалку, событие закрытия приходит без результата, overlay уничтожен; отмененный переход (страж `canActivate` отдает `false`) модалку не закрывает
+- [x] 4.2 Реализовать в `modal-service.ts` закрытие на `NavigationEnd`, проверив, что спеки 4.1 и прежние спеки примитива зеленые
+- [x] 4.3 Написать e2e `e2e/auth/session-expiry.spec.ts`: открыта форма профиля, `page.route` отвечает `401` на сохранение - **Уведомление** `Session expired`, адрес `/sign-in`, модалки на экране нет
+- [x] 4.4 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e`
