@@ -1,21 +1,23 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture } from '@angular/core/testing';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { form, FormField as FormFieldDirective, required } from '@angular/forms/signals';
 import { render, screen } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
 
 import { FormField } from './form-field';
 
 @Component({
-  imports: [FormField, ReactiveFormsModule],
+  imports: [FormField, FormFieldDirective],
   template: `
-    <app-form-field [label]="'Login'" [control]="control">
-      <input [formControl]="control" type="text" />
+    <app-form-field [label]="'Login'" [field]="field">
+      <input [formField]="field" type="text" />
     </app-form-field>
   `,
 })
 class TestHost {
-  readonly control = new FormControl('', { nonNullable: true, validators: [Validators.required] });
+  readonly field = form(signal(''), (path) => {
+    required(path);
+  });
 }
 
 const requiredFieldError = 'This field is required';
@@ -40,7 +42,7 @@ describe('FormField', () => {
   });
 
   it('should show the message resolved from the violation once the control is touched', async () => {
-    fixture.componentInstance.control.markAsTouched();
+    fixture.componentInstance.field().markAsTouched();
 
     await fixture.whenStable();
 
@@ -48,10 +50,10 @@ describe('FormField', () => {
   });
 
   it('should hide the message once the violation is fixed', async () => {
-    fixture.componentInstance.control.markAsTouched();
+    fixture.componentInstance.field().markAsTouched();
     await fixture.whenStable();
 
-    fixture.componentInstance.control.setValue('a value');
+    fixture.componentInstance.field().value.set('a value');
     await fixture.whenStable();
 
     expect(screen.queryByText(requiredFieldError)).not.toBeInTheDocument();

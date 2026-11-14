@@ -1,72 +1,61 @@
-import { Component, inject, output } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, output, signal } from '@angular/core';
+import { apply, form, required } from '@angular/forms/signals';
 
+import { SignUpInput } from '@domains/users/data/auth-gateway';
 import { CurrentSessionStore } from '@domains/users/data/current-session-store';
-import { emailPattern, phonePattern } from '@domains/users/data/user-field-patterns';
-import { connectSubmitFlow } from '@shared/forms';
+import { emailSchema, phoneSchema } from '@domains/users/data/user-field-schemas';
+import { connectSubmitFlow, lockFormWhileSubmitting } from '@shared/forms';
 import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
-import { FormField } from '@shared/ui/form-field/form-field';
-import { Input } from '@shared/ui/input/input';
-
-interface SignUpFormModel {
-  firstName: FormControl<string>;
-  secondName: FormControl<string>;
-  login: FormControl<string>;
-  email: FormControl<string>;
-  password: FormControl<string>;
-  phone: FormControl<string>;
-}
+import { FormTextField } from '@shared/ui/form/form-text-field';
 
 @Component({
   selector: 'app-sign-up-form',
-  imports: [Input, FormField, Form, ReactiveFormsModule],
+  imports: [Form],
   templateUrl: './sign-up-form.html',
 })
 export class SignUpForm {
-  readonly signUpForm = new FormGroup<SignUpFormModel>({
-    firstName: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    secondName: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    login: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    email: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.required, Validators.pattern(emailPattern)],
-    }),
-    password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    phone: new FormControl('', {
-      nonNullable: true,
-      validators: [
-        Validators.required,
-        Validators.pattern(phonePattern),
-        Validators.minLength(10),
-        Validators.maxLength(15),
-      ],
-    }),
-  });
-
   readonly signUpSucceeded = output<void>();
 
   private readonly _currentSessionStore = inject(CurrentSessionStore);
 
   private readonly _signUpFlow = createFormSubmitFlowState();
 
+  private readonly _signUpValue = signal<SignUpInput>({
+    firstName: '',
+    secondName: '',
+    login: '',
+    email: '',
+    password: '',
+    phone: '',
+  });
+
+  readonly signUpForm = form(this._signUpValue, (path) => {
+    required(path.firstName);
+    required(path.secondName);
+    required(path.login);
+    apply(path.email, emailSchema);
+    required(path.password);
+    apply(path.phone, phoneSchema);
+    lockFormWhileSubmitting(path, this._signUpFlow.isSubmitting);
+  });
+
   protected readonly isSubmitting = this._signUpFlow.isSubmitting;
 
-  protected readonly fields = [
-    { label: 'First name', type: 'text', control: this.signUpForm.controls.firstName },
-    { label: 'Second name', type: 'text', control: this.signUpForm.controls.secondName },
-    { label: 'Login', type: 'text', control: this.signUpForm.controls.login },
-    { label: 'Email', type: 'email', control: this.signUpForm.controls.email },
-    { label: 'Password', type: 'password', control: this.signUpForm.controls.password },
-    { label: 'Mobile phone', type: 'text', control: this.signUpForm.controls.phone },
+  protected readonly fields: FormTextField[] = [
+    { label: 'First name', type: 'text', field: this.signUpForm.firstName },
+    { label: 'Second name', type: 'text', field: this.signUpForm.secondName },
+    { label: 'Login', type: 'text', field: this.signUpForm.login },
+    { label: 'Email', type: 'email', field: this.signUpForm.email },
+    { label: 'Password', type: 'password', field: this.signUpForm.password },
+    { label: 'Mobile phone', type: 'text', field: this.signUpForm.phone },
   ];
 
   constructor() {
-    connectSubmitFlow(this.signUpForm, this._signUpFlow, this.signUpSucceeded);
+    connectSubmitFlow(this._signUpFlow, this.signUpSucceeded);
   }
 
   protected onSubmit(): void {
-    const signUpFormValue = this.signUpForm.getRawValue();
-    this._currentSessionStore.signUp(signUpFormValue, this._signUpFlow);
+    this._currentSessionStore.signUp(this._signUpValue(), this._signUpFlow);
   }
 }

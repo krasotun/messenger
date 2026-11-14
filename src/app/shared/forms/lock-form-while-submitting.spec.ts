@@ -1,71 +1,53 @@
-import { signal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { FormControl } from '@angular/forms';
+import { FieldTree, form } from '@angular/forms/signals';
 
 import { lockFormWhileSubmitting } from './lock-form-while-submitting';
 
 describe('lockFormWhileSubmitting', () => {
+  let isSubmitting: WritableSignal<boolean>;
+  let field: FieldTree<string>;
+
   beforeEach(() => {
     TestBed.configureTestingModule({});
-  });
 
-  afterEach(() => {
-    TestBed.resetTestingModule();
+    isSubmitting = signal(false);
+    field = TestBed.runInInjectionContext(() =>
+      form(signal('a value'), (path) => {
+        lockFormWhileSubmitting(path, isSubmitting);
+      }),
+    );
   });
 
   it('should disable the form while submitting', () => {
-    const control = new FormControl('a value', { nonNullable: true });
-    const isSubmitting = signal(false);
-    TestBed.runInInjectionContext(() => lockFormWhileSubmitting(control, isSubmitting));
-    TestBed.tick();
-
     isSubmitting.set(true);
-    TestBed.tick();
 
-    expect(control.disabled).toBe(true);
+    expect(field().disabled()).toBe(true);
   });
 
   it('should enable the form again once submitting succeeds', () => {
-    const control = new FormControl('a value', { nonNullable: true });
-    const isSubmitting = signal(false);
-    TestBed.runInInjectionContext(() => lockFormWhileSubmitting(control, isSubmitting));
-    TestBed.tick();
     isSubmitting.set(true);
-    TestBed.tick();
 
     isSubmitting.set(false);
-    TestBed.tick();
 
-    expect(control.disabled).toBe(false);
+    expect(field().disabled()).toBe(false);
   });
 
   it('should enable the form again once submitting fails, keeping the entered value', () => {
-    const control = new FormControl('a value', { nonNullable: true });
-    const isSubmitting = signal(false);
-    TestBed.runInInjectionContext(() => lockFormWhileSubmitting(control, isSubmitting));
-    TestBed.tick();
     isSubmitting.set(true);
-    TestBed.tick();
 
     isSubmitting.set(false);
-    TestBed.tick();
 
-    expect(control.disabled).toBe(false);
-    expect(control.value).toBe('a value');
+    expect(field().disabled()).toBe(false);
+    expect(field().value()).toBe('a value');
   });
 
   it('should not mark the form as changed when locking and unlocking it', () => {
-    const control = new FormControl('a value', { nonNullable: true });
-    const isSubmitting = signal(false);
-    TestBed.runInInjectionContext(() => lockFormWhileSubmitting(control, isSubmitting));
-    TestBed.tick();
-    const dirtyBefore = control.dirty;
+    const dirtyBefore = field().dirty();
 
     isSubmitting.set(true);
-    TestBed.tick();
     isSubmitting.set(false);
-    TestBed.tick();
 
-    expect(control.dirty).toBe(dirtyBefore);
+    expect(field().dirty()).toBe(dirtyBefore);
   });
 });

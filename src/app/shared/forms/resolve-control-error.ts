@@ -1,15 +1,15 @@
-import { ValidationErrors } from '@angular/forms';
+import { ValidationError } from '@angular/forms/signals';
 
 import { CONTROL_ERROR_MESSAGES } from './control-error-messages.constants';
 
-const messagesByErrorKey: Record<string, string | undefined> = CONTROL_ERROR_MESSAGES;
+const messagesByErrorKind: Record<string, string | undefined> = CONTROL_ERROR_MESSAGES;
 
-export const resolveControlError = (errors: ValidationErrors | null): string | undefined => {
-  if (!errors) {
+export const resolveControlError = (errors: readonly ValidationError[]): string | undefined => {
+  const [firstError] = errors;
+
+  if (!firstError) {
     return undefined;
   }
 
-  const [errorKey] = Object.keys(errors);
-
-  return messagesByErrorKey[errorKey] ?? CONTROL_ERROR_MESSAGES.default;
+  return messagesByErrorKind[firstError.kind] ?? CONTROL_ERROR_MESSAGES.default;
 };

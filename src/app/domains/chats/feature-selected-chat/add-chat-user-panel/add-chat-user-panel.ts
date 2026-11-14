@@ -1,6 +1,6 @@
-import { Component, computed, inject, input, output } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { form, FormField } from '@angular/forms/signals';
 
 import { createUserSearchState } from './user-search-state';
 import { UserSearchStatus } from './user-search-status';
@@ -16,7 +16,7 @@ const nobodyFoundHint = 'No users found';
 
 @Component({
   selector: 'app-add-chat-user-panel',
-  imports: [Avatar, Input, ReactiveFormsModule],
+  imports: [Avatar, Input, FormField],
   templateUrl: './add-chat-user-panel.html',
   styleUrl: './add-chat-user-panel.scss',
 })
@@ -25,14 +25,16 @@ export class AddChatUserPanel {
 
   readonly userAdded = output<void>();
 
-  readonly loginControl = new FormControl('', { nonNullable: true });
+  private readonly _login = signal('');
+
+  readonly loginField = form(this._login);
 
   private readonly _userGateway = inject(USER_GATEWAY);
   private readonly _chatUsersStore = inject(ChatUsersStore);
 
   private readonly _userSearchState = createUserSearchState(
     this._userGateway,
-    this.loginControl.valueChanges,
+    toObservable(this._login),
   );
 
   private readonly _searchResult = this._userSearchState.result;

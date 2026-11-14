@@ -116,6 +116,17 @@ describe('SignUpForm', () => {
       expect(getSubmitButton()).toBeDisabled();
     });
 
+    it('should show a field error for a phone longer than allowed instead of cutting the input', async () => {
+      const user = userEvent.setup();
+      await renderForm();
+
+      await user.type(screen.getByLabelText('Mobile phone'), '1234567890123456');
+      await user.tab();
+
+      expect(screen.getByLabelText('Mobile phone')).toHaveValue('1234567890123456');
+      expect(screen.getByText('Value is too long')).toBeInTheDocument();
+    });
+
     it('should enable the submit button once the form becomes valid', async () => {
       const { container } = await renderForm();
 

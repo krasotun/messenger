@@ -1,63 +1,73 @@
 import { Component, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture } from '@angular/core/testing';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { form, FormField, required } from '@angular/forms/signals';
 import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
 
 import { Form } from './form';
+import { FormTextField } from './form-text-field';
 
 import { lockFormWhileSubmitting } from '@shared/forms';
 
-interface TestFormModel {
-  name: FormControl<string>;
-}
-
 @Component({
-  imports: [Form, ReactiveFormsModule],
+  imports: [Form, FormField],
   template: `
     <app-form
-      [group]="group"
+      [form]="form"
       [submitLabel]="'Submit'"
       [requireChanges]="requireChanges"
       [isSubmitting]="isSubmitting()"
       (submitted)="submitted()"
     >
-      <input [formControl]="group.controls.name" type="text" />
+      <input [formField]="form.name" type="text" />
     </app-form>
   `,
 })
 class TestHost {
-  readonly group = new FormGroup<TestFormModel>({
-    name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-  });
   readonly requireChanges = false;
   readonly isSubmitting: WritableSignal<boolean> = signal(false);
   readonly submitted = vi.fn();
 
-  constructor() {
-    lockFormWhileSubmitting(this.group, this.isSubmitting);
-  }
+  readonly form = form(signal({ name: '' }), (path) => {
+    required(path.name);
+    lockFormWhileSubmitting(path, this.isSubmitting);
+  });
 }
 
 @Component({
-  imports: [Form, ReactiveFormsModule],
+  imports: [Form, FormField],
   template: `
     <app-form
-      [group]="group"
+      [form]="form"
       [submitLabel]="'Save'"
       [requireChanges]="true"
       [isSubmitting]="false"
       (submitted)="submitted()"
     >
-      <input [formControl]="group.controls.name" type="text" />
+      <input [formField]="form.name" type="text" />
     </app-form>
   `,
 })
 class RequireChangesHost {
-  readonly group = new FormGroup<TestFormModel>({
-    name: new FormControl('a value', { nonNullable: true, validators: [Validators.required] }),
+  readonly form = form(signal({ name: 'a value' }), (path) => {
+    required(path.name);
   });
   readonly submitted = vi.fn();
+}
+
+@Component({
+  imports: [Form],
+  template: `<app-form [form]="form" [fields]="fields" [submitLabel]="'Submit'"></app-form>`,
+})
+class FieldsHost {
+  readonly form = form(signal({ login: '', password: '' }), (path) => {
+    required(path.login);
+  });
+
+  readonly fields: FormTextField[] = [
+    { label: 'Login', type: 'text', field: this.form.login },
+    { label: 'Password', type: 'password', field: this.form.password },
+  ];
 }
 
 describe('Form', () => {
@@ -89,6 +99,15 @@ describe('Form', () => {
     await userEvent.setup().type(getFieldInput(), 'a value');
 
     expect(getSubmitButton()).toBeEnabled();
+  });
+
+  it('should disable the submit button again once a valid value turns invalid', async () => {
+    const user = userEvent.setup();
+
+    await user.type(getFieldInput(), 'a value');
+    await user.clear(getFieldInput());
+
+    expect(getSubmitButton()).toBeDisabled();
   });
 
   it('should reach the caller when a valid form is submitted', async () => {
@@ -152,5 +171,35 @@ describe('Form with requireChanges', () => {
     await user.type(screen.getByRole('textbox'), 'another value');
 
     expect(getSubmitButton()).toBeEnabled();
+  });
+
+  it('should keep the submit button disabled when the field was focused and blurred without a value change', async () => {
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('textbox'));
+    await user.tab();
+
+    expect(getSubmitButton()).toBeDisabled();
+  });
+});
+
+describe('Form with fields', () => {
+  beforeEach(async () => {
+    await render(FieldsHost, { waitForStableOnRender: true });
+  });
+
+  it('should render a labelled field of the given type for every entry', () => {
+    expect(screen.getByLabelText('Login')).toHaveAttribute('type', 'text');
+    expect(screen.getByLabelText('Password')).toHaveAttribute('type', 'password');
+  });
+
+  it('should show the violation message under a field once it was visited', async () => {
+    const user = userEvent.setup();
+
+    await user.click(screen.getByLabelText('Login'));
+    await user.tab();
+
+    expect(screen.getByText('This field is required')).toBeInTheDocument();
+    expect(screen.getByLabelText('Login')).toBeInvalid();
   });
 });

@@ -1,51 +1,42 @@
-import {
-  Component,
-  computed,
-  DestroyRef,
-  inject,
-  input,
-  OnInit,
-  output,
-  signal,
-  Signal,
-} from '@angular/core';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Component, computed, input, output } from '@angular/core';
+import { FieldTree, FormField as FormFieldDirective } from '@angular/forms/signals';
 
-import { createSubmitAvailability } from './create-submit-availability';
+import { FormTextField } from './form-text-field';
 
 import { Button } from '@shared/ui/button/button';
+import { FormField } from '@shared/ui/form-field/form-field';
+import { Input } from '@shared/ui/input/input';
 
 @Component({
   selector: 'app-form',
-  imports: [ReactiveFormsModule, Button],
+  imports: [Button, FormField, FormFieldDirective, Input],
   templateUrl: './form.html',
   styleUrl: './form.scss',
 })
-export class Form implements OnInit {
-  readonly group = input.required<FormGroup>();
+export class Form {
+  readonly form = input.required<FieldTree<unknown>>();
   readonly submitLabel = input.required<string>();
+  readonly fields = input<FormTextField[]>([]);
   readonly requireChanges = input(false);
   readonly isSubmitting = input(false);
 
   readonly submitted = output<void>();
 
-  private readonly _destroyRef = inject(DestroyRef);
+  private readonly _canSubmit = computed(() => {
+    const state = this.form()();
 
-  private readonly _canSubmitSource = signal<Signal<boolean> | null>(null);
-  private readonly _canSubmit = computed(() => this._canSubmitSource()?.() ?? false);
+    return state.valid() && (!this.requireChanges() || state.dirty());
+  });
 
   protected readonly disabled = computed(() => this.isSubmitting() || !this._canSubmit());
 
-  ngOnInit(): void {
-    this._canSubmitSource.set(
-      createSubmitAvailability(this.group(), this._destroyRef, {
-        requireChanges: this.requireChanges(),
-      }),
-    );
-  }
+  // Свой обработчик вместо `FormRoot` и `submit()`: те помечают все поля
+  // тронутыми при отправке невалидной формы, а у нас сообщение о нарушении
+  // появляется только после ухода с поля.
+  protected onSubmit(event: Event): void {
+    event.preventDefault();
 
-  protected onSubmit(): void {
-    if (this.group().invalid) {
+    if (this.form()().invalid()) {
       return;
     }
 

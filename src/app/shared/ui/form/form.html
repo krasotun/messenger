@@ -1,5 +1,12 @@
-<form class="form" [formGroup]="group()" (ngSubmit)="onSubmit()">
+<!-- novalidate: проверку ведет форма, а не браузер; раньше атрибут ставил ReactiveFormsModule -->
+<form class="form" novalidate (submit)="onSubmit($event)">
   <div class="form__fields">
+    @for (textField of fields(); track textField.label) {
+    <app-form-field [label]="textField.label" [field]="textField.field">
+      <input [formField]="textField.field" appInput [type]="textField.type" />
+    </app-form-field>
+    }
+
     <ng-content></ng-content>
   </div>
 

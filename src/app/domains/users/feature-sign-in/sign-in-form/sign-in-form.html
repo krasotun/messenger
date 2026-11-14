@@ -1,12 +1,7 @@
 <app-form
-  [group]="signInForm"
+  [form]="signInForm"
+  [fields]="fields"
   submitLabel="Log in"
   [isSubmitting]="isSubmitting()"
   (submitted)="onSubmit()"
->
-  @for (field of fields; track field.label) {
-  <app-form-field [label]="field.label" [control]="field.control">
-    <input [formControl]="field.control" appInput [type]="field.type" />
-  </app-form-field>
-  }
-</app-form>
+></app-form>
