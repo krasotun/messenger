@@ -1,52 +1,21 @@
-import { Component, effect, inject, input, output } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 
 import { CurrentSessionStore } from '../../data/current-session-store';
-import { emailPattern, phonePattern } from '../../data/user-field-patterns';
 import { UpdateProfileInput } from '../../data/user-gateway';
+import { userFieldsSchema } from '../../ui/user-fields-schema';
 
-import { connectSubmitFlow } from '@shared/forms';
+import { createSubmitFlowForm } from '@shared/forms';
 import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
-import { FormField } from '@shared/ui/form-field/form-field';
-import { Input } from '@shared/ui/input/input';
-
-interface UpdateProfileFormModel {
-  firstName: FormControl<string>;
-  secondName: FormControl<string>;
-  displayName: FormControl<string>;
-  login: FormControl<string>;
-  email: FormControl<string>;
-  phone: FormControl<string>;
-}
+import { TextFieldConfig } from '@shared/ui/text-field/text-field-config.type';
 
 @Component({
   selector: 'app-update-profile-form',
-  imports: [Input, FormField, Form, ReactiveFormsModule],
+  imports: [Form],
   templateUrl: './update-profile-form.html',
 })
 export class UpdateProfileForm {
   readonly profile = input.required<UpdateProfileInput>();
-
-  readonly updateProfileForm = new FormGroup<UpdateProfileFormModel>({
-    firstName: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    secondName: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    displayName: new FormControl('', { nonNullable: true }),
-    login: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    email: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.required, Validators.pattern(emailPattern)],
-    }),
-    phone: new FormControl('', {
-      nonNullable: true,
-      validators: [
-        Validators.required,
-        Validators.pattern(phonePattern),
-        Validators.minLength(10),
-        Validators.maxLength(15),
-      ],
-    }),
-  });
 
   readonly profileUpdated = output<void>();
 
@@ -54,27 +23,42 @@ export class UpdateProfileForm {
 
   private readonly _updateProfileFlow = createFormSubmitFlowState();
 
+  // Не `linkedSignal` от `profile`: `form()` читает модель при создании, когда
+  // обязательный input еще не получил значение.
+  private readonly _updateProfileValue = signal<UpdateProfileInput>({
+    firstName: '',
+    secondName: '',
+    displayName: '',
+    login: '',
+    email: '',
+    phone: '',
+  });
+
+  readonly updateProfileForm = createSubmitFlowForm({
+    value: this._updateProfileValue,
+    schema: userFieldsSchema,
+    flow: this._updateProfileFlow,
+    succeeded: this.profileUpdated,
+  });
+
   protected readonly isSubmitting = this._updateProfileFlow.isSubmitting;
 
-  protected readonly fields = [
-    { label: 'First name', type: 'text', control: this.updateProfileForm.controls.firstName },
-    { label: 'Second name', type: 'text', control: this.updateProfileForm.controls.secondName },
-    { label: 'Display name', type: 'text', control: this.updateProfileForm.controls.displayName },
-    { label: 'Login', type: 'text', control: this.updateProfileForm.controls.login },
-    { label: 'Email', type: 'email', control: this.updateProfileForm.controls.email },
-    { label: 'Mobile phone', type: 'text', control: this.updateProfileForm.controls.phone },
+  protected readonly fields: TextFieldConfig[] = [
+    { label: 'First name', type: 'text', field: this.updateProfileForm.firstName },
+    { label: 'Second name', type: 'text', field: this.updateProfileForm.secondName },
+    { label: 'Display name', type: 'text', field: this.updateProfileForm.displayName },
+    { label: 'Login', type: 'text', field: this.updateProfileForm.login },
+    { label: 'Email', type: 'email', field: this.updateProfileForm.email },
+    { label: 'Mobile phone', type: 'text', field: this.updateProfileForm.phone },
   ];
 
   constructor() {
     effect(() => {
-      this.updateProfileForm.setValue(this.profile());
+      this._updateProfileValue.set(this.profile());
     });
-
-    connectSubmitFlow(this.updateProfileForm, this._updateProfileFlow, this.profileUpdated);
   }
 
   protected onSubmit(): void {
-    const updateProfileFormValue = this.updateProfileForm.getRawValue();
-    this._currentSessionStore.updateProfile(updateProfileFormValue, this._updateProfileFlow);
+    this._currentSessionStore.updateProfile(this._updateProfileValue(), this._updateProfileFlow);
   }
 }

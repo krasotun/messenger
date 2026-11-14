@@ -1,6 +1,5 @@
-export { lockFormWhileSubmitting } from './lock-form-while-submitting';
-export { createControlState } from './create-control-state';
-export type { ControlState } from './create-control-state';
-export { resolveControlError } from './resolve-control-error';
-export { connectSubmitFlow } from './connect-submit-flow';
-export type { SubmitFlow } from './connect-submit-flow';
+export { createSubmitFlowForm } from './create-submit-flow-form';
+export type { SubmitFlow, SubmitFlowFormOptions } from './create-submit-flow-form';
+export { isViolationVisible } from './is-violation-visible';
+export { resolveViolationMessage } from './resolve-violation-message';
+export { validateMatch } from './validate-match';

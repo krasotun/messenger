@@ -1,16 +1,7 @@
-import {
-  Component,
-  computed,
-  DestroyRef,
-  inject,
-  input,
-  OnInit,
-  signal,
-  Signal,
-} from '@angular/core';
-import { AbstractControl } from '@angular/forms';
+import { Component, computed, input } from '@angular/core';
+import { FieldTree } from '@angular/forms/signals';
 
-import { ControlState, createControlState, resolveControlError } from '@shared/forms';
+import { isViolationVisible, resolveViolationMessage } from '@shared/forms';
 
 @Component({
   selector: 'app-form-field',
@@ -18,22 +9,21 @@ import { ControlState, createControlState, resolveControlError } from '@shared/f
   templateUrl: './form-field.html',
   styleUrl: './form-field.scss',
 })
-export class FormField implements OnInit {
+export class FormField {
   readonly label = input.required<string>();
-  readonly control = input.required<AbstractControl>();
+  readonly field = input.required<FieldTree<unknown>>();
 
-  private readonly _destroyRef = inject(DestroyRef);
+  private readonly _fieldState = computed(() => {
+    const fieldTree = this.field();
 
-  private readonly _stateSource = signal<Signal<ControlState> | null>(null);
-  private readonly _controlState = computed(() => this._stateSource()?.() ?? null);
-
-  protected readonly message = computed(() => {
-    const state = this._controlState();
-
-    return state?.showMessage ? resolveControlError(state.errors) : undefined;
+    return fieldTree();
   });
 
-  ngOnInit(): void {
-    this._stateSource.set(createControlState(this.control(), this._destroyRef));
-  }
+  protected readonly message = computed(() => {
+    const fieldState = this._fieldState();
+
+    return isViolationVisible(fieldState)
+      ? resolveViolationMessage(fieldState.errors())
+      : undefined;
+  });
 }

@@ -1,16 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture } from '@angular/core/testing';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { form, FormField, required } from '@angular/forms/signals';
 import { render, screen } from '@testing-library/angular/zoneless';
 
 import { Input } from './input';
 
 @Component({
-  imports: [Input, ReactiveFormsModule],
-  template: ` <input appInput [formControl]="control" type="text" /> `,
+  imports: [Input, FormField],
+  template: ` <input appInput [formField]="field" type="text" /> `,
 })
 class TestHost {
-  readonly control = new FormControl('', { nonNullable: true, validators: [Validators.required] });
+  readonly field = form(signal(''), (path) => {
+    required(path);
+  });
 }
 
 @Component({
@@ -26,12 +28,12 @@ describe('Input', () => {
     ({ fixture } = await render(TestHost, { waitForStableOnRender: true }));
   });
 
-  it('should not mark an untouched invalid control as invalid', () => {
+  it('should not mark an untouched invalid field as invalid', () => {
     expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'false');
   });
 
-  it('should mark a touched invalid control as invalid', async () => {
-    fixture.componentInstance.control.markAsTouched();
+  it('should mark a touched invalid field as invalid', async () => {
+    fixture.componentInstance.field().markAsTouched();
 
     await fixture.whenStable();
 
@@ -39,17 +41,17 @@ describe('Input', () => {
   });
 
   it('should clear the invalid state once the value is fixed', async () => {
-    fixture.componentInstance.control.markAsTouched();
+    fixture.componentInstance.field().markAsTouched();
     await fixture.whenStable();
 
-    fixture.componentInstance.control.setValue('a value');
+    fixture.componentInstance.field().value.set('a value');
     await fixture.whenStable();
 
     expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'false');
   });
 });
 
-describe('Input without a control', () => {
+describe('Input without a form field', () => {
   it('should not mark the field as invalid', async () => {
     await render(PlainTestHost, { waitForStableOnRender: true });
 

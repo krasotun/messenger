@@ -1,49 +1,46 @@
-import { Component, inject, output } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, output, signal } from '@angular/core';
+import { required } from '@angular/forms/signals';
 
+import { SignInInput } from '../../data/auth-gateway';
 import { CurrentSessionStore } from '../../data/current-session-store';
 
-import { connectSubmitFlow } from '@shared/forms';
+import { createSubmitFlowForm } from '@shared/forms';
 import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
-import { FormField } from '@shared/ui/form-field/form-field';
-import { Input } from '@shared/ui/input/input';
-
-interface SignInFormModel {
-  login: FormControl<string>;
-  password: FormControl<string>;
-}
+import { TextFieldConfig } from '@shared/ui/text-field/text-field-config.type';
 
 @Component({
   selector: 'app-sign-in-form',
-  imports: [Input, FormField, Form, ReactiveFormsModule],
+  imports: [Form],
   templateUrl: './sign-in-form.html',
 })
 export class SignInForm {
-  readonly signInForm = new FormGroup<SignInFormModel>({
-    login: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-  });
-
   readonly signInSucceeded = output<void>();
 
   private readonly _currentSessionStore = inject(CurrentSessionStore);
 
   private readonly _signInFlow = createFormSubmitFlowState();
 
+  private readonly _signInValue = signal<SignInInput>({ login: '', password: '' });
+
+  readonly signInForm = createSubmitFlowForm({
+    value: this._signInValue,
+    schema: (path) => {
+      required(path.login);
+      required(path.password);
+    },
+    flow: this._signInFlow,
+    succeeded: this.signInSucceeded,
+  });
+
   protected readonly isSubmitting = this._signInFlow.isSubmitting;
 
-  protected readonly fields = [
-    { label: 'Login', type: 'text', control: this.signInForm.controls.login },
-    { label: 'Password', type: 'password', control: this.signInForm.controls.password },
+  protected readonly fields: TextFieldConfig[] = [
+    { label: 'Login', type: 'text', field: this.signInForm.login },
+    { label: 'Password', type: 'password', field: this.signInForm.password },
   ];
 
-  constructor() {
-    connectSubmitFlow(this.signInForm, this._signInFlow, this.signInSucceeded);
-  }
-
   protected onSubmit(): void {
-    const signInFormValue = this.signInForm.getRawValue();
-    this._currentSessionStore.signIn(signInFormValue, this._signInFlow);
+    this._currentSessionStore.signIn(this._signInValue(), this._signInFlow);
   }
 }

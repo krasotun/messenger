@@ -1,46 +1,42 @@
-import { Component, inject, output } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, output, signal } from '@angular/core';
+import { required } from '@angular/forms/signals';
 
 import { ChatListStore } from '@domains/chats/data/chat-list-store';
-import { connectSubmitFlow } from '@shared/forms';
+import { createSubmitFlowForm } from '@shared/forms';
 import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
-import { FormField } from '@shared/ui/form-field/form-field';
-import { Input } from '@shared/ui/input/input';
-
-interface CreateChatFormModel {
-  title: FormControl<string>;
-}
+import { TextFieldConfig } from '@shared/ui/text-field/text-field-config.type';
 
 @Component({
   selector: 'app-create-chat-form',
-  imports: [Input, FormField, Form, ReactiveFormsModule],
+  imports: [Form],
   templateUrl: './create-chat-form.html',
 })
 export class CreateChatForm {
-  readonly createChatForm = new FormGroup<CreateChatFormModel>({
-    title: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-  });
-
   readonly chatCreated = output<void>();
 
   private readonly _chatListStore = inject(ChatListStore);
 
   private readonly _chatCreationFlow = createFormSubmitFlowState();
 
+  private readonly _createChatValue = signal({ title: '' });
+
+  readonly createChatForm = createSubmitFlowForm({
+    value: this._createChatValue,
+    schema: (path) => {
+      required(path.title);
+    },
+    flow: this._chatCreationFlow,
+    succeeded: this.chatCreated,
+  });
+
   protected readonly isSubmitting = this._chatCreationFlow.isSubmitting;
 
-  protected readonly fields = [
-    { label: 'Title', type: 'text', control: this.createChatForm.controls.title },
+  protected readonly fields: TextFieldConfig[] = [
+    { label: 'Title', type: 'text', field: this.createChatForm.title },
   ];
 
-  constructor() {
-    connectSubmitFlow(this.createChatForm, this._chatCreationFlow, this.chatCreated);
-  }
-
   protected onSubmit(): void {
-    const { title } = this.createChatForm.getRawValue();
-
-    this._chatListStore.createChat({ title }, this._chatCreationFlow);
+    this._chatListStore.createChat(this._createChatValue(), this._chatCreationFlow);
   }
 }
