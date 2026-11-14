@@ -1,13 +1,13 @@
 import { Component, inject, output, signal } from '@angular/core';
-import { form, required } from '@angular/forms/signals';
+import { required } from '@angular/forms/signals';
 
 import { SignInInput } from '../../data/auth-gateway';
 import { CurrentSessionStore } from '../../data/current-session-store';
 
-import { connectSubmitFlow, lockFormWhileSubmitting } from '@shared/forms';
+import { createSubmitFlowForm } from '@shared/forms';
 import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
-import { FormTextField } from '@shared/ui/form/form-text-field';
+import { TextFieldConfig } from '@shared/ui/text-field/text-field-config.type';
 
 @Component({
   selector: 'app-sign-in-form',
@@ -23,22 +23,22 @@ export class SignInForm {
 
   private readonly _signInValue = signal<SignInInput>({ login: '', password: '' });
 
-  readonly signInForm = form(this._signInValue, (path) => {
-    required(path.login);
-    required(path.password);
-    lockFormWhileSubmitting(path, this._signInFlow.isSubmitting);
+  readonly signInForm = createSubmitFlowForm({
+    value: this._signInValue,
+    schema: (path) => {
+      required(path.login);
+      required(path.password);
+    },
+    flow: this._signInFlow,
+    succeeded: this.signInSucceeded,
   });
 
   protected readonly isSubmitting = this._signInFlow.isSubmitting;
 
-  protected readonly fields: FormTextField[] = [
+  protected readonly fields: TextFieldConfig[] = [
     { label: 'Login', type: 'text', field: this.signInForm.login },
     { label: 'Password', type: 'password', field: this.signInForm.password },
   ];
-
-  constructor() {
-    connectSubmitFlow(this._signInFlow, this.signInSucceeded);
-  }
 
   protected onSubmit(): void {
     this._currentSessionStore.signIn(this._signInValue(), this._signInFlow);

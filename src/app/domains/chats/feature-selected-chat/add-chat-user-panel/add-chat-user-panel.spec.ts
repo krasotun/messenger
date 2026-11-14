@@ -104,6 +104,20 @@ describe('AddChatUserPanel', () => {
     });
   });
 
+  describe('same login entered again', () => {
+    it('should search again when the same login replaces the entered one', async () => {
+      userGatewayMock.searchUsers.mockReturnValue(of({ users: [userMock] }));
+      const field = screen.getByRole('textbox', { name: 'Search users' });
+
+      await search('j');
+      await user.type(field, 'j', { initialSelectionStart: 0, initialSelectionEnd: 1 });
+      vi.advanceTimersByTime(debounceMs);
+
+      expect(field).toHaveValue('j');
+      expect(userGatewayMock.searchUsers).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('empty response', () => {
     it('should show that nobody was found, distinct from the not-started hint', async () => {
       userGatewayMock.searchUsers.mockReturnValue(of({ users: [] }));

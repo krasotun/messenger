@@ -37,11 +37,11 @@ describe('FormField', () => {
     expect(screen.getByText('Login')).toBeInTheDocument();
   });
 
-  it('should not show a message on an untouched invalid control', () => {
+  it('should not show a message on an untouched invalid field', () => {
     expect(screen.queryByText(requiredFieldError)).not.toBeInTheDocument();
   });
 
-  it('should show the message resolved from the violation once the control is touched', async () => {
+  it('should show the message resolved from the violation once the field is touched', async () => {
     fixture.componentInstance.field().markAsTouched();
 
     await fixture.whenStable();

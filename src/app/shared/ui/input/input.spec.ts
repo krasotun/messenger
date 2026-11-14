@@ -28,11 +28,11 @@ describe('Input', () => {
     ({ fixture } = await render(TestHost, { waitForStableOnRender: true }));
   });
 
-  it('should not mark an untouched invalid control as invalid', () => {
+  it('should not mark an untouched invalid field as invalid', () => {
     expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'false');
   });
 
-  it('should mark a touched invalid control as invalid', async () => {
+  it('should mark a touched invalid field as invalid', async () => {
     fixture.componentInstance.field().markAsTouched();
 
     await fixture.whenStable();
@@ -51,7 +51,7 @@ describe('Input', () => {
   });
 });
 
-describe('Input without a control', () => {
+describe('Input without a form field', () => {
   it('should not mark the field as invalid', async () => {
     await render(PlainTestHost, { waitForStableOnRender: true });
 

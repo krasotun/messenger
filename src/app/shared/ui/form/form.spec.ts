@@ -1,13 +1,12 @@
 import { Component, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture } from '@angular/core/testing';
-import { form, FormField, required } from '@angular/forms/signals';
+import { disabled, form, FormField, required } from '@angular/forms/signals';
 import { fireEvent, render, screen } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
 
 import { Form } from './form';
-import { FormTextField } from './form-text-field';
 
-import { lockFormWhileSubmitting } from '@shared/forms';
+import { TextFieldConfig } from '@shared/ui/text-field/text-field-config.type';
 
 @Component({
   imports: [Form, FormField],
@@ -30,7 +29,7 @@ class TestHost {
 
   readonly form = form(signal({ name: '' }), (path) => {
     required(path.name);
-    lockFormWhileSubmitting(path, this.isSubmitting);
+    disabled(path, () => this.isSubmitting());
   });
 }
 
@@ -41,7 +40,7 @@ class TestHost {
       [form]="form"
       [submitLabel]="'Save'"
       [requireChanges]="true"
-      [isSubmitting]="false"
+      [isSubmitting]="isSubmitting()"
       (submitted)="submitted()"
     >
       <input [formField]="form.name" type="text" />
@@ -49,8 +48,11 @@ class TestHost {
   `,
 })
 class RequireChangesHost {
+  readonly isSubmitting: WritableSignal<boolean> = signal(false);
+
   readonly form = form(signal({ name: 'a value' }), (path) => {
     required(path.name);
+    disabled(path, () => this.isSubmitting());
   });
   readonly submitted = vi.fn();
 }
@@ -64,7 +66,7 @@ class FieldsHost {
     required(path.login);
   });
 
-  readonly fields: FormTextField[] = [
+  readonly fields: TextFieldConfig[] = [
     { label: 'Login', type: 'text', field: this.form.login },
     { label: 'Password', type: 'password', field: this.form.password },
   ];
@@ -180,6 +182,20 @@ describe('Form with requireChanges', () => {
     await user.tab();
 
     expect(getSubmitButton()).toBeDisabled();
+  });
+});
+
+describe('Form with requireChanges after submitting', () => {
+  it('should keep the submit button enabled for a changed form once submitting ends', async () => {
+    const { fixture } = await render(RequireChangesHost, { waitForStableOnRender: true });
+    await userEvent.setup().type(screen.getByRole('textbox'), ' changed');
+
+    fixture.componentInstance.isSubmitting.set(true);
+    await fixture.whenStable();
+    fixture.componentInstance.isSubmitting.set(false);
+    await fixture.whenStable();
+
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
   });
 });
 

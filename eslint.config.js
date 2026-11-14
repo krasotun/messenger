@@ -20,6 +20,10 @@ const applicationRestrictedPaths = [
 
 const applicationRestrictedPatterns = [
   {
+    group: ['@angular/forms/*'],
+    message: 'Application must not know about Angular forms.',
+  },
+  {
     group: ['@angular/cdk', '@angular/cdk/*'],
     message: 'Application must not know about Overlay and other CDK primitives.',
   },

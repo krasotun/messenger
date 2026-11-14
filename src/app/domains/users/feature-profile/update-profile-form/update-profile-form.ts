@@ -1,14 +1,13 @@
 import { Component, effect, inject, input, output, signal } from '@angular/core';
-import { apply, form, required } from '@angular/forms/signals';
 
 import { CurrentSessionStore } from '../../data/current-session-store';
-import { emailSchema, phoneSchema } from '../../data/user-field-schemas';
 import { UpdateProfileInput } from '../../data/user-gateway';
+import { userFieldsSchema } from '../../ui/user-fields-schema';
 
-import { connectSubmitFlow, lockFormWhileSubmitting } from '@shared/forms';
+import { createSubmitFlowForm } from '@shared/forms';
 import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
-import { FormTextField } from '@shared/ui/form/form-text-field';
+import { TextFieldConfig } from '@shared/ui/text-field/text-field-config.type';
 
 @Component({
   selector: 'app-update-profile-form',
@@ -35,18 +34,16 @@ export class UpdateProfileForm {
     phone: '',
   });
 
-  readonly updateProfileForm = form(this._updateProfileValue, (path) => {
-    required(path.firstName);
-    required(path.secondName);
-    required(path.login);
-    apply(path.email, emailSchema);
-    apply(path.phone, phoneSchema);
-    lockFormWhileSubmitting(path, this._updateProfileFlow.isSubmitting);
+  readonly updateProfileForm = createSubmitFlowForm({
+    value: this._updateProfileValue,
+    schema: userFieldsSchema,
+    flow: this._updateProfileFlow,
+    succeeded: this.profileUpdated,
   });
 
   protected readonly isSubmitting = this._updateProfileFlow.isSubmitting;
 
-  protected readonly fields: FormTextField[] = [
+  protected readonly fields: TextFieldConfig[] = [
     { label: 'First name', type: 'text', field: this.updateProfileForm.firstName },
     { label: 'Second name', type: 'text', field: this.updateProfileForm.secondName },
     { label: 'Display name', type: 'text', field: this.updateProfileForm.displayName },
@@ -59,8 +56,6 @@ export class UpdateProfileForm {
     effect(() => {
       this._updateProfileValue.set(this.profile());
     });
-
-    connectSubmitFlow(this._updateProfileFlow, this.profileUpdated);
   }
 
   protected onSubmit(): void {

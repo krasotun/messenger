@@ -1,31 +1,35 @@
 import { Component, computed, input, output } from '@angular/core';
-import { FieldTree, FormField as FormFieldDirective } from '@angular/forms/signals';
-
-import { FormTextField } from './form-text-field';
+import { FieldTree } from '@angular/forms/signals';
 
 import { Button } from '@shared/ui/button/button';
-import { FormField } from '@shared/ui/form-field/form-field';
-import { Input } from '@shared/ui/input/input';
+import { TextField } from '@shared/ui/text-field/text-field';
+import { TextFieldConfig } from '@shared/ui/text-field/text-field-config.type';
 
 @Component({
   selector: 'app-form',
-  imports: [Button, FormField, FormFieldDirective, Input],
+  imports: [Button, TextField],
   templateUrl: './form.html',
   styleUrl: './form.scss',
 })
 export class Form {
   readonly form = input.required<FieldTree<unknown>>();
   readonly submitLabel = input.required<string>();
-  readonly fields = input<FormTextField[]>([]);
+  readonly fields = input<TextFieldConfig[]>([]);
   readonly requireChanges = input(false);
   readonly isSubmitting = input(false);
 
   readonly submitted = output<void>();
 
-  private readonly _canSubmit = computed(() => {
-    const state = this.form()();
+  private readonly _formState = computed(() => {
+    const formTree = this.form();
 
-    return state.valid() && (!this.requireChanges() || state.dirty());
+    return formTree();
+  });
+
+  private readonly _canSubmit = computed(() => {
+    const formState = this._formState();
+
+    return formState.valid() && (!this.requireChanges() || formState.dirty());
   });
 
   protected readonly disabled = computed(() => this.isSubmitting() || !this._canSubmit());
@@ -36,7 +40,7 @@ export class Form {
   protected onSubmit(event: Event): void {
     event.preventDefault();
 
-    if (this.form()().invalid()) {
+    if (this._formState().invalid()) {
       return;
     }
 

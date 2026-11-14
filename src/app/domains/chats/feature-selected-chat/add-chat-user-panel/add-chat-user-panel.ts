@@ -25,7 +25,9 @@ export class AddChatUserPanel {
 
   readonly userAdded = output<void>();
 
-  private readonly _login = signal('');
+  // Сравнение выключено: повторный ввод того же логина должен перезапустить
+  // поиск, как это делал `valueChanges`, а сигнал равные значения глотает.
+  private readonly _login = signal('', { equal: () => false });
 
   readonly loginField = form(this._login);
 

@@ -1,11 +1,11 @@
 import { Component, inject, output, signal } from '@angular/core';
-import { form, required } from '@angular/forms/signals';
+import { required } from '@angular/forms/signals';
 
 import { ChatListStore } from '@domains/chats/data/chat-list-store';
-import { connectSubmitFlow, lockFormWhileSubmitting } from '@shared/forms';
+import { createSubmitFlowForm } from '@shared/forms';
 import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Form } from '@shared/ui/form/form';
-import { FormTextField } from '@shared/ui/form/form-text-field';
+import { TextFieldConfig } from '@shared/ui/text-field/text-field-config.type';
 
 @Component({
   selector: 'app-create-chat-form',
@@ -21,20 +21,20 @@ export class CreateChatForm {
 
   private readonly _createChatValue = signal({ title: '' });
 
-  readonly createChatForm = form(this._createChatValue, (path) => {
-    required(path.title);
-    lockFormWhileSubmitting(path, this._chatCreationFlow.isSubmitting);
+  readonly createChatForm = createSubmitFlowForm({
+    value: this._createChatValue,
+    schema: (path) => {
+      required(path.title);
+    },
+    flow: this._chatCreationFlow,
+    succeeded: this.chatCreated,
   });
 
   protected readonly isSubmitting = this._chatCreationFlow.isSubmitting;
 
-  protected readonly fields: FormTextField[] = [
+  protected readonly fields: TextFieldConfig[] = [
     { label: 'Title', type: 'text', field: this.createChatForm.title },
   ];
-
-  constructor() {
-    connectSubmitFlow(this._chatCreationFlow, this.chatCreated);
-  }
 
   protected onSubmit(): void {
     this._chatListStore.createChat(this._createChatValue(), this._chatCreationFlow);
