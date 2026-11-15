@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
+import { ConfirmationService } from 'primeng/api';
 import { PrimeNG } from 'primeng/config';
+import { DialogService } from 'primeng/dynamicdialog';
 
 import { appConfig } from './app.config';
 
@@ -25,5 +27,14 @@ describe('appConfig', () => {
     const primeng = TestBed.inject(PrimeNG);
 
     expect(primeng.theme()).toBeDefined();
+  });
+
+  it('should provide the confirmation and dialog services of the UI kit', () => {
+    TestBed.configureTestingModule({
+      providers: appConfig.providers,
+    });
+
+    expect(TestBed.inject(ConfirmationService)).toBeInstanceOf(ConfirmationService);
+    expect(TestBed.inject(DialogService)).toBeInstanceOf(DialogService);
   });
 });

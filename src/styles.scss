@@ -5,8 +5,8 @@
 @use '../public/static/styles/normalize';
 @use '../public/static/styles/fonts';
 
-// Структурные стили CDK Overlay: позиционирование контейнера, затенение фона и
-// блокировка скролла. Нужны и модалке, и popover.
+// Структурные стили CDK Overlay: позиционирование контейнера и затенение фона.
+// Нужны popover; уйдут вместе с ним в блоке 5.
 @include cdk.overlay();
 
 :root {

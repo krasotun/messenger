@@ -1,8 +1,7 @@
 import { Component, inject } from '@angular/core';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
 
 import { ChangePasswordForm } from '../change-password-form/change-password-form';
-
-import { ModalRef } from '@shared/ui/modal/modal-ref';
 
 @Component({
   selector: 'app-change-password-modal-content',
@@ -10,9 +9,9 @@ import { ModalRef } from '@shared/ui/modal/modal-ref';
   templateUrl: './change-password-modal-content.html',
 })
 export class ChangePasswordModalContent {
-  private readonly _modalRef = inject(ModalRef);
+  private readonly _dialogRef = inject(DynamicDialogRef);
 
   protected closeModal(): void {
-    this._modalRef.close();
+    this._dialogRef.close();
   }
 }

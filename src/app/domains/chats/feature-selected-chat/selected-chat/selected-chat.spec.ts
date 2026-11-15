@@ -1,8 +1,10 @@
-import { Component, inputBinding, signal, WritableSignal } from '@angular/core';
+import { Component, input, inputBinding, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { render, screen, within } from '@testing-library/angular/zoneless';
+import { render, screen, waitFor, within } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { of, throwError } from 'rxjs';
 
 import { CHAT_GATEWAY } from '../../data/chat-gateway';
@@ -17,7 +19,6 @@ import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
 import { Nullable } from '@shared/types';
-import { ConfirmationService } from '@shared/ui/confirmation';
 
 const firstChatMock = ChatMocks.chat({ id: 1, title: 'Analytics Q3' });
 const secondChatMock = ChatMocks.chat({ id: 2, title: 'Analytics Q4' });
@@ -33,8 +34,19 @@ const chatCreatorMock = UserMocks.currentUser({ id: 1 });
 })
 class ChatsPageStub {}
 
+// Хост повторяет app.html: настоящий <p-confirmdialog> слушает тот же
+// ConfirmationService, в который пишет фича.
+@Component({
+  selector: 'app-test-selected-chat-host',
+  imports: [SelectedChat, ConfirmDialogModule],
+  template: `<app-selected-chat [chatId]="chatId()" /><p-confirmdialog />`,
+})
+class TestSelectedChatHost {
+  readonly chatId = input.required<string>();
+}
+
 describe('SelectedChat', () => {
-  let fixture: ComponentFixture<SelectedChat>;
+  let fixture: ComponentFixture<TestSelectedChatHost>;
   let chatId: WritableSignal<string>;
   let user: UserEvent;
 
@@ -42,10 +54,6 @@ describe('SelectedChat', () => {
 
   const currentSessionStoreMock = {
     currentUser: currentUser.asReadonly(),
-  };
-
-  const confirmationServiceMock = {
-    confirm: vi.fn(),
   };
 
   let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
@@ -57,14 +65,14 @@ describe('SelectedChat', () => {
   ): Promise<void> => {
     chatId = signal(initialChatId);
 
-    ({ fixture } = await render(SelectedChat, {
+    ({ fixture } = await render(TestSelectedChatHost, {
       bindings: [inputBinding('chatId', chatId)],
       providers: [
         ChatListStore,
         { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
         { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
         { provide: CurrentSessionStore, useValue: currentSessionStoreMock },
-        { provide: ConfirmationService, useValue: confirmationServiceMock },
+        ConfirmationService,
         provideRouter([
           { path: '', component: ChatsPageStub },
           { path: ':chatId', component: ChatsPageStub },
@@ -127,9 +135,6 @@ describe('SelectedChat', () => {
     chatGatewayMock.removeChatUser.mockReturnValue(of(undefined));
 
     currentUser.set(chatCreatorMock);
-
-    confirmationServiceMock.confirm.mockReset();
-    confirmationServiceMock.confirm.mockReturnValue(of(false));
   });
 
   describe('loading the chat users', () => {
@@ -210,47 +215,93 @@ describe('SelectedChat', () => {
   });
 
   describe('deleting the chat', () => {
-    it('asks for confirmation naming the chat and marking the action as dangerous', async () => {
+    it('asks for confirmation naming the chat', async () => {
       await createComponent('1');
 
       await requestDeletion();
 
-      expect(confirmationServiceMock.confirm).toHaveBeenCalledWith({
-        title: 'Delete chat',
-        subject: 'Analytics Q3',
-        message: "The chat and its messages disappear for every member. This can't be undone.",
-        confirmLabel: 'Delete',
-        isDangerous: true,
-      });
+      const dialog = await screen.findByRole('alertdialog', { name: 'Delete chat' });
+
+      expect(within(dialog).getByText(/Analytics Q3/)).toBeInTheDocument();
+      expect(within(dialog).getByText(/can't be undone/)).toBeInTheDocument();
     });
 
-    it('does not delete the chat when the confirmation is refused', async () => {
-      confirmationServiceMock.confirm.mockReturnValue(of(false));
-
+    it('styles the accept button as dangerous', async () => {
       await createComponent('1');
 
       await requestDeletion();
+
+      expect(await screen.findByRole('button', { name: 'Delete' })).toHaveClass('p-button-danger');
+    });
+
+    it('deletes the chat when the person confirms', async () => {
+      await createComponent('1');
+
+      await requestDeletion();
+      await user.click(await screen.findByRole('button', { name: 'Delete' }));
+
+      expect(chatGatewayMock.deleteChat).toHaveBeenCalledWith({ chatId: 1 });
+    });
+
+    it('does not delete the chat when the person declines', async () => {
+      await createComponent('1');
+
+      await requestDeletion();
+      await user.click(await screen.findByRole('button', { name: 'Cancel' }));
 
       expect(chatGatewayMock.deleteChat).not.toHaveBeenCalled();
     });
 
-    it('deletes the chat when the confirmation is accepted', async () => {
-      confirmationServiceMock.confirm.mockReturnValue(of(true));
-
+    it('does not delete the chat when the dialog is closed with Escape', async () => {
       await createComponent('1');
 
       await requestDeletion();
+      await screen.findByRole('alertdialog', { name: 'Delete chat' });
+      await user.keyboard('{Escape}');
 
-      expect(chatGatewayMock.deleteChat).toHaveBeenCalledWith({ chatId: 1 });
+      await waitFor(() =>
+        expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument(),
+      );
+      expect(chatGatewayMock.deleteChat).not.toHaveBeenCalled();
+    });
+
+    it('does not delete the chat when the dialog is closed with its close button', async () => {
+      await createComponent('1');
+
+      await requestDeletion();
+      // Кнопка закрытия кита не имеет доступного имени, поэтому ищем по классу кита.
+      const dialog = await screen.findByRole('alertdialog', { name: 'Delete chat' });
+      await user.click(dialog.querySelector<HTMLElement>('.p-dialog-close-button')!);
+
+      await waitFor(() =>
+        expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument(),
+      );
+      expect(chatGatewayMock.deleteChat).not.toHaveBeenCalled();
+    });
+
+    it('asks again after the dialog was closed without a choice and deletes once on accept', async () => {
+      await createComponent('1');
+
+      await requestDeletion();
+      await screen.findByRole('alertdialog', { name: 'Delete chat' });
+      await user.keyboard('{Escape}');
+      await waitFor(() =>
+        expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument(),
+      );
+
+      await requestDeletion();
+      await user.click(await screen.findByRole('button', { name: 'Delete' }));
+
+      expect(chatGatewayMock.deleteChat).toHaveBeenCalledTimes(1);
     });
 
     it('navigates to / when the chat is deleted', async () => {
       await createComponent('1');
       // Выбранный чат открыт по своему адресу, как на странице чатов.
       await TestBed.inject(Router).navigateByUrl('/1');
-      confirmationServiceMock.confirm.mockReturnValue(of(true));
 
       await requestDeletion();
+      await user.click(await screen.findByRole('button', { name: 'Delete' }));
       await fixture.whenStable();
 
       expect(TestBed.inject(Router).url).toBe('/');
@@ -336,49 +387,69 @@ describe('SelectedChat', () => {
       expect(screen.queryAllByRole('button', { name: /^Remove / })).toHaveLength(0);
     });
 
-    it('asks for confirmation naming the member and the chat without marking it as dangerous', async () => {
+    it('asks for confirmation naming the member and the chat', async () => {
       await createComponent('1');
 
       await openChatUsersPanel();
-
       await requestChatUserRemoval('Billie');
 
-      expect(confirmationServiceMock.confirm).toHaveBeenCalledWith({
-        title: 'Remove member',
-        subject: 'Billie',
-        message: 'They leave "Analytics Q3" and can be added back later.',
-        confirmLabel: 'Remove',
-      });
+      const dialog = await screen.findByRole('alertdialog', { name: 'Remove member' });
+
+      expect(within(dialog).getByText(/Billie/)).toBeInTheDocument();
+      expect(within(dialog).getByText(/Analytics Q3/)).toBeInTheDocument();
     });
 
-    it('does not remove the member when the confirmation is refused', async () => {
+    it('styles the accept button as a regular action', async () => {
       await createComponent('1');
 
       await openChatUsersPanel();
-
       await requestChatUserRemoval('Billie');
+
+      expect(await screen.findByRole('button', { name: 'Remove' })).not.toHaveClass(
+        'p-button-danger',
+      );
+    });
+
+    it('does not remove the member when the person declines', async () => {
+      await createComponent('1');
+
+      await openChatUsersPanel();
+      await requestChatUserRemoval('Billie');
+      await user.click(await screen.findByRole('button', { name: 'Cancel' }));
 
       expect(chatGatewayMock.removeChatUser).not.toHaveBeenCalled();
     });
 
-    it('keeps the members panel open when the confirmation is refused', async () => {
+    it('does not remove the member when the dialog is closed without a choice', async () => {
       await createComponent('1');
 
       await openChatUsersPanel();
-
       await requestChatUserRemoval('Billie');
+      await screen.findByRole('alertdialog', { name: 'Remove member' });
+      await user.keyboard('{Escape}');
+
+      await waitFor(() =>
+        expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument(),
+      );
+      expect(chatGatewayMock.removeChatUser).not.toHaveBeenCalled();
+    });
+
+    it('keeps the members panel open when the person declines', async () => {
+      await createComponent('1');
+
+      await openChatUsersPanel();
+      await requestChatUserRemoval('Billie');
+      await user.click(await screen.findByRole('button', { name: 'Cancel' }));
 
       expect(queryChatUsersPanel()).toBeInTheDocument();
     });
 
-    it('removes the member from the chat when the confirmation is accepted', async () => {
-      confirmationServiceMock.confirm.mockReturnValue(of(true));
-
+    it('removes the member from the chat when the person confirms', async () => {
       await createComponent('1');
 
       await openChatUsersPanel();
-
       await requestChatUserRemoval('Billie');
+      await user.click(await screen.findByRole('button', { name: 'Remove' }));
 
       expect(chatGatewayMock.removeChatUser).toHaveBeenCalledWith({
         chatId: 1,
@@ -387,13 +458,11 @@ describe('SelectedChat', () => {
     });
 
     it('keeps the members panel open after the member is removed', async () => {
-      confirmationServiceMock.confirm.mockReturnValue(of(true));
-
       await createComponent('1');
 
       await openChatUsersPanel();
-
       await requestChatUserRemoval('Billie');
+      await user.click(await screen.findByRole('button', { name: 'Remove' }));
 
       expect(queryChatUsersPanel()).toBeInTheDocument();
     });
