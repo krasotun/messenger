@@ -61,4 +61,4 @@
 - [x] 6.2 Просмотреть каждый снимок глазами: нет наложений, обрезанного текста и потерянных отступов; найденное чинится в верстке, а не закрывается эталоном
 - [x] 6.3 Положить новые эталоны в каталоги `*-snapshots` рядом с тестами и показать их в PR блока; job `visual` в CI зеленый
 - [x] 6.4 Проверить, что в `shared/ui` остались только `avatar/`, `dialog/`, `form/`, `form-field/`, `text-field/`, `toast/prime-notifier.ts`, а `npx openspec validate --strict` зеленый
-- [ ] 6.5 Прогнать `npm run lint`, `npm run test:ci`, `npm run build` и `npm run e2e`; дождаться зеленых `quality`, `e2e` и `visual` в CI
+- [x] 6.5 Прогнать `npm run lint`, `npm run test:ci`, `npm run build` и `npm run e2e`; дождаться зеленых `quality`, `e2e` и `visual` в CI
