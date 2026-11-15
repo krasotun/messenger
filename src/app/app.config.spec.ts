@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { PrimeNG } from 'primeng/config';
 
 import { appConfig } from './app.config';
 
@@ -14,5 +15,15 @@ describe('appConfig', () => {
     const notifier = TestBed.inject(NOTIFIER);
 
     expect(notifier).toBeInstanceOf(ToastService);
+  });
+
+  it('should configure the UI kit theme', () => {
+    TestBed.configureTestingModule({
+      providers: appConfig.providers,
+    });
+
+    const primeng = TestBed.inject(PrimeNG);
+
+    expect(primeng.theme()).toBeDefined();
   });
 });

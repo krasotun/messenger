@@ -1,7 +1,7 @@
 # UI-примитивы пишем сами поверх Angular CDK, без Angular Material
 
 - Дата: 2026-06-05
-- Статус: accepted
+- Статус: superseded by [2026-11-15-ui-kit-instead-of-own-primitives](./2026-11-15-ui-kit-instead-of-own-primitives.md)
 - Issue: -
 
 ADR заведен задним числом 2026-08-27 (#69): решение принято до внедрения

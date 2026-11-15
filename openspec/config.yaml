@@ -28,7 +28,7 @@ context: |
 
   ## Стек и структура
 
-  Angular 21 (standalone, signals), TypeScript, RxJS, Angular CDK.
+  Angular 22 (standalone, signals), TypeScript, RxJS, PrimeNG (тема Aura), Angular CDK.
   Тесты: Vitest (unit/component), Playwright (e2e, визуальные).
   Мок-бэкенд для локальной разработки и e2e: `mock-backend` на :3000.
 
@@ -37,7 +37,8 @@ context: |
   (`docs/adr/2026-10-28-page-part-stores-and-folder-boundaries.md`). Домены -
   `chats` и `users`.
 
-  - `src/app/shared` - UI-примитивы и общие типы, без знания о доменах;
+  - `src/app/shared` - связки с UI-китом (`shared/ui`) и общие типы, без знания
+    о доменах;
   - `src/app/domains/<context>/` - корень домена: `<context>.providers.ts` и
     публичный API `index.ts`;
   - `src/app/domains/<context>/data/` - модели, порт **Шлюза**, его
@@ -55,8 +56,9 @@ context: |
   модулями-папками - Sheriff (`sheriff.config.ts`, правило ESLint
   `@softarc/sheriff`); `shared` не импортирует домены, core и pages;
   application (`data/`) не знает
-  про DOM, Overlay, ModalRef и Angular-формы - `no-restricted-imports` в
-  `eslint.config.js`.
+  про DOM, Overlay, ModalRef, Angular-формы и UI-кит (`primeng`,
+  `@primeuix/*`); в `shared` кит импортируется только из `shared/ui` -
+  `no-restricted-imports` в `eslint.config.js`.
 
   ## Глоссарий
 
