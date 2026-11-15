@@ -3,12 +3,10 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./src",
-    "ignoreDeprecations": "5.0",
     "paths": {
-      "@core/*": ["app/core/*"],
-      "@domains/*": ["app/domains/*"],
-      "@shared/*": ["app/shared/*"]
+      "@core/*": ["./src/app/core/*"],
+      "@domains/*": ["./src/app/domains/*"],
+      "@shared/*": ["./src/app/shared/*"]
     },
     "strict": true,
     "noImplicitOverride": true,
