@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { render, screen, within } from '@testing-library/angular/zoneless';
+import { render, screen, waitFor, within } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
 import { DialogService } from 'primeng/dynamicdialog';
 import { of, Subject, throwError } from 'rxjs';
@@ -40,9 +40,15 @@ describe('CurrentUserAvatarMenu', () => {
   let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
 
   // Меню открывается в overlay, вне корня компонента: поиск идет по screen.
-  const clickMenuAction = async (name: string): Promise<void> => {
+  const openMenu = async (): Promise<void> => {
     await user.click(screen.getByRole('button', { name: avatarLabel }));
-    await user.click(screen.getByRole('button', { name }));
+  };
+
+  const clickMenuAction = async (name: string): Promise<void> => {
+    await openMenu();
+    // Кит вешает обработчик на ссылку внутри <li role="menuitem">: человек жмет на подпись.
+    const menuItem = await screen.findByRole('menuitem', { name });
+    await user.click(within(menuItem).getByText(name));
     await fixture.whenStable();
   };
 
@@ -69,10 +75,6 @@ describe('CurrentUserAvatarMenu', () => {
     }));
   });
 
-  afterEach(() => {
-    document.body.querySelectorAll('.cdk-overlay-container').forEach((element) => element.remove());
-  });
-
   it('should create', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
@@ -93,6 +95,33 @@ describe('CurrentUserAvatarMenu', () => {
     await fixture.whenStable();
 
     expect(screen.getByRole('img', { name: avatarLabel })).toHaveTextContent('D');
+  });
+
+  describe('menu', () => {
+    it('shows the three actions when the avatar is clicked', async () => {
+      await openMenu();
+
+      expect(await screen.findByRole('menuitem', { name: 'Edit profile' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Change password' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Logout' })).toBeInTheDocument();
+    });
+
+    it('closes the menu when an action is chosen', async () => {
+      await clickMenuAction('Change password');
+
+      expect(screen.queryByRole('menuitem', { name: 'Logout' })).not.toBeInTheDocument();
+    });
+
+    it('closes the menu when the avatar is clicked again', async () => {
+      await openMenu();
+      await screen.findByRole('menuitem', { name: 'Logout' });
+
+      await openMenu();
+
+      await waitFor(() =>
+        expect(screen.queryByRole('menuitem', { name: 'Logout' })).not.toBeInTheDocument(),
+      );
+    });
   });
 
   it('calls logout through the store when Logout is clicked', async () => {
@@ -124,7 +153,7 @@ describe('CurrentUserAvatarMenu', () => {
 
       await clickMenuAction('Edit profile');
 
-      expect(screen.queryByRole('button', { name: 'Edit profile' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Edit profile' })).not.toBeInTheDocument();
     });
 
     it('does not open the dialog before the current user answer', async () => {
@@ -168,7 +197,7 @@ describe('CurrentUserAvatarMenu', () => {
     it('closes the menu when Change password is clicked', async () => {
       await clickMenuAction('Change password');
 
-      expect(screen.queryByRole('button', { name: 'Change password' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Change password' })).not.toBeInTheDocument();
     });
 
     it('does not request the current user when Change password is clicked', async () => {

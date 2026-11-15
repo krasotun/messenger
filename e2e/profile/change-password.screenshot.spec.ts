@@ -21,7 +21,7 @@ test('change password modal @visual', async ({ page, request }) => {
   await page.goto('/');
 
   await page.getByRole('button', { name: `Avatar ${mockUser.first_name}` }).click();
-  await page.getByRole('button', { name: 'Change password' }).click();
+  await page.getByRole('menuitem', { name: 'Change password' }).click();
 
   const modal = page.getByRole('dialog');
 

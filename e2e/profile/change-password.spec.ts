@@ -13,7 +13,7 @@ const newPassword = 'newMockPasswo@123rd';
 
 const openChangePasswordForm = async (page: import('@playwright/test').Page) => {
   await page.getByRole('button', { name: `Avatar ${mockUser.first_name}` }).click();
-  await page.getByRole('button', { name: 'Change password' }).click();
+  await page.getByRole('menuitem', { name: 'Change password' }).click();
 };
 
 test('changes the password and keeps the user in the application', async ({ page, request }) => {
@@ -71,7 +71,7 @@ test('keeps the form open with an error when the old password is wrong', async (
   await page.goto('/');
 
   await page.getByRole('button', { name: `Avatar ${rejectedUser.first_name}` }).click();
-  await page.getByRole('button', { name: 'Change password' }).click();
+  await page.getByRole('menuitem', { name: 'Change password' }).click();
 
   await page.getByRole('textbox', { name: 'Old password' }).fill('wrongOldPassword');
   await page.getByRole('textbox', { name: 'New password', exact: true }).fill(newPassword);

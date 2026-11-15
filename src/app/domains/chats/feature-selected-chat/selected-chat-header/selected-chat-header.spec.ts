@@ -1,5 +1,5 @@
-import { Component, input, inputBinding, outputBinding } from '@angular/core';
-import { render, screen, within } from '@testing-library/angular/zoneless';
+import { Component, input, inputBinding, output, outputBinding } from '@angular/core';
+import { render, screen, waitFor, within } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
 
 import { SelectedChatHeader } from './selected-chat-header';
@@ -15,10 +15,14 @@ const chatUserMock = ChatMocks.chatUser({ name: 'Johnny' });
 // получила выбранный чат, через видимый результат, а не через экземпляр.
 @Component({
   selector: 'app-add-chat-user-panel',
-  template: 'Add member panel for chat {{ chatId() }}',
+  template: `
+    Add member panel for chat {{ chatId() }}
+    <button type="button" (click)="userAdded.emit()">Add stub member</button>
+  `,
 })
 class AddChatUserPanelStub {
   readonly chatId = input.required<number>();
+  readonly userAdded = output<void>();
 }
 
 const renderHeader = async (options: { isChatCreator?: boolean } = {}) => {
@@ -101,5 +105,17 @@ describe('SelectedChatHeader', () => {
     await user.click(screen.getByRole('button', { name: '+ Add member' }));
 
     expect(await screen.findByText('Add member panel for chat 7')).toBeInTheDocument();
+  });
+
+  it('closes the add member panel when a member is added', async () => {
+    const user = userEvent.setup();
+    await renderHeader();
+
+    await user.click(screen.getByRole('button', { name: '+ Add member' }));
+    await user.click(await screen.findByRole('button', { name: 'Add stub member' }));
+
+    await waitFor(() =>
+      expect(screen.queryByText('Add member panel for chat 7')).not.toBeInTheDocument(),
+    );
   });
 });

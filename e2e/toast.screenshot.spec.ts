@@ -34,7 +34,7 @@ test('toast stack @visual', async ({ page, request }) => {
   await expect(page.getByText('No chats yet')).toBeVisible();
 
   await page.getByRole('button', { name: `Avatar ${mockUser.first_name}` }).click();
-  await page.getByRole('button', { name: 'Edit profile' }).click();
+  await page.getByRole('menuitem', { name: 'Edit profile' }).click();
 
   const modal = page.getByRole('dialog');
 

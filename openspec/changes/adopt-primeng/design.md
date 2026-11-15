@@ -181,8 +181,10 @@ preset: Aura } })`, пресет - из `@primeuix/themes/aura`.
 Кнопки-значки сохраняют свои `aria-label`: по ним ищут спеки.
 
 Меню **Текущего пользователя** - всплывающее меню кита с тремя пунктами.
-`Popover`, `PopoverPanel`, `PopoverCoordinator` удаляются: второго потребителя
-у них нет. Значки - `primeicons`, SVG в шапке заменяется.
+`Popover`, `PopoverPanel`, `PopoverCoordinator` удаляются. Второй потребитель -
+панель «Add member» в `selected-chat-header` - переходит на `p-popover` кита с
+содержимым как есть (найдено в блоке 5). `@angular/cdk` остается в
+`dependencies`: это обязательный peer-пакет `primeng`. Значки - `primeicons`; в шапке SVG нет, логотип - `<img>` и остается.
 
 ### Граница импорта кита
 

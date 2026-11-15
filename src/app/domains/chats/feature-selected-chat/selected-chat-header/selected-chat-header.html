@@ -18,7 +18,7 @@
   type="button"
   pButton
   severity="secondary"
-  [appPopover]="addUserPopover"
+  (click)="addUserPopover.toggle($event)"
 >
   + Add member
 </button>
@@ -37,9 +37,11 @@
 </button>
 }
 
-<ng-template #addUserPopover>
-  <app-add-chat-user-panel
-    [chatId]="chat().id"
-    (userAdded)="closeAddUserPopover()"
-  ></app-add-chat-user-panel>
-</ng-template>
+<p-popover #addUserPopover appendTo="body">
+  <ng-template #content>
+    <app-add-chat-user-panel
+      [chatId]="chat().id"
+      (userAdded)="addUserPopover.hide()"
+    ></app-add-chat-user-panel>
+  </ng-template>
+</p-popover>
