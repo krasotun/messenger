@@ -10,6 +10,7 @@ import { UpdateProfileForm } from '../update-profile-form/update-profile-form';
   selector: 'app-update-profile-modal-content',
   imports: [ChangeAvatarForm, UpdateProfileForm],
   templateUrl: './update-profile-modal-content.html',
+  styleUrl: './update-profile-modal-content.scss',
 })
 export class UpdateProfileModalContent {
   readonly currentUser = input.required<CurrentUser>();

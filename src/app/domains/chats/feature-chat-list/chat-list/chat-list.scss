@@ -10,8 +10,13 @@
 }
 
 .chat-list {
+  // Та же высота, что у шапки выбранного чата: список начинается на уровне
+  // ее разделителя.
   &__header {
-    padding: 16px 16px 12px;
+    height: 64px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    padding: 0 16px;
     @include layout.row(12px, $align: center, $justify: space-between);
   }
 
@@ -33,7 +38,9 @@
 
     &_active {
       background: var(--color-surface-selected);
-      border-left: 3px solid var(--color-surface-selected-border);
+      // Полоса - тенью, а не border: border съедает 3px и сдвигает аватар и
+      // текст выбранного чата относительно соседних.
+      box-shadow: inset 3px 0 0 var(--color-surface-selected-border);
     }
   }
 
