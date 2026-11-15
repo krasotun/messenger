@@ -24,12 +24,12 @@
 
 ## 3. Уведомления на ките
 
-- [ ] 3.1 Написать падающий спек `src/app/shared/ui/toast/prime-notifier.spec.ts` (хост-компонент с настоящим `<p-toast>`, fake timers): успех и ошибка показывают заголовок и текст; без интервала **Уведомление** гаснет через 5 секунд, с заданным - через заданный; два **Уведомления** видны одновременно; повтор с тем же текстом дает второе; четвертое не убирает первое; кнопка закрытия убирает одно
-- [ ] 3.2 Реализовать `src/app/shared/ui/toast/prime-notifier.ts`; спек 3.1 зеленый
-- [ ] 3.3 Провайдить `MessageService` и `{ provide: NOTIFIER, useExisting: PrimeNotifier }` в `src/app/app.config.ts`, поставить `<p-toast position="top-right">` в `src/app/app.html`; обновить `app.config.spec.ts` и убедиться, что он зеленый
-- [ ] 3.4 Удалить `toast-service.ts`, `toast/`, `toast-stack/` со спеками и их стили из `src/styles.scss`; `NotificationMocks` не трогать; `grep -r "ToastService\|ToastStack" src` пуст
-- [ ] 3.5 Поправить `e2e/toast-position.spec.ts` под разметку кита (поиск **Уведомления** по тексту и роли, а не по классу) и убедиться, что он зеленый: **Уведомление** в правом верхнем углу и поверх модального окна
-- [ ] 3.6 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e`
+- [x] 3.1 Написать падающий спек `src/app/shared/ui/toast/prime-notifier.spec.ts` (хост-компонент с настоящим `<p-toast>`, fake timers): успех и ошибка показывают заголовок и текст; без интервала **Уведомление** гаснет через 5 секунд, с заданным - через заданный; два **Уведомления** видны одновременно; повтор с тем же текстом дает второе; четвертое не убирает первое; кнопка закрытия убирает одно
+- [x] 3.2 Реализовать `src/app/shared/ui/toast/prime-notifier.ts`; спек 3.1 зеленый
+- [x] 3.3 Провайдить `MessageService` и `{ provide: NOTIFIER, useExisting: PrimeNotifier }` в `src/app/app.config.ts`, поставить `<p-toast position="top-right">` в `src/app/app.html`; обновить `app.config.spec.ts` и убедиться, что он зеленый
+- [x] 3.4 Удалить `toast-service.ts`, `toast/`, `toast-stack/` со спеками и их стили из `src/styles.scss`; `NotificationMocks` не трогать; `grep -r "ToastService\|ToastStack" src` пуст
+- [x] 3.5 Поправить `e2e/toast-position.spec.ts` под разметку кита (поиск **Уведомления** по тексту и роли, а не по классу) и убедиться, что он зеленый: **Уведомление** в правом верхнем углу и поверх модального окна
+- [x] 3.6 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e`
 
 ## 4. Диалоги и подтверждения на ките
 

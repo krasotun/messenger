@@ -2,6 +2,7 @@ import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/ht
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import Aura from '@primeuix/themes/aura';
+import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 
 import { apiBaseUrl, resourcesBaseUrl } from '../environments/environment';
@@ -16,12 +17,13 @@ import { API_BASE_URL, RESOURCES_BASE_URL } from '@core/tokens';
 import { provideChats } from '@domains/chats';
 import { provideUsers } from '@domains/users';
 import { NOTIFIER } from '@shared/notifications';
-import { ToastService } from '@shared/ui/toast/toast-service';
+import { PrimeNotifier } from '@shared/ui/toast/prime-notifier';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     providePrimeNG({ theme: { preset: Aura } }),
+    MessageService,
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
       withXhr(),
@@ -37,7 +39,7 @@ export const appConfig: ApplicationConfig = {
     },
     {
       provide: NOTIFIER,
-      useExisting: ToastService,
+      useExisting: PrimeNotifier,
     },
     provideUsers(),
     provideChats(),

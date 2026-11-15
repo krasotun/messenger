@@ -43,7 +43,7 @@ test('shows the toast in the top-right corner after create chat closed the modal
   await page.getByRole('textbox', { name: 'First name' }).fill(updatedFirstName);
   await page.getByRole('button', { name: 'Save' }).click();
 
-  const toast = page.locator('.app-toast').first();
+  const toast = page.getByRole('alert').first();
 
   await expect(toast).toBeVisible();
 
