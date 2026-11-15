@@ -29,6 +29,16 @@ describe('appConfig', () => {
     expect(primeng.theme()).toBeDefined();
   });
 
+  it('should keep the UI kit in the light theme whatever the system theme is', () => {
+    TestBed.configureTestingModule({
+      providers: appConfig.providers,
+    });
+
+    const theme = TestBed.inject(PrimeNG).theme() as { options?: { darkModeSelector?: unknown } };
+
+    expect(theme.options?.darkModeSelector).toBe(false);
+  });
+
   it('should provide the confirmation and dialog services of the UI kit', () => {
     TestBed.configureTestingModule({
       providers: appConfig.providers,

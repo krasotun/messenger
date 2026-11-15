@@ -25,7 +25,12 @@ import { PrimeNotifier } from '@shared/ui/toast/prime-notifier';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    providePrimeNG({ theme: { preset: Aura }, license: PRIMEUI_LICENSE }),
+    providePrimeNG({
+      // Темной темы в приложении нет: без этого кит следует prefers-color-scheme
+      // и рисует свои компоненты темными поверх светлых стилей проекта.
+      theme: { preset: Aura, options: { darkModeSelector: false } },
+      license: PRIMEUI_LICENSE,
+    }),
     MessageService,
     ConfirmationService,
     DialogService,
