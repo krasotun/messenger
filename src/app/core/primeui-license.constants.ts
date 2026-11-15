@@ -1,0 +1,4 @@
+// Community-лицензия PrimeUI. Ключ проверяется офлайн по подписи и все равно
+// уходит в бандл, поэтому секретом не является. Продлевается раз в год.
+export const PRIMEUI_LICENSE =
+  'eyJpZCI6IjVlZTA5NDJhLTkyOGQtNGMwOS1iNTVmLWRjMDczMjA4YTBiOSIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3OTQ3MzQyMzQsImV4cCI6MTgyNjI3MDIzNH0.Zkz0mzqyDfCEOUpJHHBn3oyQ9DrKS25ozh3483SatwPDkVfMeIUGTyXUGoN7QrNocOoLISeIy7unsHLoA8FjDg';

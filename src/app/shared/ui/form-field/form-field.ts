@@ -1,11 +1,12 @@
 import { Component, computed, input } from '@angular/core';
 import { FieldTree } from '@angular/forms/signals';
+import { Message } from 'primeng/message';
 
 import { isViolationVisible, resolveViolationMessage } from '@shared/forms';
 
 @Component({
   selector: 'app-form-field',
-  imports: [],
+  imports: [Message],
   templateUrl: './form-field.html',
   styleUrl: './form-field.scss',
 })

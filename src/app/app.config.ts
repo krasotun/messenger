@@ -1,6 +1,10 @@
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
+import Aura from '@primeuix/themes/aura';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { providePrimeNG } from 'primeng/config';
+import { DialogService } from 'primeng/dynamicdialog';
 
 import { apiBaseUrl, resourcesBaseUrl } from '../environments/environment';
 
@@ -10,17 +14,29 @@ import { provideCurrentSessionRestore } from '@core/app-initializers/restore-cur
 import { apiRequestInterceptor } from '@core/http/api-request.interceptor';
 import { httpTimeoutInterceptor } from '@core/http/http-timeout.interceptor';
 import { sessionExpiryInterceptor } from '@core/http/session-expiry.interceptor';
+import { PRIMEUI_LICENSE } from '@core/primeui-license.constants';
+import { provideDialogsCloseOnNavigation } from '@core/routing/dialogs-close-on-navigation';
 import { API_BASE_URL, RESOURCES_BASE_URL } from '@core/tokens';
 import { provideChats } from '@domains/chats';
 import { provideUsers } from '@domains/users';
 import { NOTIFIER } from '@shared/notifications';
-import { ToastService } from '@shared/ui/toast/toast-service';
+import { PrimeNotifier } from '@shared/ui/toast/prime-notifier';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    providePrimeNG({
+      // Темной темы в приложении нет: без этого кит следует prefers-color-scheme
+      // и рисует свои компоненты темными поверх светлых стилей проекта.
+      theme: { preset: Aura, options: { darkModeSelector: false } },
+      license: PRIMEUI_LICENSE,
+    }),
+    MessageService,
+    ConfirmationService,
+    DialogService,
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
+      withXhr(),
       withInterceptors([apiRequestInterceptor, httpTimeoutInterceptor, sessionExpiryInterceptor]),
     ),
     {
@@ -33,10 +49,11 @@ export const appConfig: ApplicationConfig = {
     },
     {
       provide: NOTIFIER,
-      useExisting: ToastService,
+      useExisting: PrimeNotifier,
     },
     provideUsers(),
     provideChats(),
     provideCurrentSessionRestore(),
+    provideDialogsCloseOnNavigation(),
   ],
 };

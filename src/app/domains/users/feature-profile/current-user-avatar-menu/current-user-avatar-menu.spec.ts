@@ -1,23 +1,20 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { render, screen } from '@testing-library/angular/zoneless';
+import { render, screen, waitFor, within } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
+import { DialogService } from 'primeng/dynamicdialog';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY, CurrentSessionResult } from '../../data/auth-gateway';
 import { CurrentSessionStore } from '../../data/current-session-store';
 import { USER_GATEWAY } from '../../data/user-gateway';
-import { ChangePasswordModalContent } from '../change-password-modal-content/change-password-modal-content';
-import { UpdateProfileModalContent } from '../update-profile-modal-content/update-profile-modal-content';
 
 import { CurrentUserAvatarMenu } from './current-user-avatar-menu';
 
 import { UserMocks } from '@domains/users/testing';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
-import { ModalService } from '@shared/ui/modal/modal-service';
-import { ModalMocks } from '@shared/ui/modal/testing';
 
 const currentUserMock = UserMocks.currentUser({
   avatar: 'http://avatar.mock',
@@ -41,12 +38,17 @@ describe('CurrentUserAvatarMenu', () => {
   let fixture: ComponentFixture<CurrentUserAvatarMenu>;
   let user: UserEvent;
   let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
-  let modalServiceMock: ReturnType<typeof ModalMocks.modalService>;
 
   // Меню открывается в overlay, вне корня компонента: поиск идет по screen.
-  const clickMenuAction = async (name: string): Promise<void> => {
+  const openMenu = async (): Promise<void> => {
     await user.click(screen.getByRole('button', { name: avatarLabel }));
-    await user.click(screen.getByRole('button', { name }));
+  };
+
+  const clickMenuAction = async (name: string): Promise<void> => {
+    await openMenu();
+    // Кит вешает обработчик на ссылку внутри <li role="menuitem">: человек жмет на подпись.
+    const menuItem = await screen.findByRole('menuitem', { name });
+    await user.click(within(menuItem).getByText(name));
     await fixture.whenStable();
   };
 
@@ -57,7 +59,6 @@ describe('CurrentUserAvatarMenu', () => {
       of(UserMocks.authenticatedSession(currentUserMock)),
     );
     authGatewayMock.logout.mockReturnValue(of(void 0));
-    modalServiceMock = ModalMocks.modalService();
 
     ({ fixture } = await render(CurrentUserAvatarMenu, {
       providers: [
@@ -65,17 +66,13 @@ describe('CurrentUserAvatarMenu', () => {
         { provide: USER_GATEWAY, useValue: UserMocks.userGateway() },
         { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
         provideRouter([{ path: 'sign-in', component: SignInPageStub }]),
-        { provide: ModalService, useValue: modalServiceMock },
+        DialogService,
       ],
       configureTestBed: (testBed) => {
         testBed.inject(CurrentSessionStore).restoreCurrentSession().subscribe();
       },
       waitForStableOnRender: true,
     }));
-  });
-
-  afterEach(() => {
-    document.body.querySelectorAll('.cdk-overlay-container').forEach((element) => element.remove());
   });
 
   it('should create', () => {
@@ -100,6 +97,33 @@ describe('CurrentUserAvatarMenu', () => {
     expect(screen.getByRole('img', { name: avatarLabel })).toHaveTextContent('D');
   });
 
+  describe('menu', () => {
+    it('shows the three actions when the avatar is clicked', async () => {
+      await openMenu();
+
+      expect(await screen.findByRole('menuitem', { name: 'Edit profile' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Change password' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Logout' })).toBeInTheDocument();
+    });
+
+    it('closes the menu when an action is chosen', async () => {
+      await clickMenuAction('Change password');
+
+      expect(screen.queryByRole('menuitem', { name: 'Logout' })).not.toBeInTheDocument();
+    });
+
+    it('closes the menu when the avatar is clicked again', async () => {
+      await openMenu();
+      await screen.findByRole('menuitem', { name: 'Logout' });
+
+      await openMenu();
+
+      await waitFor(() =>
+        expect(screen.queryByRole('menuitem', { name: 'Logout' })).not.toBeInTheDocument(),
+      );
+    });
+  });
+
   it('calls logout through the store when Logout is clicked', async () => {
     await clickMenuAction('Logout');
 
@@ -121,57 +145,59 @@ describe('CurrentUserAvatarMenu', () => {
   });
 
   describe('edit profile', () => {
+    const queryEditProfileDialog = (): HTMLElement | null =>
+      screen.queryByRole('dialog', { name: 'Edit profile' });
+
     it('closes the menu immediately, before the current user answer', async () => {
       authGatewayMock.currentSession.mockReturnValue(new Subject<CurrentSessionResult>());
 
       await clickMenuAction('Edit profile');
 
-      expect(screen.queryByRole('button', { name: 'Edit profile' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Edit profile' })).not.toBeInTheDocument();
     });
 
-    it('does not open the modal before the current user answer', async () => {
+    it('does not open the dialog before the current user answer', async () => {
       authGatewayMock.currentSession.mockReturnValue(new Subject<CurrentSessionResult>());
 
       await clickMenuAction('Edit profile');
 
-      expect(modalServiceMock.open).not.toHaveBeenCalled();
+      expect(queryEditProfileDialog()).not.toBeInTheDocument();
     });
 
-    it('opens the update profile modal with the refreshed user after the answer', async () => {
+    it('opens the update profile dialog with the refreshed user after the answer', async () => {
       authGatewayMock.currentSession.mockReturnValue(
         of(UserMocks.authenticatedSession(refreshedUserMock)),
       );
 
       await clickMenuAction('Edit profile');
 
-      expect(modalServiceMock.open).toHaveBeenCalledWith(UpdateProfileModalContent, {
-        title: 'Edit profile',
-        inputs: { currentUser: refreshedUserMock },
-      });
+      const dialog = await screen.findByRole('dialog', { name: 'Edit profile' });
+
+      expect(within(dialog).getByLabelText('First name')).toHaveValue('Refreshed');
     });
 
-    it('does not open the modal when the request completes without a value', async () => {
+    it('does not open the dialog when the request completes without a value', async () => {
       authGatewayMock.currentSession.mockReturnValue(of(UserMocks.anonymousSession()));
 
       await clickMenuAction('Edit profile');
 
-      expect(modalServiceMock.open).not.toHaveBeenCalled();
+      expect(queryEditProfileDialog()).not.toBeInTheDocument();
     });
   });
 
   describe('change password', () => {
-    it('opens the change password modal when Change password is clicked', async () => {
+    it('opens the change password dialog when Change password is clicked', async () => {
       await clickMenuAction('Change password');
 
-      expect(modalServiceMock.open).toHaveBeenCalledWith(ChangePasswordModalContent, {
-        title: 'Change password',
-      });
+      const dialog = await screen.findByRole('dialog', { name: 'Change password' });
+
+      expect(within(dialog).getByLabelText('Old password')).toBeInTheDocument();
     });
 
     it('closes the menu when Change password is clicked', async () => {
       await clickMenuAction('Change password');
 
-      expect(screen.queryByRole('button', { name: 'Change password' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Change password' })).not.toBeInTheDocument();
     });
 
     it('does not request the current user when Change password is clicked', async () => {

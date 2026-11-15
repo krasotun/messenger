@@ -28,7 +28,7 @@ context: |
 
   ## Стек и структура
 
-  Angular 21 (standalone, signals), TypeScript, RxJS, Angular CDK.
+  Angular 22 (standalone, signals), TypeScript, RxJS, PrimeNG (тема Aura), Angular CDK.
   Тесты: Vitest (unit/component), Playwright (e2e, визуальные).
   Мок-бэкенд для локальной разработки и e2e: `mock-backend` на :3000.
 
@@ -37,7 +37,8 @@ context: |
   (`docs/adr/2026-10-28-page-part-stores-and-folder-boundaries.md`). Домены -
   `chats` и `users`.
 
-  - `src/app/shared` - UI-примитивы и общие типы, без знания о доменах;
+  - `src/app/shared` - связки с UI-китом (`shared/ui`) и общие типы, без знания
+    о доменах;
   - `src/app/domains/<context>/` - корень домена: `<context>.providers.ts` и
     публичный API `index.ts`;
   - `src/app/domains/<context>/data/` - модели, порт **Шлюза**, его
@@ -55,8 +56,9 @@ context: |
   модулями-папками - Sheriff (`sheriff.config.ts`, правило ESLint
   `@softarc/sheriff`); `shared` не импортирует домены, core и pages;
   application (`data/`) не знает
-  про DOM, Overlay, ModalRef и Angular-формы - `no-restricted-imports` в
-  `eslint.config.js`.
+  про DOM, Overlay, Angular-формы и UI-кит (`primeng`,
+  `@primeuix/*`); в `shared` кит импортируется только из `shared/ui` -
+  `no-restricted-imports` в `eslint.config.js`.
 
   ## Глоссарий
 
@@ -137,14 +139,15 @@ context: |
   - В `shared` имя файла отвечает на «что внутри», и суффикс на файле ровно
     один: два суффикса подряд (`notification-kind.enum.type.ts`) читаются хуже,
     чем одно составное имя. Файл, где нет ничего кроме типов и интерфейсов, -
-    `<имя>.type.ts`, и роль уезжает в само имя: `confirmation-data.type.ts`, а
-    не `confirmation.data.ts`. Файл, где нет
+    `<имя>.type.ts`, и роль уезжает в само имя: `text-field-config.type.ts`, а
+    не `text-field.config.ts`. Файл, где нет
     ничего кроме констант, - `<имя>.constants.ts`: экспортируемая константа не
-    живет в файле типа, `DEFAULT_MODAL_SIZE` лежит в `modal-size.constants.ts`,
-    а `ModalSize` - в `modal-size.type.ts`. Константа без `export`, нужная
+    живет в файле типа, `DEFAULT_NOTIFICATION_DELAY_MS` лежит в
+    `notification.constants.ts`, а `NotificationKind` - в
+    `notification-kind.type.ts`. Константа без `export`, нужная
     только внутри файла, остается на месте. Все остальное названо по главному
-    идентификатору внутри, без суффикса артефакта (`confirmation.service.ts`,
-    `toast.ts`) - это конвенция Angular style guide 2025, и проект от нее не
+    идентификатору внутри, без суффикса артефакта (`prime-notifier.ts`,
+    `avatar.ts`) - это конвенция Angular style guide 2025, и проект от нее не
     отступает.
   - Flex-раскладка пишется миксинами `row` и `column` из `src/styles/_layout.scss`,
     а не `display: flex` руками: `@use 'layout'` в начале файла, дальше
@@ -179,7 +182,7 @@ context: |
     Harness на каждый компонент не заводим.
   - Двойники портов и примитивов всегда берутся из хранилищ `<Имя>Mocks` в
     `testing/` домена или примитива (`ChatMocks`, `UserMocks`,
-    `NotificationMocks`, `ModalMocks`), даже если двойник нужен одному спеку:
+    `NotificationMocks`), даже если двойник нужен одному спеку:
     спеки получают двойники одним способом. Модели - оттуда же, если
     повторяются хотя бы в двух спеках. Каждый вызов отдает новый двойник,
     методы типизированы по порту (`vi.fn<ChatGateway['deleteChat']>()`),
@@ -200,10 +203,11 @@ context: |
   - Юнит - единица поведения, а не класс (классическая школа). Двойник
     ставится только там, где наш код сообщает что-то за пределы системы, и на
     инфраструктуру, которой тест не управляет: порт (`AUTH_GATEWAY`,
-    `CHAT_GATEWAY`, `NOTIFIER`), HTTP, примитивы поверх CDK Overlay
-    (`ModalService`, `ConfirmationService`). `Router` не подменяем (гайд
-    Angular: «Do not mock Angular Router»): `provideRouter` с заглушкой-страницей
-    на нужном пути, проверка - `TestBed.inject(Router).url`, как в
+    `CHAT_GATEWAY`, `NOTIFIER`) и HTTP. Наложения кита (`DialogService`,
+    `ConfirmationService`, `p-confirmdialog`) в спеках настоящие: спек
+    рендерит фичу вместе с хостом кита и действует как человек. `Router` не
+    подменяем (гайд Angular: «Do not mock Angular Router»): `provideRouter` с
+    заглушкой-страницей на нужном пути, проверка - `TestBed.inject(Router).url`, как в
     `sign-in-page.spec.ts`. Наш код, работающий в памяти, остается настоящим
     на любом слое: спек компонента получает настоящий `ChatListStore`, и
     тот ходит в двойник `CHAT_GATEWAY`; спек `HttpAuthGateway` работает с
@@ -218,8 +222,7 @@ context: |
     деталей реализации: они не проверяются языком и ничего не дают без внешних
     тулов (TypeDoc, API Extractor), которых в проекте нет. Если член нужен
     только внутри модуля - делай его `private`; если он нужен другому классу
-    того же примитива (как `closeRequested$` у `ModalRef` для `ModalService`),
-    оставляй обычным публичным полем без тега.
+    того же модуля, оставляй обычным публичным полем без тега.
 
 rules:
   proposal:

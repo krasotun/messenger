@@ -22,9 +22,9 @@ test('current user menu @visual', async ({ page, request }) => {
 
   await page.getByRole('button', { name: `Avatar ${mockUser.first_name}` }).click();
 
-  await expect(page.getByRole('button', { name: 'Edit profile' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Change password' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Edit profile' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Change password' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Logout' })).toBeVisible();
 
   await expect(page).toHaveScreenshot('current-user-menu.png', { maxDiffPixels: 2000 });
 });

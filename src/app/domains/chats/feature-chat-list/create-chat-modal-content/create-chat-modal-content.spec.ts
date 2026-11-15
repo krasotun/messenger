@@ -1,68 +1,93 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { fireEvent, render, within } from '@testing-library/angular/zoneless';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { of, Subject, throwError } from 'rxjs';
 
 import { CHAT_GATEWAY, CreateChatResult } from '../../data/chat-gateway';
 import { ChatListStore } from '../../data/chat-list-store';
 
-import { CreateChatModalContent } from './create-chat-modal-content';
+import { CreateChatDialogData, CreateChatModalContent } from './create-chat-modal-content';
 
 import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
-import { ModalRef } from '@shared/ui/modal/modal-ref';
-import { ModalMocks } from '@shared/ui/modal/testing';
+import { DIALOG_DEFAULTS } from '@shared/ui/dialog/dialog-defaults.constants';
+
+// Диалог кита вешается на body и живет вне фикстуры: хост нужен только затем,
+// чтобы render поднял TestBed с провайдерами и убрал за собой.
+@Component({
+  selector: 'app-test-host',
+  template: '',
+})
+class TestHost {}
 
 describe('CreateChatModalContent', () => {
   let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
-  let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
 
-  const sharedProviders = () => [
-    ChatListStore,
-    { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
-    { provide: ModalRef, useValue: modalRefMock },
-    { provide: NOTIFIER, useValue: notifierMock },
-  ];
-
-  const renderModal = () =>
-    render(CreateChatModalContent, {
-      providers: sharedProviders(),
+  const renderHost = () =>
+    render(TestHost, {
+      providers: [
+        ChatListStore,
+        DialogService,
+        { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
+        { provide: NOTIFIER, useValue: notifierMock },
+      ],
       waitForStableOnRender: true,
     });
 
+  // Открываем так же, как ChatList: настоящий DialogService, Стор едет в data.
+  const openDialog = async (): Promise<DynamicDialogRef<CreateChatModalContent>> => {
+    const dialogRef = TestBed.inject(DialogService).open(CreateChatModalContent, {
+      ...DIALOG_DEFAULTS,
+      header: 'New chat',
+      data: { chatListStore: TestBed.inject(ChatListStore) } satisfies CreateChatDialogData,
+    });
+
+    if (!dialogRef) {
+      throw new Error('Dialog was not opened');
+    }
+
+    await screen.findByLabelText('Title');
+
+    return dialogRef;
+  };
+
+  const closeDialog = async (dialogRef: DynamicDialogRef): Promise<void> => {
+    dialogRef.close();
+
+    await waitFor(() => expect(screen.queryByLabelText('Title')).not.toBeInTheDocument());
+  };
+
+  const getDialog = (): HTMLElement => screen.getByRole('dialog', { name: 'New chat' });
+
   beforeEach(() => {
     chatGatewayMock = ChatMocks.chatGateway();
-    modalRefMock = ModalMocks.modalRef();
     notifierMock = NotificationMocks.notifier();
   });
 
-  it('should create', async () => {
-    const { fixture } = await renderModal();
-
-    expect(fixture.componentInstance).toBeTruthy();
-  });
-
   describe('successful creation', () => {
-    it('should close the modal without a manual application tick', async () => {
+    it('should close the dialog', async () => {
       const user = userEvent.setup();
       chatGatewayMock.chats.mockReturnValue(of([]));
       chatGatewayMock.createChat.mockReturnValue(of({ id: 1 }));
-      const { container } = await renderModal();
-      const modal = within(container);
+      await renderHost();
+      await openDialog();
 
-      await user.type(modal.getByLabelText('Title'), 'typedTitle');
-      await user.click(modal.getByRole('button', { name: 'Create' }));
+      await user.type(within(getDialog()).getByLabelText('Title'), 'typedTitle');
+      await user.click(within(getDialog()).getByRole('button', { name: 'Create' }));
 
-      expect(modalRefMock.close).toHaveBeenCalledOnce();
+      await waitFor(() => expect(screen.queryByLabelText('Title')).not.toBeInTheDocument());
     });
   });
 
-  describe('closing without submitting', () => {
+  describe('opening without submitting', () => {
     it('should not call createChat', async () => {
-      await renderModal();
+      await renderHost();
+      await openDialog();
 
       expect(chatGatewayMock.createChat).not.toHaveBeenCalled();
     });
@@ -70,13 +95,14 @@ describe('CreateChatModalContent', () => {
 
   describe('empty title', () => {
     // Кнопка выключена, пользовательского пути к submit нет: проверяем защиту.
-    it('should not call createChat and should not close the modal', async () => {
-      const { container } = await renderModal();
+    it('should not call createChat and should not close the dialog', async () => {
+      await renderHost();
+      await openDialog();
 
-      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+      fireEvent.submit(getDialog().querySelector('form') as HTMLFormElement);
 
       expect(chatGatewayMock.createChat).not.toHaveBeenCalled();
-      expect(modalRefMock.close).not.toHaveBeenCalled();
+      expect(screen.getByLabelText('Title')).toBeInTheDocument();
     });
   });
 
@@ -87,67 +113,53 @@ describe('CreateChatModalContent', () => {
       );
     });
 
-    // render настраивает TestBed и второй раз в одном тесте не вызывается:
-    // повторное открытие модалки идет через TestBed.createComponent.
     it('should show an empty form without an error when reopened after a failed creation', async () => {
       const user = userEvent.setup();
-      const { fixture: failedFixture, container } = await render(CreateChatModalContent, {
-        providers: sharedProviders(),
-        waitForStableOnRender: true,
-      });
-      const failedModal = within(container);
+      await renderHost();
+      const failedDialogRef = await openDialog();
 
-      await user.type(failedModal.getByLabelText('Title'), 'typedTitle');
-      await user.click(failedModal.getByRole('button', { name: 'Create' }));
-      await failedFixture.whenStable();
+      await user.type(within(getDialog()).getByLabelText('Title'), 'typedTitle');
+      await user.click(within(getDialog()).getByRole('button', { name: 'Create' }));
 
       expect(notifierMock.error).toHaveBeenCalledWith('Failed to create chat', 'Mock error');
-      expect(container.querySelector('.create-chat-form__error')).toBeNull();
+      expect(getDialog().querySelector('.create-chat-form__error')).toBeNull();
 
-      failedFixture.destroy();
+      await closeDialog(failedDialogRef);
+      await openDialog();
 
-      const reopenedFixture = TestBed.createComponent(CreateChatModalContent);
-      await reopenedFixture.whenStable();
-      const reopenedModal = within(reopenedFixture.nativeElement);
-
-      expect(reopenedModal.getByLabelText('Title')).toHaveValue('');
-      expect(reopenedFixture.nativeElement.querySelector('.create-chat-form__error')).toBeNull();
+      expect(within(getDialog()).getByLabelText('Title')).toHaveValue('');
+      expect(getDialog().querySelector('.create-chat-form__error')).toBeNull();
     });
 
     it('should keep the reopened form usable while the previous creation has not answered yet', async () => {
       chatGatewayMock.createChat.mockReturnValue(new Subject<CreateChatResult>());
       const user = userEvent.setup();
-      const { fixture: firstFixture, container } = await renderModal();
-      const firstModal = within(container);
+      await renderHost();
+      const firstDialogRef = await openDialog();
 
-      await user.type(firstModal.getByLabelText('Title'), 'typedTitle');
-      await user.click(firstModal.getByRole('button', { name: 'Create' }));
-      await firstFixture.whenStable();
+      await user.type(within(getDialog()).getByLabelText('Title'), 'typedTitle');
+      await user.click(within(getDialog()).getByRole('button', { name: 'Create' }));
 
-      firstFixture.destroy();
+      await closeDialog(firstDialogRef);
+      await openDialog();
 
-      const reopenedFixture = TestBed.createComponent(CreateChatModalContent);
-      await reopenedFixture.whenStable();
-      const reopenedModal = within(reopenedFixture.nativeElement);
+      await user.type(within(getDialog()).getByLabelText('Title'), 'anotherTitle');
 
-      await user.type(reopenedModal.getByLabelText('Title'), 'anotherTitle');
-
-      expect(reopenedModal.getByLabelText('Title')).toBeEnabled();
-      expect(reopenedModal.getByRole('button', { name: 'Create' })).toBeEnabled();
+      expect(within(getDialog()).getByLabelText('Title')).toBeEnabled();
+      expect(within(getDialog()).getByRole('button', { name: 'Create' })).toBeEnabled();
     });
 
-    it('should not cancel the creation when the modal is closed before the gateway answers', async () => {
+    it('should not cancel the creation when the dialog is closed before the gateway answers', async () => {
       const createChat$ = new Subject<CreateChatResult>();
       chatGatewayMock.createChat.mockReturnValue(createChat$);
       const user = userEvent.setup();
-      const { fixture, container } = await renderModal();
-      const modal = within(container);
+      await renderHost();
+      const dialogRef = await openDialog();
 
-      await user.type(modal.getByLabelText('Title'), 'typedTitle');
-      await user.click(modal.getByRole('button', { name: 'Create' }));
-      await fixture.whenStable();
+      await user.type(within(getDialog()).getByLabelText('Title'), 'typedTitle');
+      await user.click(within(getDialog()).getByRole('button', { name: 'Create' }));
 
-      fixture.destroy();
+      await closeDialog(dialogRef);
 
       createChat$.error(new ApplicationError('Mock error'));
 

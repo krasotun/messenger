@@ -36,7 +36,7 @@ test('deletes the chat and drops it from the list', async ({ page, request }) =>
 
   await page.getByRole('button', { name: 'Delete chat' }).click();
 
-  const modal = page.getByRole('dialog');
+  const modal = page.getByRole('alertdialog', { name: 'Delete chat' });
 
   await expect(modal).toBeVisible();
   await expect(modal.getByText(chatTitle)).toBeVisible();

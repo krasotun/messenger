@@ -22,7 +22,7 @@ test('should redirect user to sign-in page', async ({ page, request }) => {
 
   await page.getByRole('button', { name: 'Avatar mockFirstName' }).click();
 
-  await page.getByRole('button', { name: 'Logout' }).click();
+  await page.getByRole('menuitem', { name: 'Logout' }).click();
 
   await expect(page).toHaveURL('/sign-in');
 });

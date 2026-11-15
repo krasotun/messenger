@@ -1,4 +1,5 @@
 import { Component, computed, input, linkedSignal } from '@angular/core';
+import { Avatar as KitAvatar } from 'primeng/avatar';
 
 import { Nullable } from '@shared/types';
 
@@ -6,7 +7,7 @@ type AvatarSize = 'sm' | 'md' | 'lg';
 
 @Component({
   selector: 'app-avatar',
-  imports: [],
+  imports: [KitAvatar],
   templateUrl: './avatar.html',
   styleUrl: './avatar.scss',
 })

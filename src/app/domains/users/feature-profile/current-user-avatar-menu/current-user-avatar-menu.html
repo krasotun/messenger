@@ -1,5 +1,5 @@
 @if(currentUserAvatarView(); as currentUserAvatarView) {
-<button class="current-user-avatar-menu__trigger" type="button" [appPopover]="popover">
+<button class="current-user-avatar-menu__trigger" type="button" (click)="menu.toggle($event)">
   <app-avatar
     [label]="currentUserAvatarView.label"
     [imageUrl]="currentUserAvatarView.imageUrl"
@@ -7,24 +7,5 @@
   ></app-avatar>
 </button>
 
-<ng-template #popover>
-  <ul class="current-user-avatar-menu__actions">
-    <li class="current-user-avatar-menu__action-item">
-      <button class="current-user-avatar-menu__action" type="button" (click)="editProfile()">
-        Edit profile
-      </button>
-    </li>
-    <li class="current-user-avatar-menu__action-item">
-      <button class="current-user-avatar-menu__action" type="button" (click)="changePassword()">
-        Change password
-      </button>
-    </li>
-    <li class="current-user-avatar-menu__action-item">
-      <button class="current-user-avatar-menu__action" type="button" (click)="logout()">
-        Logout
-      </button>
-    </li>
-  </ul>
-</ng-template>
-
+<p-menu #menu [model]="menuItems" [popup]="true" appendTo="body"></p-menu>
 }
