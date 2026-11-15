@@ -18,7 +18,18 @@ const applicationRestrictedPaths = [
   },
 ];
 
+const uiKitPattern = {
+  group: ['primeng', 'primeng/*', '@primeuix/*'],
+  message: 'The UI kit is imported by presentation code only, not by application.',
+};
+
+const sharedDependencyPattern = {
+  group: ['@core/*', '@domains/*'],
+  message: 'Shared code must not depend on app, core, or domains.',
+};
+
 const applicationRestrictedPatterns = [
+  uiKitPattern,
   {
     group: ['@angular/forms/*'],
     message: 'Application must not know about Angular forms.',
@@ -171,13 +182,21 @@ module.exports = defineConfig([
         'error',
         {
           patterns: [
+            sharedDependencyPattern,
             {
-              group: ['@core/*', '@domains/*'],
-              message: 'Shared code must not depend on app, core, or domains.',
+              ...uiKitPattern,
+              message: 'The UI kit is imported only from shared/ui.',
             },
           ],
         },
       ],
+    },
+  },
+  {
+    // Исключение из правила выше: связки с китом живут в shared/ui.
+    files: ['src/app/shared/ui/**/*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [sharedDependencyPattern] }],
     },
   },
   {
