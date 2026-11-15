@@ -59,7 +59,12 @@ test('toast stack @visual', async ({ page, request }) => {
   await expect(page.getByText('Login already exists')).toBeVisible();
 
   // Угасание останавливается явно, снимок не зависит от интервала по умолчанию.
-  await page.clock.pauseAt(Date.now());
+  // Время берем у самой страницы: часы Node и установленные часы страницы расходятся,
+  // и pauseAt(Date.now()) падает с «Cannot fast-forward to the past». Запас в 100 мс
+  // меньше срока жизни Уведомления, поэтому ни одно из них не гаснет.
+  const pageNow = await page.evaluate(() => Date.now());
+
+  await page.clock.pauseAt(pageNow + 100);
 
   await expect(page).toHaveScreenshot('toast-stack.png', { maxDiffPixels: 2000 });
 });
