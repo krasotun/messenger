@@ -1,13 +1,12 @@
-import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { render, screen } from '@testing-library/angular/zoneless';
+import { render, screen, waitFor, within } from '@testing-library/angular/zoneless';
 import { userEvent } from '@testing-library/user-event';
+import { DialogService } from 'primeng/dynamicdialog';
 import { of, Subject, throwError } from 'rxjs';
 
 import { Chat } from '../../data/chat';
 import { CHAT_GATEWAY } from '../../data/chat-gateway';
 import { ChatListStore } from '../../data/chat-list-store';
-import { CreateChatModalContent } from '../create-chat-modal-content/create-chat-modal-content';
 
 import { ChatList } from './chat-list';
 
@@ -15,14 +14,11 @@ import { ChatMocks } from '@domains/chats/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
-import { ModalService } from '@shared/ui/modal/modal-service';
-import { ModalMocks } from '@shared/ui/modal/testing';
 
 const chatMock = ChatMocks.chat();
 
 describe('ChatList', () => {
   let chatGatewayMock: ReturnType<typeof ChatMocks.chatGateway>;
-  let modalServiceMock: ReturnType<typeof ModalMocks.modalService>;
 
   const renderList = () =>
     render(ChatList, {
@@ -31,14 +27,13 @@ describe('ChatList', () => {
         ChatListStore,
         { provide: CHAT_GATEWAY, useValue: chatGatewayMock },
         { provide: NOTIFIER, useValue: NotificationMocks.notifier() },
-        { provide: ModalService, useValue: modalServiceMock },
+        DialogService,
       ],
       waitForStableOnRender: true,
     });
 
   beforeEach(() => {
     chatGatewayMock = ChatMocks.chatGateway();
-    modalServiceMock = ModalMocks.modalService();
     chatGatewayMock.chats.mockReturnValue(of([chatMock]));
   });
 
@@ -108,28 +103,42 @@ describe('ChatList', () => {
   });
 
   describe('create chat', () => {
-    it('should open the create chat modal', async () => {
+    const openCreateChatDialog = async (): Promise<HTMLElement> => {
       const user = userEvent.setup();
       await renderList();
 
       await user.click(screen.getByRole('button', { name: 'Create' }));
 
-      expect(modalServiceMock.open).toHaveBeenCalledOnce();
-      expect(modalServiceMock.open).toHaveBeenCalledWith(CreateChatModalContent, {
-        title: 'New chat',
-        injector: expect.anything(),
-      });
+      return screen.findByRole('dialog', { name: 'New chat' });
+    };
+
+    it('should open a window with the create chat form', async () => {
+      const dialog = await openCreateChatDialog();
+
+      expect(within(dialog).getByLabelText('Title')).toBeInTheDocument();
     });
 
-    it('should let the create chat modal use the chat list store of the page', async () => {
+    it('should close the window after the chat is created', async () => {
       const user = userEvent.setup();
-      await renderList();
+      chatGatewayMock.createChat.mockReturnValue(of({ id: 2 }));
+      const dialog = await openCreateChatDialog();
 
-      await user.click(screen.getByRole('button', { name: 'Create' }));
+      await user.type(within(dialog).getByLabelText('Title'), 'New title');
+      await user.click(within(dialog).getByRole('button', { name: 'Create' }));
 
-      const [, options] = modalServiceMock.open.mock.calls[0];
+      await waitFor(() => expect(screen.queryByLabelText('Title')).not.toBeInTheDocument());
+      expect(chatGatewayMock.createChat).toHaveBeenCalledWith({ title: 'New title' });
+    });
 
-      expect(options?.injector?.get(ChatListStore)).toBe(TestBed.inject(ChatListStore));
+    it('should keep the window open with the typed title when the gateway refuses', async () => {
+      const user = userEvent.setup();
+      chatGatewayMock.createChat.mockReturnValue(throwError(() => new ApplicationError('Refused')));
+      const dialog = await openCreateChatDialog();
+
+      await user.type(within(dialog).getByLabelText('Title'), 'New title');
+      await user.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+      expect(within(dialog).getByLabelText('Title')).toHaveValue('New title');
     });
   });
 

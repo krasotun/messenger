@@ -126,6 +126,21 @@ NavigationEnd ──▶ провайдер в core ──▶ закрыть вс
 обращений к `provideAnimations`); тему подключает `providePrimeNG({ theme: {
 preset: Aura } })`, пресет - из `@primeuix/themes/aura`.
 
+Сверка с v22 (блок 4): кит создает содержимое диалога от инжектора
+`DialogService`, то есть от корня, а `ChatListStore` живет со страницей
+(`provideChatListStore()` в `ChatsPage`). Прежний `ModalService` брал для этого
+`injector`; у `DialogService.open` такого параметра нет. Решение: `ChatList`
+передает Стор в `data` (`CreateChatDialogData`), а `CreateChatModalContent`
+провайдит его у себя из `DynamicDialogConfig`. `DialogService` остается одним
+корневым экземпляром, поэтому подписка в `core` видит все окна. Альтернативы
+«`DialogService` в `providers` страницы» (core не видит экземпляр) и «Стор в
+корень» (меняет решение о жизни Стора) отклонены. `p-confirmdialog` объявляет
+`role="alertdialog"` и на хосте `<p-dialog>`, и на самом окне: в спеках и e2e
+ищем по роли вместе с именем (заголовком), иначе локатор находит два элемента.
+У кнопки закрытия кита нет доступного имени, спеки находят ее по классу
+`.p-dialog-close-button`. Кит подставляет `message` как HTML, поэтому
+название **Чата** и имя **Участника чата** экранируются перед подстановкой.
+
 ### Закрытие диалогов по завершенному переходу - в `core`
 
 Сценарий «Открытая форма закрывается» (`identity-access`, «Истечение сессии»)

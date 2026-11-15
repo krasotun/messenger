@@ -1,11 +1,10 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
 
 import { CurrentUser } from '../../data/current-user';
 import { UpdateProfileInput } from '../../data/user-gateway';
 import { ChangeAvatarForm } from '../change-avatar-form/change-avatar-form';
 import { UpdateProfileForm } from '../update-profile-form/update-profile-form';
-
-import { ModalRef } from '@shared/ui/modal/modal-ref';
 
 @Component({
   selector: 'app-update-profile-modal-content',
@@ -28,9 +27,9 @@ export class UpdateProfileModalContent {
     };
   });
 
-  private readonly _modalRef = inject(ModalRef);
+  private readonly _dialogRef = inject(DynamicDialogRef);
 
   protected closeModal(): void {
-    this._modalRef.close();
+    this._dialogRef.close();
   }
 }

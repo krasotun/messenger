@@ -58,7 +58,7 @@ test('removes a member from the open members panel', async ({ page, request }) =
 
   await panel.getByRole('button', { name: `Remove ${removedUser.first_name}` }).click();
 
-  const modal = page.getByRole('dialog');
+  const modal = page.getByRole('alertdialog', { name: 'Remove member' });
 
   await expect(modal).toBeVisible();
   await expect(modal.getByText(removedUser.first_name)).toBeVisible();

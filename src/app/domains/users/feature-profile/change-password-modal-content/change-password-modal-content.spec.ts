@@ -1,6 +1,8 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { render, within } from '@testing-library/angular/zoneless';
-import { userEvent } from '@testing-library/user-event';
+import { render, screen, waitFor, within } from '@testing-library/angular/zoneless';
+import { userEvent, UserEvent } from '@testing-library/user-event';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { of, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../../data/auth-gateway';
@@ -12,58 +14,86 @@ import { UserMocks } from '@domains/users/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
-import { ModalRef } from '@shared/ui/modal/modal-ref';
-import { ModalMocks } from '@shared/ui/modal/testing';
+import { DIALOG_DEFAULTS } from '@shared/ui/dialog/dialog-defaults.constants';
 
 const passwordLabels = ['Old password', 'New password', 'Repeat new password'];
 
+// Диалог кита вешается на body и живет вне фикстуры: хост нужен только затем,
+// чтобы render поднял TestBed с провайдерами и убрал за собой.
+@Component({
+  selector: 'app-test-host',
+  template: '',
+})
+class TestHost {}
+
 describe('ChangePasswordModalContent', () => {
   let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
-  let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
+  let user: UserEvent;
 
-  const sharedProviders = () => [
-    { provide: AUTH_GATEWAY, useValue: UserMocks.authGateway() },
-    { provide: USER_GATEWAY, useValue: userGatewayMock },
-    { provide: ModalRef, useValue: modalRefMock },
-    { provide: NOTIFIER, useValue: notifierMock },
-  ];
+  // Открываем так же, как меню: настоящий DialogService.
+  const openDialog = async (): Promise<DynamicDialogRef<ChangePasswordModalContent>> => {
+    const dialogRef = TestBed.inject(DialogService).open(ChangePasswordModalContent, {
+      ...DIALOG_DEFAULTS,
+      header: 'Change password',
+    });
 
-  const renderModal = () =>
-    render(ChangePasswordModalContent, {
-      providers: sharedProviders(),
+    if (!dialogRef) {
+      throw new Error('Dialog was not opened');
+    }
+
+    await screen.findByLabelText('Old password');
+
+    return dialogRef;
+  };
+
+  const closeDialog = async (dialogRef: DynamicDialogRef): Promise<void> => {
+    dialogRef.close();
+
+    await waitFor(() => expect(screen.queryByLabelText('Old password')).not.toBeInTheDocument());
+  };
+
+  const renderModal = async (): Promise<DynamicDialogRef<ChangePasswordModalContent>> => {
+    await render(TestHost, {
+      providers: [
+        DialogService,
+        { provide: AUTH_GATEWAY, useValue: UserMocks.authGateway() },
+        { provide: USER_GATEWAY, useValue: userGatewayMock },
+        { provide: NOTIFIER, useValue: notifierMock },
+      ],
       waitForStableOnRender: true,
     });
 
+    return openDialog();
+  };
+
+  const fillAndSave = async (): Promise<void> => {
+    const modal = within(screen.getByRole('dialog', { name: 'Change password' }));
+
+    await user.type(modal.getByLabelText('Old password'), 'typedOldPassword');
+    await user.type(modal.getByLabelText('New password'), 'typedNewPassword');
+    await user.type(modal.getByLabelText('Repeat new password'), 'typedNewPassword');
+    await user.click(modal.getByRole('button', { name: 'Save' }));
+  };
+
   beforeEach(() => {
+    user = userEvent.setup();
     userGatewayMock = UserMocks.userGateway();
-    modalRefMock = ModalMocks.modalRef();
     notifierMock = NotificationMocks.notifier();
   });
 
-  it('should create', async () => {
-    const { fixture } = await renderModal();
-
-    expect(fixture.componentInstance).toBeTruthy();
-  });
-
   describe('successful change', () => {
-    it('should close the modal without a manual application tick', async () => {
-      const user = userEvent.setup();
+    it('should close the dialog', async () => {
       userGatewayMock.changePassword.mockReturnValue(of({ passwordChanged: true }));
-      const { container } = await renderModal();
-      const modal = within(container);
+      await renderModal();
 
-      await user.type(modal.getByLabelText('Old password'), 'typedOldPassword');
-      await user.type(modal.getByLabelText('New password'), 'typedNewPassword');
-      await user.type(modal.getByLabelText('Repeat new password'), 'typedNewPassword');
-      await user.click(modal.getByRole('button', { name: 'Save' }));
+      await fillAndSave();
 
-      expect(modalRefMock.close).toHaveBeenCalledOnce();
+      await waitFor(() => expect(screen.queryByLabelText('Old password')).not.toBeInTheDocument());
     });
   });
 
-  describe('closing without submitting', () => {
+  describe('opening without submitting', () => {
     it('should not call changePassword', async () => {
       await renderModal();
 
@@ -78,38 +108,22 @@ describe('ChangePasswordModalContent', () => {
       );
     });
 
-    // render настраивает TestBed и второй раз в одном тесте не вызывается:
-    // повторное открытие модалки идет через TestBed.createComponent.
     it('should show an empty form without an error when reopened after a failed change', async () => {
-      const user = userEvent.setup();
-      const { fixture: failedFixture, container } = await render(ChangePasswordModalContent, {
-        providers: sharedProviders(),
-        waitForStableOnRender: true,
-      });
-      const failedModal = within(container);
+      const failedDialogRef = await renderModal();
 
-      await user.type(failedModal.getByLabelText('Old password'), 'typedOldPassword');
-      await user.type(failedModal.getByLabelText('New password'), 'typedNewPassword');
-      await user.type(failedModal.getByLabelText('Repeat new password'), 'typedNewPassword');
-      await user.click(failedModal.getByRole('button', { name: 'Save' }));
-      await failedFixture.whenStable();
+      await fillAndSave();
 
       expect(notifierMock.error).toHaveBeenCalledWith('Failed to change password', 'Mock error');
-      expect(container.querySelector('.change-password-form__error')).toBeNull();
+      expect(document.body.querySelector('.change-password-form__error')).toBeNull();
 
-      failedFixture.destroy();
-
-      const reopenedFixture = TestBed.createComponent(ChangePasswordModalContent);
-      await reopenedFixture.whenStable();
-      const reopenedModal = within(reopenedFixture.nativeElement);
+      await closeDialog(failedDialogRef);
+      await openDialog();
 
       for (const label of passwordLabels) {
-        expect(reopenedModal.getByLabelText(label)).toHaveValue('');
+        expect(screen.getByLabelText(label)).toHaveValue('');
       }
 
-      expect(
-        reopenedFixture.nativeElement.querySelector('.change-password-form__error'),
-      ).toBeNull();
+      expect(document.body.querySelector('.change-password-form__error')).toBeNull();
     });
   });
 });

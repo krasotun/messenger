@@ -2,8 +2,9 @@ import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/ht
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import Aura from '@primeuix/themes/aura';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
+import { DialogService } from 'primeng/dynamicdialog';
 
 import { apiBaseUrl, resourcesBaseUrl } from '../environments/environment';
 
@@ -14,6 +15,7 @@ import { apiRequestInterceptor } from '@core/http/api-request.interceptor';
 import { httpTimeoutInterceptor } from '@core/http/http-timeout.interceptor';
 import { sessionExpiryInterceptor } from '@core/http/session-expiry.interceptor';
 import { PRIMEUI_LICENSE } from '@core/primeui-license.constants';
+import { provideDialogsCloseOnNavigation } from '@core/routing/dialogs-close-on-navigation';
 import { API_BASE_URL, RESOURCES_BASE_URL } from '@core/tokens';
 import { provideChats } from '@domains/chats';
 import { provideUsers } from '@domains/users';
@@ -25,6 +27,8 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     providePrimeNG({ theme: { preset: Aura }, license: PRIMEUI_LICENSE }),
     MessageService,
+    ConfirmationService,
+    DialogService,
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
       withXhr(),
@@ -45,5 +49,6 @@ export const appConfig: ApplicationConfig = {
     provideUsers(),
     provideChats(),
     provideCurrentSessionRestore(),
+    provideDialogsCloseOnNavigation(),
   ],
 };

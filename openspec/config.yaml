@@ -56,7 +56,7 @@ context: |
   модулями-папками - Sheriff (`sheriff.config.ts`, правило ESLint
   `@softarc/sheriff`); `shared` не импортирует домены, core и pages;
   application (`data/`) не знает
-  про DOM, Overlay, ModalRef, Angular-формы и UI-кит (`primeng`,
+  про DOM, Overlay, Angular-формы и UI-кит (`primeng`,
   `@primeuix/*`); в `shared` кит импортируется только из `shared/ui` -
   `no-restricted-imports` в `eslint.config.js`.
 
@@ -181,7 +181,7 @@ context: |
     Harness на каждый компонент не заводим.
   - Двойники портов и примитивов всегда берутся из хранилищ `<Имя>Mocks` в
     `testing/` домена или примитива (`ChatMocks`, `UserMocks`,
-    `NotificationMocks`, `ModalMocks`), даже если двойник нужен одному спеку:
+    `NotificationMocks`), даже если двойник нужен одному спеку:
     спеки получают двойники одним способом. Модели - оттуда же, если
     повторяются хотя бы в двух спеках. Каждый вызов отдает новый двойник,
     методы типизированы по порту (`vi.fn<ChatGateway['deleteChat']>()`),
@@ -202,10 +202,11 @@ context: |
   - Юнит - единица поведения, а не класс (классическая школа). Двойник
     ставится только там, где наш код сообщает что-то за пределы системы, и на
     инфраструктуру, которой тест не управляет: порт (`AUTH_GATEWAY`,
-    `CHAT_GATEWAY`, `NOTIFIER`), HTTP, примитивы поверх CDK Overlay
-    (`ModalService`, `ConfirmationService`). `Router` не подменяем (гайд
-    Angular: «Do not mock Angular Router»): `provideRouter` с заглушкой-страницей
-    на нужном пути, проверка - `TestBed.inject(Router).url`, как в
+    `CHAT_GATEWAY`, `NOTIFIER`) и HTTP. Наложения кита (`DialogService`,
+    `ConfirmationService`, `p-confirmdialog`) в спеках настоящие: спек
+    рендерит фичу вместе с хостом кита и действует как человек. `Router` не
+    подменяем (гайд Angular: «Do not mock Angular Router»): `provideRouter` с
+    заглушкой-страницей на нужном пути, проверка - `TestBed.inject(Router).url`, как в
     `sign-in-page.spec.ts`. Наш код, работающий в памяти, остается настоящим
     на любом слое: спек компонента получает настоящий `ChatListStore`, и
     тот ходит в двойник `CHAT_GATEWAY`; спек `HttpAuthGateway` работает с
@@ -220,8 +221,7 @@ context: |
     деталей реализации: они не проверяются языком и ничего не дают без внешних
     тулов (TypeDoc, API Extractor), которых в проекте нет. Если член нужен
     только внутри модуля - делай его `private`; если он нужен другому классу
-    того же примитива (как `closeRequested$` у `ModalRef` для `ModalService`),
-    оставляй обычным публичным полем без тега.
+    того же модуля, оставляй обычным публичным полем без тега.
 
 rules:
   proposal:

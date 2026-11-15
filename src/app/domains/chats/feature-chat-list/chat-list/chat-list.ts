@@ -1,12 +1,16 @@
-import { Component, inject, Injector, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { DialogService } from 'primeng/dynamicdialog';
 
 import { ChatListItem } from '../../ui/chat-list-item/chat-list-item';
-import { CreateChatModalContent } from '../create-chat-modal-content/create-chat-modal-content';
+import {
+  CreateChatDialogData,
+  CreateChatModalContent,
+} from '../create-chat-modal-content/create-chat-modal-content';
 
 import { ChatListStore } from '@domains/chats/data/chat-list-store';
-import { ModalService } from '@shared/ui/modal/modal-service';
+import { DIALOG_DEFAULTS } from '@shared/ui/dialog/dialog-defaults.constants';
 
 @Component({
   selector: 'app-chat-list',
@@ -16,8 +20,7 @@ import { ModalService } from '@shared/ui/modal/modal-service';
 })
 export class ChatList implements OnInit {
   private readonly _chatListStore = inject(ChatListStore);
-  private readonly _modalService = inject(ModalService);
-  private readonly _injector = inject(Injector);
+  private readonly _dialogService = inject(DialogService);
 
   readonly chats = this._chatListStore.chats;
   readonly errorMessage = this._chatListStore.errorMessage;
@@ -32,10 +35,12 @@ export class ChatList implements OnInit {
   }
 
   protected createChat(): void {
-    // Форма в модалке создает чат через Стор страницы, а не через новый.
-    this._modalService.open(CreateChatModalContent, {
-      title: 'New chat',
-      injector: this._injector,
+    // Кит создает содержимое от корневого инжектора и стора страницы не видит:
+    // форма в диалоге создает чат через Стор страницы, поэтому он едет в data.
+    this._dialogService.open(CreateChatModalContent, {
+      ...DIALOG_DEFAULTS,
+      header: 'New chat',
+      data: { chatListStore: this._chatListStore } satisfies CreateChatDialogData,
     });
   }
 }

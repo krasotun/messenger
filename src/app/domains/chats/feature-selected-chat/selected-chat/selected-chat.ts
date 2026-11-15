@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, input, numberAttribute, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+import { ConfirmationService } from 'primeng/api';
 
 import { ChatUsersPanel } from '../../ui/chat-users-panel/chat-users-panel';
 import { SelectedChatHeader } from '../selected-chat-header/selected-chat-header';
@@ -9,10 +10,18 @@ import { ChatListStore } from '@domains/chats/data/chat-list-store';
 import { ChatUser } from '@domains/chats/data/chat-user';
 import { ChatUsersStore } from '@domains/chats/data/chat-users-store';
 import { CurrentSessionStore } from '@domains/users';
-import { ConfirmationService } from '@shared/ui/confirmation';
 
 const DELETE_CHAT_MESSAGE =
   "The chat and its messages disappear for every member. This can't be undone.";
+
+// Кит подставляет сообщение подтверждения как HTML, а название чата и имя
+// участника вводит пользователь: без экранирования они разметили бы диалог.
+const escapeHtml = (text: string): string =>
+  text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
 
 @Component({
   selector: 'app-selected-chat',
@@ -77,19 +86,15 @@ export class SelectedChat {
       return;
     }
 
-    this._confirmationService
-      .confirm({
-        title: 'Delete chat',
-        subject: chat.title,
-        message: DELETE_CHAT_MESSAGE,
-        confirmLabel: 'Delete',
-        isDangerous: true,
-      })
-      .subscribe((confirmed) => {
-        if (confirmed) {
-          this._chatListStore.deleteChat({ chatId: chat.id });
-        }
-      });
+    this._confirmationService.confirm({
+      header: 'Delete chat',
+      message: `Delete "${escapeHtml(chat.title)}"? ${DELETE_CHAT_MESSAGE}`,
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonProps: { severity: 'danger' },
+      rejectButtonProps: { severity: 'secondary', outlined: true },
+      accept: () => this._chatListStore.deleteChat({ chatId: chat.id }),
+    });
   }
 
   protected removeChatUser(chatUser: ChatUser): void {
@@ -99,17 +104,13 @@ export class SelectedChat {
       return;
     }
 
-    this._confirmationService
-      .confirm({
-        title: 'Remove member',
-        subject: chatUser.name,
-        message: `They leave "${chat.title}" and can be added back later.`,
-        confirmLabel: 'Remove',
-      })
-      .subscribe((confirmed) => {
-        if (confirmed) {
-          this._chatUsersStore.removeChatUser({ chatId: chat.id, userId: chatUser.id });
-        }
-      });
+    this._confirmationService.confirm({
+      header: 'Remove member',
+      message: `Remove ${escapeHtml(chatUser.name)}? They leave "${escapeHtml(chat.title)}" and can be added back later.`,
+      acceptLabel: 'Remove',
+      rejectLabel: 'Cancel',
+      rejectButtonProps: { severity: 'secondary', outlined: true },
+      accept: () => this._chatUsersStore.removeChatUser({ chatId: chat.id, userId: chatUser.id }),
+    });
   }
 }

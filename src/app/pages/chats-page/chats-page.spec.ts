@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Routes, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { screen, within } from '@testing-library/angular/zoneless';
+import { ConfirmationService } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
 import { of, throwError } from 'rxjs';
 
 import { ChatsPage } from './chats-page';
@@ -11,7 +13,6 @@ import { CurrentSessionStore } from '@domains/users';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
-import { ConfirmationService } from '@shared/ui/confirmation';
 
 const chatMock = ChatMocks.chat({ title: 'Analytics Q3' });
 
@@ -55,10 +56,8 @@ describe('chats routing', () => {
           provide: CurrentSessionStore,
           useValue: { currentUser: () => ({ id: chatMock.createdBy }) },
         },
-        {
-          provide: ConfirmationService,
-          useValue: { confirm: () => of(false) },
-        },
+        ConfirmationService,
+        DialogService,
       ],
     });
   });

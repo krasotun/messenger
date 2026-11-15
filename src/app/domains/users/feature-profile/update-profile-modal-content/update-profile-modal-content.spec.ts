@@ -1,7 +1,8 @@
-import { inputBinding } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { fireEvent, render, screen, within } from '@testing-library/angular/zoneless';
+import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/angular/zoneless';
 import { userEvent, UserEvent } from '@testing-library/user-event';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { of, Subject, throwError } from 'rxjs';
 
 import { AUTH_GATEWAY } from '../../data/auth-gateway';
@@ -16,8 +17,7 @@ import { UserMocks } from '@domains/users/testing';
 import { ApplicationError } from '@shared/errors';
 import { NOTIFIER } from '@shared/notifications';
 import { NotificationMocks } from '@shared/notifications/testing';
-import { ModalRef } from '@shared/ui/modal/modal-ref';
-import { ModalMocks } from '@shared/ui/modal/testing';
+import { DIALOG_DEFAULTS } from '@shared/ui/dialog/dialog-defaults.constants';
 
 const currentUserMock = UserMocks.currentUser({
   firstName: 'firstName',
@@ -32,31 +32,67 @@ const pngFileMock = new File(['mockContent'], 'avatar.png', { type: 'image/png' 
 
 const changeAvatarError = /^Avatar change failed:/;
 
+// Диалог кита вешается на body и живет вне фикстуры: хост нужен только затем,
+// чтобы render поднял TestBed с провайдерами и убрал за собой.
+@Component({
+  selector: 'app-test-host',
+  template: '',
+})
+class TestHost {}
+
 describe('UpdateProfileModalContent', () => {
   let userGatewayMock: ReturnType<typeof UserMocks.userGateway>;
   let authGatewayMock: ReturnType<typeof UserMocks.authGateway>;
-  let modalRefMock: ReturnType<typeof ModalMocks.modalRef>;
   let notifierMock: ReturnType<typeof NotificationMocks.notifier>;
   let user: UserEvent;
 
   const sharedProviders = () => [
-    { provide: ModalRef, useValue: modalRefMock },
+    DialogService,
     { provide: NOTIFIER, useValue: notifierMock },
     { provide: USER_GATEWAY, useValue: userGatewayMock },
     { provide: AUTH_GATEWAY, useValue: authGatewayMock },
   ];
 
+  // Открываем так же, как меню: настоящий DialogService, пользователь - во входе.
+  const openDialog = async (
+    currentUser: CurrentUser = currentUserMock,
+  ): Promise<DynamicDialogRef<UpdateProfileModalContent>> => {
+    const dialogRef = TestBed.inject(DialogService).open(UpdateProfileModalContent, {
+      ...DIALOG_DEFAULTS,
+      header: 'Edit profile',
+      inputValues: { currentUser },
+    });
+
+    if (!dialogRef) {
+      throw new Error('Dialog was not opened');
+    }
+
+    await screen.findByLabelText('First name');
+
+    return dialogRef;
+  };
+
+  const closeDialog = async (dialogRef: DynamicDialogRef): Promise<void> => {
+    dialogRef.close();
+
+    await waitFor(() => expect(screen.queryByLabelText('First name')).not.toBeInTheDocument());
+  };
+
   // Смена аватара и Редактирование профиля идут через настоящий
   // CurrentSessionStore с восстановленной сессией.
-  const renderModal = (currentUser: CurrentUser = currentUserMock) =>
-    render(UpdateProfileModalContent, {
-      bindings: [inputBinding('currentUser', () => currentUser)],
+  const renderModal = async (
+    currentUser: CurrentUser = currentUserMock,
+  ): Promise<DynamicDialogRef<UpdateProfileModalContent>> => {
+    await render(TestHost, {
       providers: sharedProviders(),
       configureTestBed: (testBed) => {
         testBed.inject(CurrentSessionStore).restoreCurrentSession().subscribe();
       },
       waitForStableOnRender: true,
     });
+
+    return openDialog(currentUser);
+  };
 
   const selectAvatarFile = async (modal: HTMLElement = document.body): Promise<void> => {
     await user.upload(within(modal).getByLabelText(/Choose file/), pngFileMock);
@@ -78,14 +114,7 @@ describe('UpdateProfileModalContent', () => {
     authGatewayMock.currentSession.mockImplementation(() =>
       of({ status: CurrentSessionStatus.Authenticated, user: currentUserMock }),
     );
-    modalRefMock = ModalMocks.modalRef();
     notifierMock = NotificationMocks.notifier();
-  });
-
-  it('should create', async () => {
-    const { fixture } = await renderModal();
-
-    expect(fixture.componentInstance).toBeTruthy();
   });
 
   describe('profile mapping', () => {
@@ -108,13 +137,13 @@ describe('UpdateProfileModalContent', () => {
   });
 
   describe('successful save', () => {
-    it('should close the modal without a manual application tick', async () => {
+    it('should close the dialog', async () => {
       userGatewayMock.updateProfile.mockReturnValue(of({ user: currentUserMock }));
       await renderModal();
 
       await changeFirstNameAndSave();
 
-      expect(modalRefMock.close).toHaveBeenCalledOnce();
+      await waitFor(() => expect(screen.queryByLabelText('First name')).not.toBeInTheDocument());
     });
   });
 
@@ -126,11 +155,11 @@ describe('UpdateProfileModalContent', () => {
     });
 
     it('should not call changeAvatar even when a file has been selected', async () => {
-      const { fixture } = await renderModal();
+      const dialogRef = await renderModal();
 
       await selectAvatarFile();
 
-      fixture.destroy();
+      await closeDialog(dialogRef);
 
       expect(userGatewayMock.changeAvatar).not.toHaveBeenCalled();
     });
@@ -153,7 +182,7 @@ describe('UpdateProfileModalContent', () => {
 
       expect(userGatewayMock.changeAvatar).toHaveBeenCalledOnce();
       expect(userGatewayMock.updateProfile).not.toHaveBeenCalled();
-      expect(modalRefMock.close).not.toHaveBeenCalled();
+      expect(screen.getByLabelText('First name')).toBeInTheDocument();
     });
 
     it('should keep the update profile submit out of the change avatar use case', async () => {
@@ -168,16 +197,6 @@ describe('UpdateProfileModalContent', () => {
   });
 
   describe('flow lifetime', () => {
-    // render настраивает TestBed и второй раз в одном тесте не вызывается:
-    // повторное открытие модалки идет через TestBed.createComponent.
-    const reopenModal = async (): Promise<ComponentFixture<UpdateProfileModalContent>> => {
-      const reopenedFixture = TestBed.createComponent(UpdateProfileModalContent);
-      reopenedFixture.componentRef.setInput('currentUser', currentUserMock);
-      await reopenedFixture.whenStable();
-
-      return reopenedFixture;
-    };
-
     beforeEach(() => {
       userGatewayMock.updateProfile.mockImplementation(() =>
         throwError(() => new ApplicationError('Mock error')),
@@ -188,49 +207,40 @@ describe('UpdateProfileModalContent', () => {
     });
 
     it('should show a form without an error when reopened after a failed save', async () => {
-      const { fixture: failedFixture, container } = await renderModal();
+      const failedDialogRef = await renderModal();
 
-      await changeFirstNameAndSave(container);
-      await failedFixture.whenStable();
+      await changeFirstNameAndSave();
 
       expect(notifierMock.error).toHaveBeenCalledWith('Failed to update profile', 'Mock error');
-      expect(container.querySelector('.update-profile-form__error')).toBeNull();
+      expect(document.body.querySelector('.update-profile-form__error')).toBeNull();
 
-      failedFixture.destroy();
+      await closeDialog(failedDialogRef);
+      await openDialog();
 
-      const reopenedFixture = await reopenModal();
-      const reopenedModal = within(reopenedFixture.nativeElement);
-
-      expect(reopenedModal.getByLabelText('First name')).toHaveValue(currentUserMock.firstName);
-      expect(reopenedFixture.nativeElement.querySelector('.update-profile-form__error')).toBeNull();
+      expect(screen.getByLabelText('First name')).toHaveValue(currentUserMock.firstName);
+      expect(document.body.querySelector('.update-profile-form__error')).toBeNull();
     });
 
     it('should show the change avatar form without a file and without an error when reopened', async () => {
-      const { fixture: failedFixture, container } = await renderModal();
+      const failedDialogRef = await renderModal();
 
-      await selectAvatarFile(container);
-      await submitChangeAvatarForm(container);
-      await failedFixture.whenStable();
+      await selectAvatarFile();
+      await submitChangeAvatarForm();
 
       expect(userGatewayMock.changeAvatar).toHaveBeenCalledOnce();
       expect(notifierMock.error).toHaveBeenCalledWith('Failed to change avatar', 'Mock error');
-      expect(within(container).queryByText(changeAvatarError)).not.toBeInTheDocument();
+      expect(screen.queryByText(changeAvatarError)).not.toBeInTheDocument();
 
-      failedFixture.destroy();
+      await closeDialog(failedDialogRef);
+      await openDialog();
 
-      const reopenedFixture = await reopenModal();
-      const reopenedModal = within(reopenedFixture.nativeElement);
-
-      expect(reopenedModal.queryByText(changeAvatarError)).not.toBeInTheDocument();
+      expect(screen.queryByText(changeAvatarError)).not.toBeInTheDocument();
 
       // Файл не выбран, кнопка выключена: событие отправки идет напрямую.
-      fireEvent.submit(
-        reopenedFixture.nativeElement.querySelector('.change-avatar-form') as HTMLFormElement,
-      );
-      await reopenedFixture.whenStable();
+      fireEvent.submit(document.body.querySelector('.change-avatar-form') as HTMLFormElement);
 
       expect(userGatewayMock.changeAvatar).toHaveBeenCalledOnce();
-      expect(reopenedModal.getByText(changeAvatarError)).toHaveTextContent('Select a file');
+      expect(await screen.findByText(changeAvatarError)).toHaveTextContent('Select a file');
     });
   });
 });
