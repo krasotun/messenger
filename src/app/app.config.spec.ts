@@ -4,17 +4,17 @@ import { PrimeNG } from 'primeng/config';
 import { appConfig } from './app.config';
 
 import { NOTIFIER } from '@shared/notifications';
-import { ToastService } from '@shared/ui/toast/toast-service';
+import { PrimeNotifier } from '@shared/ui/toast/prime-notifier';
 
 describe('appConfig', () => {
-  it('should provide ToastService as the Notifier', () => {
+  it('should provide PrimeNotifier as the Notifier', () => {
     TestBed.configureTestingModule({
       providers: appConfig.providers,
     });
 
     const notifier = TestBed.inject(NOTIFIER);
 
-    expect(notifier).toBeInstanceOf(ToastService);
+    expect(notifier).toBeInstanceOf(PrimeNotifier);
   });
 
   it('should configure the UI kit theme', () => {
