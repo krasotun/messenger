@@ -12,6 +12,7 @@ import { provideCurrentSessionRestore } from '@core/app-initializers/restore-cur
 import { apiRequestInterceptor } from '@core/http/api-request.interceptor';
 import { httpTimeoutInterceptor } from '@core/http/http-timeout.interceptor';
 import { sessionExpiryInterceptor } from '@core/http/session-expiry.interceptor';
+import { PRIMEUI_LICENSE } from '@core/primeui-license.constants';
 import { API_BASE_URL, RESOURCES_BASE_URL } from '@core/tokens';
 import { provideChats } from '@domains/chats';
 import { provideUsers } from '@domains/users';
@@ -21,7 +22,7 @@ import { ToastService } from '@shared/ui/toast/toast-service';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    providePrimeNG({ theme: { preset: Aura } }),
+    providePrimeNG({ theme: { preset: Aura }, license: PRIMEUI_LICENSE }),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
       withXhr(),
