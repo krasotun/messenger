@@ -24,7 +24,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '22.16.0'
+          node-version: '22.22.3'
 
       - run: HUSKY=0 npm ci
       - run: npm run lint
@@ -40,7 +40,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '22.16.0'
+          node-version: '22.22.3'
 
       - run: HUSKY=0 npm ci
       - run: HUSKY=0 npm ci --prefix mock-backend
@@ -57,7 +57,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '22.16.0'
+          node-version: '22.22.3'
 
       - run: HUSKY=0 npm ci
       - run: npm run build -- --base-href /messenger/
