@@ -146,7 +146,10 @@ preset: Aura } })`, пресет - из `@primeuix/themes/aura`.
 Сценарий «Открытая форма закрывается» (`identity-access`, «Истечение сессии»)
 остается. Кит о роутере не знает, поэтому в `core/routing/` появляется
 провайдер `provideDialogsCloseOnNavigation()`: на `NavigationEnd` закрывает
-все открытые диалоги `DialogService`. Слушаем именно `NavigationEnd`, как
+все открытые диалоги `DialogService` и окно подтверждения
+(`ConfirmationService.close()`). Окно подтверждения кит держит отдельно от
+`DialogService`, а `close()` прячет его, не вызывая ни `accept`, ни `reject`:
+переход не выполняет подтверждаемое действие (найдено на ревью ветки issue). Слушаем именно `NavigationEnd`, как
 прежний `ModalService`: отмененный переход оставляет человека на месте, и окно
 ему еще нужно.
 
@@ -176,7 +179,9 @@ preset: Aura } })`, пресет - из `@primeuix/themes/aura`.
 ### Кнопки и меню
 
 Все `<button appButton>` и «голые» `<button>` в шаблонах доменов и `core`
-становятся кнопками кита; `colorType` переводится в `severity` кита один к
+становятся кнопками кита. Исключение - триггер меню **Текущего пользователя**:
+это кликабельный аватар без собственного оформления кнопки, и оформление
+кнопки кита ему не нужно; `colorType` переводится в `severity` кита один к
 одному (`primary`, `secondary`, `success`, `danger`, `warning` → `warn`).
 Кнопки-значки сохраняют свои `aria-label`: по ним ищут спеки.
 
@@ -224,12 +229,12 @@ Overlay» из списка мест для двойника уходят.
 
 ### Состав сущностей
 
-| Имя                                     | Ответственность                                                      | Слой                              |
-| --------------------------------------- | -------------------------------------------------------------------- | --------------------------------- |
-| `PrimeNotifier`                         | реализация `NOTIFIER` над сервисом сообщений кита                    | presentation (`shared/ui/toast`)  |
-| `DIALOG_DEFAULTS`                       | общие опции открытия диалога: закрытие по `Escape`, по фону, кнопкой | presentation (`shared/ui/dialog`) |
-| `provideDialogsCloseOnNavigation`       | закрывает открытые диалоги на `NavigationEnd`                        | core (`core/routing`)             |
-| `providePrimeNG(...)` в `app.config.ts` | тема Aura, сервисы кита одним экземпляром                            | core                              |
+| Имя                                     | Ответственность                                               | Слой                              |
+| --------------------------------------- | ------------------------------------------------------------- | --------------------------------- |
+| `PrimeNotifier`                         | реализация `NOTIFIER` над сервисом сообщений кита             | presentation (`shared/ui/toast`)  |
+| `DIALOG_DEFAULTS`                       | общие опции открытия диалога: способы закрытия, общая ширина  | presentation (`shared/ui/dialog`) |
+| `provideDialogsCloseOnNavigation`       | закрывает открытые диалоги и подтверждение на `NavigationEnd` | core (`core/routing`)             |
+| `providePrimeNG(...)` в `app.config.ts` | тема Aura, сервисы кита одним экземпляром                     | core                              |
 
 Удаляются: `ModalService`, `ModalShell`, `ModalRef`, `ModalSize`,
 `ModalMocks`, наш `ConfirmationService`, `ConfirmationDialog`,
@@ -313,8 +318,7 @@ Overlay» из списка мест для двойника уходят.
 
 ## Open Questions
 
-- Лицензия кита (найдено в блоке 2). PrimeNG 22 распространяется не по MIT, а
-  по лицензии PrimeUI: без ключа на каждой странице висит плашка «Invalid
-  PrimeUI License», а снимать ее механизм лицензия запрещает. Блоки 2-5 идут с
-  плашкой. Решение - взять ключ Community или вернуться к выбору кита в ADR -
-  принимается до блока 6: эталоны `@visual` с плашкой не снимаются.
+Открытых вопросов нет. Лицензия кита (найдено в блоке 2) решена до блока 6:
+взят ключ Community, он лежит в `src/app/core/primeui-license.constants.ts`.
+Темную тему кита выключает `darkModeSelector: false` в `providePrimeNG`: в
+приложении ее нет, и без этой опции кит следует `prefers-color-scheme`.

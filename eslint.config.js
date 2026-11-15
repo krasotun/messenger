@@ -40,7 +40,7 @@ const applicationRestrictedPatterns = [
   },
   {
     group: ['@shared/ui/*'],
-    message: 'Application must not know about UI primitives such as ModalRef.',
+    message: 'Application must not know about UI primitives such as PrimeNotifier.',
   },
   {
     group: ['@shared/forms/*'],
@@ -200,7 +200,7 @@ module.exports = defineConfig([
     },
   },
   {
-    // data - слой application: не знает про DOM, Overlay, ModalRef и формы.
+    // data - слой application: не знает про DOM, Overlay, UI-кит и формы.
     // Импорты между data, feature-* и ui проверяет Sheriff (sheriff.config.ts).
     files: ['src/app/domains/*/data/**/*.ts'],
     rules: {

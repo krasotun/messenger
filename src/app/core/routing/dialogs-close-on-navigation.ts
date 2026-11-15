@@ -1,6 +1,7 @@
 import { DestroyRef, inject, provideEnvironmentInitializer } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
+import { ConfirmationService } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { filter } from 'rxjs';
 
@@ -11,6 +12,7 @@ import { filter } from 'rxjs';
 export const provideDialogsCloseOnNavigation = () =>
   provideEnvironmentInitializer(() => {
     const dialogService = inject(DialogService);
+    const confirmationService = inject(ConfirmationService);
 
     inject(Router)
       .events.pipe(
@@ -22,5 +24,9 @@ export const provideDialogsCloseOnNavigation = () =>
         for (const dialogRef of [...dialogService.dialogComponentRefMap.keys()]) {
           dialogRef.close();
         }
+
+        // Окно подтверждения кит держит отдельно от DialogService. close()
+        // прячет его, не вызывая ни accept, ни reject: действие не выполнится.
+        confirmationService.close();
       });
   });
