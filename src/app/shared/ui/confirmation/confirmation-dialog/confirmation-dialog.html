@@ -10,8 +10,8 @@
   <button
     type="button"
     class="app-confirmation-dialog__cancel-button"
-    appButton
-    colorType="secondary"
+    pButton
+    severity="secondary"
     (click)="cancel()"
   >
     Cancel
@@ -20,8 +20,8 @@
   <button
     type="button"
     class="app-confirmation-dialog__confirm-button"
-    appButton
-    [colorType]="confirmation.isDangerous ? 'danger' : 'primary'"
+    pButton
+    [severity]="confirmation.isDangerous ? 'danger' : undefined"
     (click)="confirm()"
   >
     {{ confirmation.confirmLabel }}

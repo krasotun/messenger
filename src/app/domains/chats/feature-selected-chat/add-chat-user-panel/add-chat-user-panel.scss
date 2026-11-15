@@ -21,25 +21,8 @@
   }
 
   &__user {
-    @include layout.row(8px, $align: center);
     width: 100%;
-    padding: 6px 4px;
-    border: 0;
-    border-radius: 4px;
-    background: transparent;
-    color: var(--color-text-primary);
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-
-    &:hover {
-      background: var(--color-surface-hover);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--color-border-focus);
-      outline-offset: 1px;
-    }
+    justify-content: flex-start;
   }
 
   &__user-name {

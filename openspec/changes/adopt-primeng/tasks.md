@@ -12,15 +12,15 @@
 
 ## 2. Кнопки, поля и аватар на ките
 
-- [ ] 2.1 Переписать падающий спек `src/app/shared/ui/form/form.spec.ts` там, где он ищет кнопку по классу `button-*`: кнопка отправки находится по роли и имени, недоступность - `toBeDisabled`
-- [ ] 2.2 Заменить `appButton` на кнопку кита в `src/app/shared/ui/form/form.html` и `form.ts`; спек 2.1 зеленый
-- [ ] 2.3 Поправить спеки, которые опираются на классы `appButton`, и заменить `appButton` и «голые» `<button>` кнопками кита в `chat-list.html`, `selected-chat-header.html`, `add-chat-user-panel.html`, `change-avatar-form.html`, `chat-users-panel.html`, `chat-user-row.html` и их `.ts`; `aria-label` кнопок-значков сохранить; спеки этих компонентов зеленые
-- [ ] 2.4 Дописать падающий тест в `src/app/shared/ui/text-field/text-field.spec.ts`: поле с показанным нарушением имеет `aria-invalid`, после исправления значения признак снят (переезд проверки из `input.spec.ts`)
-- [ ] 2.5 Перевести `text-field.ts` на директиву текстового поля кита и свой признак `aria-invalid`, `form-field.html` и `form-field.scss` - на компонент сообщения кита; спеки `text-field.spec.ts` и `form-field.spec.ts` зеленые без правки ожиданий по тексту и роли
-- [ ] 2.6 Перевести `src/app/shared/ui/avatar/avatar.html` и `avatar.scss` на аватар кита, не меняя входы; `avatar.spec.ts` зеленый, правятся только ожидания по разметке, не по поведению
-- [ ] 2.7 Удалить `src/app/shared/ui/button/` и `src/app/shared/ui/input/` со спеками; `grep -r "appButton\|appInput" src` пуст
-- [ ] 2.8 Убрать из `src/styles.scss` и стилей компонентов правила, которые дублируют или ломают оформление кнопок и полей кита; проверить глазами страницы Входа, Регистрации и экран чатов на `npm start`
-- [ ] 2.9 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e`
+- [x] 2.1 Переписать падающий спек `src/app/shared/ui/form/form.spec.ts` там, где он ищет кнопку по классу `button-*`: кнопка отправки находится по роли и имени, недоступность - `toBeDisabled`
+- [x] 2.2 Заменить `appButton` на кнопку кита в `src/app/shared/ui/form/form.html` и `form.ts`; спек 2.1 зеленый
+- [x] 2.3 Поправить спеки, которые опираются на классы `appButton`, и заменить `appButton` и «голые» `<button>` кнопками кита в `chat-list.html`, `selected-chat-header.html`, `add-chat-user-panel.html`, `change-avatar-form.html`, `chat-users-panel.html`, `chat-user-row.html` и их `.ts`; `aria-label` кнопок-значков сохранить; спеки этих компонентов зеленые
+- [x] 2.4 Дописать падающий тест в `src/app/shared/ui/text-field/text-field.spec.ts`: поле с показанным нарушением имеет `aria-invalid`, после исправления значения признак снят (переезд проверки из `input.spec.ts`)
+- [x] 2.5 Перевести `text-field.ts` на директиву текстового поля кита и свой признак `aria-invalid`, `form-field.html` и `form-field.scss` - на компонент сообщения кита; спеки `text-field.spec.ts` и `form-field.spec.ts` зеленые без правки ожиданий по тексту и роли
+- [x] 2.6 Перевести `src/app/shared/ui/avatar/avatar.html` и `avatar.scss` на аватар кита, не меняя входы; `avatar.spec.ts` зеленый, правятся только ожидания по разметке, не по поведению
+- [x] 2.7 Удалить `src/app/shared/ui/button/` и `src/app/shared/ui/input/` со спеками; `grep -r "appButton\|appInput" src` пуст
+- [x] 2.8 Убрать из `src/styles.scss` и стилей компонентов правила, которые дублируют или ломают оформление кнопок и полей кита; проверить глазами страницы Входа, Регистрации и экран чатов на `npm start`
+- [x] 2.9 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e`
 
 ## 3. Уведомления на ките
 

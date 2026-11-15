@@ -60,13 +60,13 @@ describe('ConfirmationDialog', () => {
   it('should paint the confirm button with the danger color for a dangerous action', async () => {
     await renderWith(DANGEROUS_DATA);
 
-    expect(screen.getByRole('button', { name: 'Delete' })).toHaveClass('button-danger');
+    expect(screen.getByRole('button', { name: 'Delete' })).toHaveClass('p-button-danger');
   });
 
   it('should paint the confirm button as a primary action when the action is not dangerous', async () => {
     await renderWith({ ...DANGEROUS_DATA, isDangerous: false });
 
-    expect(screen.getByRole('button', { name: 'Delete' })).toHaveClass('button-primary');
+    expect(screen.getByRole('button', { name: 'Delete' })).not.toHaveClass('p-button-danger');
   });
 
   it('should close with agreement when the confirm button is clicked', async () => {

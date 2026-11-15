@@ -1,4 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
+import { ButtonDirective } from 'primeng/button';
 
 import { ChatUserRow } from '../chat-user-row/chat-user-row';
 
@@ -7,7 +8,7 @@ import { UserId } from '@domains/users';
 
 @Component({
   selector: 'app-chat-users-panel',
-  imports: [ChatUserRow],
+  imports: [ButtonDirective, ChatUserRow],
   templateUrl: './chat-users-panel.html',
   styleUrl: './chat-users-panel.scss',
 })

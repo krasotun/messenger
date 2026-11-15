@@ -4,7 +4,7 @@
     <span class="form-field__label-text">{{ label() }}</span>
     <ng-content></ng-content>
   </label>
-  @if (message()) {
-  <span class="form-field__error"> {{ message() }}</span>
+  @if (message(); as message) {
+  <p-message severity="error" size="small" variant="simple">{{ message }}</p-message>
   }
 </div>

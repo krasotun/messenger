@@ -19,9 +19,13 @@
 <button
   type="button"
   class="chat-user-row__remove-user-button"
+  pButton
+  [text]="true"
+  severity="danger"
+  size="small"
   [aria-label]="removeButtonLabel()"
   (click)="removeRequested.emit()"
 >
-  ✕
+  <i class="pi pi-times" aria-hidden="true"></i>
 </button>
 }

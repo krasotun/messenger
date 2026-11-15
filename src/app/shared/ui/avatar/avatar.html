@@ -1,7 +1,14 @@
+<!-- Картинку проецируем своей, а не через [image] кита: у его <img> нет alt,
+     а у заглушки - role="img"; подпись нужна и той, и другой. -->
 <div class="avatar" [class]="sizeClass()">
-  @if(imageShown()) {
-  <img class="avatar__image" [src]="imageUrl()" [alt]="label()" (error)="onImageError()" />
-  } @else {
-  <div class="avatar__fallback" [attr.aria-label]="label()" role="img">{{ fallbackLetter() }}</div>
-  }
+  <p-avatar
+    shape="circle"
+    [label]="imageShown() ? undefined : fallbackLetter()"
+    [ariaLabel]="imageShown() ? undefined : label()"
+    [attr.role]="imageShown() ? null : 'img'"
+  >
+    @if (imageShown()) {
+    <img class="avatar__image" [src]="imageUrl()" [alt]="label()" (error)="onImageError()" />
+    }
+  </p-avatar>
 </div>

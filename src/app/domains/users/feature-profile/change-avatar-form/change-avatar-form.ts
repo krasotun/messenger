@@ -1,12 +1,12 @@
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ButtonDirective } from 'primeng/button';
 
 import { CurrentSessionStore } from '../../data/current-session-store';
 
 import { createFormSubmitFlowState } from '@shared/submit-flow';
 import { Nullable } from '@shared/types';
 import { Avatar } from '@shared/ui/avatar/avatar';
-import { Button } from '@shared/ui/button/button';
 
 const acceptedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
@@ -15,7 +15,7 @@ const missingFileErrorMessage = 'Select a file';
 
 @Component({
   selector: 'app-change-avatar-form',
-  imports: [Avatar, Button],
+  imports: [Avatar, ButtonDirective],
   templateUrl: './change-avatar-form.html',
   styleUrl: './change-avatar-form.scss',
 })

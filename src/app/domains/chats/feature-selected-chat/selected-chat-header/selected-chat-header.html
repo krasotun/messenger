@@ -4,6 +4,9 @@
 <button
   class="selected-chat-header__members-button"
   type="button"
+  pButton
+  [text]="true"
+  severity="secondary"
   aria-label="Members"
   (click)="membersToggled.emit()"
 >
@@ -13,8 +16,8 @@
 <button
   class="selected-chat-header__add-user-button"
   type="button"
-  appButton
-  colorType="secondary"
+  pButton
+  severity="secondary"
   [appPopover]="addUserPopover"
 >
   + Add member
@@ -24,13 +27,13 @@
 <button
   class="selected-chat-header__delete-button"
   type="button"
-  appButton
-  colorType="secondary"
+  pButton
+  severity="secondary"
+  [outlined]="true"
   aria-label="Delete chat"
   (click)="deleteRequested.emit()"
 >
-  <!-- TODO(#49): заменить глиф на иконку, когда появится примитив иконок -->
-  🗑
+  <i class="pi pi-trash" aria-hidden="true"></i>
 </button>
 }
 

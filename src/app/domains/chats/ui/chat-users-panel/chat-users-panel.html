@@ -4,10 +4,14 @@
   <button
     type="button"
     class="chat-users-panel__close"
+    pButton
+    [text]="true"
+    [rounded]="true"
+    severity="secondary"
     aria-label="Close members"
     (click)="closed.emit()"
   >
-    ✕
+    <i class="pi pi-times" aria-hidden="true"></i>
   </button>
 </div>
 
