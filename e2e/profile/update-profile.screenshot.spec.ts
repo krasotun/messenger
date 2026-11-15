@@ -21,7 +21,7 @@ test('profile modal @visual', async ({ page, request }) => {
   await page.goto('/');
 
   await page.getByRole('button', { name: `Avatar ${mockUser.first_name}` }).click();
-  await page.getByRole('button', { name: 'Edit profile' }).click();
+  await page.getByRole('menuitem', { name: 'Edit profile' }).click();
 
   const modal = page.getByRole('dialog');
 

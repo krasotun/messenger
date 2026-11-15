@@ -24,7 +24,7 @@ test('signs the user out and closes the profile form when the session expires on
   await page.goto('/');
 
   await page.getByRole('button', { name: `Avatar ${mockUser.first_name}` }).click();
-  await page.getByRole('button', { name: 'Edit profile' }).click();
+  await page.getByRole('menuitem', { name: 'Edit profile' }).click();
 
   await expect(page.getByRole('dialog')).toBeVisible();
 

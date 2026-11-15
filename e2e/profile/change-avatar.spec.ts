@@ -36,7 +36,7 @@ const signUpAndOpenProfile = async (
   await page.goto('/');
 
   await page.getByRole('button', { name: `Avatar ${user.first_name}` }).click();
-  await page.getByRole('button', { name: 'Edit profile' }).click();
+  await page.getByRole('menuitem', { name: 'Edit profile' }).click();
 
   await expect(page.getByRole('dialog')).toBeVisible();
 };

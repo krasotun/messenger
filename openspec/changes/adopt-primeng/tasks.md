@@ -48,12 +48,12 @@
 
 ## 5. Меню Текущего пользователя на ките
 
-- [ ] 5.1 Переписать падающий спек `current-user-avatar-menu.spec.ts` в части меню: клик по аватару показывает пункты `Edit profile`, `Change password`, `Logout`; выбор пункта закрывает меню; повторный клик по аватару закрывает меню
-- [ ] 5.2 Перевести `current-user-avatar-menu.ts`, `.html`, `.scss` на всплывающее меню кита; спек 5.1 зеленый
-- [ ] 5.3 Заменить SVG в `src/app/core/layouts/header/header.html` значком `primeicons` и поправить `header.spec.ts`, если он опирался на разметку значка; спек зеленый
-- [ ] 5.4 Удалить `src/app/shared/ui/popover/` со спеками; убрать `@angular/cdk` из `dependencies`, если `grep -r "@angular/cdk" src` находит только `@angular/cdk/testing` в harness - тогда перенести пакет в `devDependencies`; `npm run build` зеленый
-- [ ] 5.5 Поправить e2e-тесты меню (`e2e/auth/current-user-menu*.spec.ts` и те, что открывают меню по пути) под роли кита (`menuitem` вместо `button`, если кит их так объявляет); `npm run e2e` зеленый
-- [ ] 5.6 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e`
+- [x] 5.1 Переписать падающий спек `current-user-avatar-menu.spec.ts` в части меню: клик по аватару показывает пункты `Edit profile`, `Change password`, `Logout`; выбор пункта закрывает меню; повторный клик по аватару закрывает меню
+- [x] 5.2 Перевести `current-user-avatar-menu.ts`, `.html`, `.scss` на всплывающее меню кита; спек 5.1 зеленый
+- [x] 5.3 Проверить, что в `src/app/core/layouts/header/header.html` нет SVG-значков под замену (найдено в блоке 5: там только логотип-картинка `<img>`, остается как есть); `header.spec.ts` зеленый
+- [x] 5.4 Перевести всплывающую панель «Add member» в `selected-chat-header.html` и `.ts` на `p-popover` кита (второй потребитель `Popover`, найден в блоке 5); удалить `src/app/shared/ui/popover/` со спеками и CDK-стили оверлея из `src/styles.scss`; `@angular/cdk` остается в `dependencies` (обязательный peer `primeng`), `grep -r "shared/ui/popover" src` пуст; `npm run build` зеленый
+- [x] 5.5 Поправить e2e-тесты меню (`e2e/auth/current-user-menu*.spec.ts` и те, что открывают меню по пути) под роли кита (`menuitem` вместо `button`, если кит их так объявляет); `npm run e2e` зеленый
+- [x] 5.6 Прогнать `npm run lint`, `npm run test:ci` и `npm run e2e`
 
 ## 6. Эталоны и финальные гейты
 

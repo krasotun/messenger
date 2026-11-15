@@ -1,6 +1,8 @@
-import { Component, computed, inject, viewChild } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { MenuItem } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
+import { Menu } from 'primeng/menu';
 
 import { CurrentSessionStore } from '../../data/current-session-store';
 import { CurrentUser } from '../../data/current-user';
@@ -10,7 +12,6 @@ import { UpdateProfileModalContent } from '../update-profile-modal-content/updat
 import { Nullable } from '@shared/types';
 import { Avatar } from '@shared/ui/avatar/avatar';
 import { DIALOG_DEFAULTS } from '@shared/ui/dialog/dialog-defaults.constants';
-import { Popover } from '@shared/ui/popover/popover';
 
 interface CurrentUserAvatarView {
   imageUrl: Nullable<string>;
@@ -20,7 +21,7 @@ interface CurrentUserAvatarView {
 
 @Component({
   selector: 'app-current-user-avatar-menu',
-  imports: [Avatar, Popover],
+  imports: [Avatar, Menu],
   templateUrl: './current-user-avatar-menu.html',
   styleUrl: './current-user-avatar-menu.scss',
 })
@@ -29,7 +30,11 @@ export class CurrentUserAvatarMenu {
   private readonly _router = inject(Router);
   private readonly _dialogService = inject(DialogService);
 
-  private readonly _popover = viewChild(Popover);
+  protected readonly menuItems: MenuItem[] = [
+    { label: 'Edit profile', command: () => this._editProfile() },
+    { label: 'Change password', command: () => this._changePassword() },
+    { label: 'Logout', command: () => this._logout() },
+  ];
 
   readonly currentUserAvatarView = computed<Nullable<CurrentUserAvatarView>>(() => {
     const currentUser = this._currentSessionStore.currentUser();
@@ -37,9 +42,7 @@ export class CurrentUserAvatarMenu {
     return currentUser ? this._toAvatarView(currentUser) : null;
   });
 
-  protected editProfile(): void {
-    this._popover()?.close();
-
+  private _editProfile(): void {
     this._currentSessionStore.refreshCurrentUser().subscribe((currentUser) => {
       this._dialogService.open(UpdateProfileModalContent, {
         ...DIALOG_DEFAULTS,
@@ -49,16 +52,14 @@ export class CurrentUserAvatarMenu {
     });
   }
 
-  protected changePassword(): void {
-    this._popover()?.close();
-
+  private _changePassword(): void {
     this._dialogService.open(ChangePasswordModalContent, {
       ...DIALOG_DEFAULTS,
       header: 'Change password',
     });
   }
 
-  protected logout(): void {
+  private _logout(): void {
     this._currentSessionStore.logout().subscribe({
       next: () => {
         this._router.navigateByUrl('/sign-in');

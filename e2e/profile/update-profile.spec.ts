@@ -23,7 +23,7 @@ test('shows updated profile data without page reload', async ({ page, request })
   await page.goto('/');
 
   await page.getByRole('button', { name: `Avatar ${mockUser.first_name}` }).click();
-  await page.getByRole('button', { name: 'Edit profile' }).click();
+  await page.getByRole('menuitem', { name: 'Edit profile' }).click();
 
   await page.getByRole('textbox', { name: 'First name' }).fill(updatedFirstName);
 
@@ -59,7 +59,7 @@ test('keeps entered values and shows an error when the backend rejects saving', 
   await page.goto('/');
 
   await page.getByRole('button', { name: `Avatar ${rejectedUser.first_name}` }).click();
-  await page.getByRole('button', { name: 'Edit profile' }).click();
+  await page.getByRole('menuitem', { name: 'Edit profile' }).click();
 
   await page.getByRole('textbox', { name: 'Login' }).fill(takenLoginUser.login);
 

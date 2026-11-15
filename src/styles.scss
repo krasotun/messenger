@@ -1,13 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 
-@use '@angular/cdk' as cdk;
 @use 'layout';
 @use '../public/static/styles/normalize';
 @use '../public/static/styles/fonts';
-
-// Структурные стили CDK Overlay: позиционирование контейнера и затенение фона.
-// Нужны popover; уйдут вместе с ним в блоке 5.
-@include cdk.overlay();
 
 :root {
   /* Base */
