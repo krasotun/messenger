@@ -1,16 +1,16 @@
 import { Component, inject, Injector, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ButtonDirective } from 'primeng/button';
 
 import { ChatListItem } from '../../ui/chat-list-item/chat-list-item';
 import { CreateChatModalContent } from '../create-chat-modal-content/create-chat-modal-content';
 
 import { ChatListStore } from '@domains/chats/data/chat-list-store';
-import { Button } from '@shared/ui/button/button';
 import { ModalService } from '@shared/ui/modal/modal-service';
 
 @Component({
   selector: 'app-chat-list',
-  imports: [ChatListItem, Button, RouterLink, RouterLinkActive],
+  imports: [ChatListItem, ButtonDirective, RouterLink, RouterLinkActive],
   templateUrl: './chat-list.html',
   styleUrl: './chat-list.scss',
 })

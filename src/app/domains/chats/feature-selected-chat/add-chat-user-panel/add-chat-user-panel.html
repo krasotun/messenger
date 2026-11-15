@@ -1,6 +1,7 @@
 <input
   class="add-chat-user-panel__input"
-  appInput
+  pInputText
+  [fluid]="true"
   type="text"
   aria-label="Search users"
   [formField]="loginField"
@@ -12,7 +13,14 @@
 <ul class="add-chat-user-panel__list">
   @for (user of foundUsers(); track user.id) {
   <li>
-    <button type="button" class="add-chat-user-panel__user" (click)="addUser(user)">
+    <button
+      type="button"
+      class="add-chat-user-panel__user"
+      pButton
+      [text]="true"
+      severity="secondary"
+      (click)="addUser(user)"
+    >
       <app-avatar
         [label]="'Avatar ' + user.name"
         [imageUrl]="user.avatar"

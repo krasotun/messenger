@@ -50,4 +50,21 @@ describe('TextField', () => {
     expect(screen.getByText('This field is required')).toBeInTheDocument();
     expect(getField()).toBeInvalid();
   });
+
+  it('should not mark an untouched invalid field as invalid', async () => {
+    await renderHost();
+
+    expect(getField()).toHaveAttribute('aria-invalid', 'false');
+  });
+
+  it('should clear the invalid mark once the value is fixed', async () => {
+    const user = userEvent.setup();
+    await renderHost();
+
+    await user.click(getField());
+    await user.tab();
+    await user.type(getField(), 'secret');
+
+    expect(getField()).toHaveAttribute('aria-invalid', 'false');
+  });
 });

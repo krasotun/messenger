@@ -1,6 +1,8 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { form, FormField } from '@angular/forms/signals';
+import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 
 import { createUserSearchState } from './user-search-state';
 import { UserSearchStatus } from './user-search-status';
@@ -9,14 +11,13 @@ import { ChatUsersStore } from '@domains/chats/data/chat-users-store';
 import { User, USER_GATEWAY } from '@domains/users';
 import { Nullable } from '@shared/types';
 import { Avatar } from '@shared/ui/avatar/avatar';
-import { Input } from '@shared/ui/input/input';
 
 const notStartedHint = 'Start typing a login';
 const nobodyFoundHint = 'No users found';
 
 @Component({
   selector: 'app-add-chat-user-panel',
-  imports: [Avatar, Input, FormField],
+  imports: [Avatar, ButtonDirective, InputText, FormField],
   templateUrl: './add-chat-user-panel.html',
   styleUrl: './add-chat-user-panel.scss',
 })

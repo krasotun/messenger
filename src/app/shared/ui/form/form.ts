@@ -1,13 +1,13 @@
 import { Component, computed, input, output } from '@angular/core';
 import { FieldTree } from '@angular/forms/signals';
+import { ButtonDirective } from 'primeng/button';
 
-import { Button } from '@shared/ui/button/button';
 import { TextField } from '@shared/ui/text-field/text-field';
 import { TextFieldConfig } from '@shared/ui/text-field/text-field-config.type';
 
 @Component({
   selector: 'app-form',
-  imports: [Button, TextField],
+  imports: [ButtonDirective, TextField],
   templateUrl: './form.html',
   styleUrl: './form.scss',
 })

@@ -27,18 +27,6 @@
 
   &__close {
     flex-shrink: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    font-size: 14px;
-    line-height: 1;
-    color: var(--color-icon);
-    cursor: pointer;
-
-    &:focus-visible {
-      outline: 2px solid var(--color-border-focus);
-      outline-offset: 2px;
-    }
   }
 
   &__list {

@@ -1,13 +1,13 @@
 import { Component, inject, input } from '@angular/core';
+import { ButtonDirective } from 'primeng/button';
 
 import { ConfirmationData } from '../confirmation-data.type';
 
-import { Button } from '@shared/ui/button/button';
 import { ModalRef } from '@shared/ui/modal/modal-ref';
 
 @Component({
   selector: 'app-confirmation-dialog',
-  imports: [Button],
+  imports: [ButtonDirective],
   templateUrl: './confirmation-dialog.html',
   styleUrl: './confirmation-dialog.scss',
 })
