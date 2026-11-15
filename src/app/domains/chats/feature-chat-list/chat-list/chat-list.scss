@@ -33,7 +33,9 @@
 
     &_active {
       background: var(--color-surface-selected);
-      border-left: 3px solid var(--color-surface-selected-border);
+      // Полоса - тенью, а не border: border съедает 3px и сдвигает аватар и
+      // текст выбранного чата относительно соседних.
+      box-shadow: inset 3px 0 0 var(--color-surface-selected-border);
     }
   }
 
