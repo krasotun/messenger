@@ -139,14 +139,15 @@ context: |
   - В `shared` имя файла отвечает на «что внутри», и суффикс на файле ровно
     один: два суффикса подряд (`notification-kind.enum.type.ts`) читаются хуже,
     чем одно составное имя. Файл, где нет ничего кроме типов и интерфейсов, -
-    `<имя>.type.ts`, и роль уезжает в само имя: `confirmation-data.type.ts`, а
-    не `confirmation.data.ts`. Файл, где нет
+    `<имя>.type.ts`, и роль уезжает в само имя: `text-field-config.type.ts`, а
+    не `text-field.config.ts`. Файл, где нет
     ничего кроме констант, - `<имя>.constants.ts`: экспортируемая константа не
-    живет в файле типа, `DEFAULT_MODAL_SIZE` лежит в `modal-size.constants.ts`,
-    а `ModalSize` - в `modal-size.type.ts`. Константа без `export`, нужная
+    живет в файле типа, `DEFAULT_NOTIFICATION_DELAY_MS` лежит в
+    `notification.constants.ts`, а `NotificationKind` - в
+    `notification-kind.type.ts`. Константа без `export`, нужная
     только внутри файла, остается на месте. Все остальное названо по главному
-    идентификатору внутри, без суффикса артефакта (`confirmation.service.ts`,
-    `toast.ts`) - это конвенция Angular style guide 2025, и проект от нее не
+    идентификатору внутри, без суффикса артефакта (`prime-notifier.ts`,
+    `avatar.ts`) - это конвенция Angular style guide 2025, и проект от нее не
     отступает.
   - Flex-раскладка пишется миксинами `row` и `column` из `src/styles/_layout.scss`,
     а не `display: flex` руками: `@use 'layout'` в начале файла, дальше
