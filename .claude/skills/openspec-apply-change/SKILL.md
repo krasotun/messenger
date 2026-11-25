@@ -54,7 +54,7 @@ Implement tasks from an OpenSpec change.
 
    **Handle states:**
    - If `state: "blocked"` (missing artifacts): show message, suggest using `/opsx:continue` (if it is not installed, run `openspec status --change "<name>" --json` to see the next artifact and `openspec instructions <artifact-id> --change "<name>" --json` for how to create it)
-   - If `state: "all_done"`: congratulate, suggest archive
+   - If `state: "all_done"`: check the last block’s PR and complete any outstanding review handoff in `docs/github-workflow.md` before suggesting archive
    - Otherwise: proceed to implementation
 
    Treat `context` as a required prompt-level input. Read and consider it, and
@@ -90,14 +90,18 @@ Implement tasks from an OpenSpec change.
    - Remaining tasks overview
    - Dynamic instruction from CLI
 
-6. **Implement tasks (loop until done or blocked)**
+6. **Implement one section of tasks.md**
 
-   For each pending task:
+   Read `docs/github-workflow.md` before starting. Select the current numbered
+   section (`## N`) and work on its block branch. Limit the loop to pending
+   tasks in that section. Resume an open block review before advancing.
+
+   For each pending task in the selected section:
    - Show which task is being worked on
    - Make the code changes required
    - Keep changes minimal and focused
    - Mark task complete in the tasks file: `- [ ]` → `- [x]`
-   - Continue to next task
+   - Continue within the selected section
 
    **Pause if:**
    - Task is unclear → ask for clarification
@@ -106,68 +110,15 @@ Implement tasks from an OpenSpec change.
    - Error or blocker encountered → report and wait for guidance
    - User interrupts
 
-7. **On completion or pause, show status**
+7. **Hand the section over for review**
 
-   Display:
-   - Tasks completed this session
-   - Overall progress: "N/M tasks complete"
-   - If all done: suggest archive
-   - If paused: explain why and wait for guidance
-
-**Output During Implementation**
-
-```
-## Implementing: <change-name> (schema: <schema-name>)
-
-Working on task 3/7: <task description>
-[...implementation happening...]
-✓ Task complete
-
-Working on task 4/7: <task description>
-[...implementation happening...]
-✓ Task complete
-```
-
-**Output On Completion**
-
-```
-## Implementation Complete
-
-**Change:** <change-name>
-**Schema:** <schema-name>
-**Progress:** 7/7 tasks complete ✓
-
-### Completed This Session
-- [x] Task 1
-- [x] Task 2
-...
-
-All tasks complete! You can archive this change with `/opsx:archive`.
-```
-
-**Output On Pause (Issue Encountered)**
-
-```
-## Implementation Paused
-
-**Change:** <change-name>
-**Schema:** <schema-name>
-**Progress:** 4/7 tasks complete
-
-### Issue Encountered
-<description of the issue>
-
-**Options:**
-1. <option 1>
-2. <option 2>
-3. Other approach
-
-What would you like to do?
-```
+   Follow the block completion steps in `docs/github-workflow.md`: run both
+   checks, commit, push, open the block PR, and report the tasks, files, check
+   results, and PR link. Stop here, including for the final section. If
+   blocked, report the remaining tasks and the blocker.
 
 **Guardrails**
 
-- Keep going through tasks until done or blocked
 - Always read context files before starting (from the apply instructions output)
 - If task is ambiguous, pause and ask before implementing
 - If implementation reveals issues, pause and suggest artifact updates
@@ -182,10 +133,3 @@ What would you like to do?
 - Consider every guidance entry; explain any inapplicable or conflicting advice
 - Do not copy runtime context or operation guidance into implementation files or planning artifacts
 - Preserve CLI-controlled blocked/ready/all-done behavior and completion criteria
-
-**Fluid Workflow Integration**
-
-This skill supports the "actions on a change" model:
-
-- **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
-- **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly
